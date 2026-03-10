@@ -1,27 +1,24 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ShieldAlert, CheckCircle2, Info, X } from 'lucide-react';
-
-const ToastContext = createContext();
-
-export const useToast = () => useContext(ToastContext);
+import { ToastContext } from './toastContext';
 
 export const ToastProvider = ({ children }) => {
     const [toasts, setToasts] = useState([]);
+
+    const removeToast = useCallback((id) => {
+        setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, []);
 
     const addToast = useCallback(({ type = 'info', message, duration = 4000 }) => {
         const id = Date.now().toString();
         setToasts((prev) => [...prev, { id, type, message }]);
 
         if (duration > 0) {
-            setTimeout(() => {
+            window.setTimeout(() => {
                 removeToast(id);
             }, duration);
         }
-    }, []);
-
-    const removeToast = useCallback((id) => {
-        setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, []);
+    }, [removeToast]);
 
     const success = (message) => addToast({ type: 'success', message });
     const error = (message) => addToast({ type: 'error', message });

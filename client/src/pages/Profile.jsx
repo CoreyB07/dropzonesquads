@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Shield, ExternalLink, Monitor } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -18,13 +18,21 @@ const Profile = () => {
     });
     const isProfileSetupMode = new URLSearchParams(location.search).get('setup') === '1';
 
-    useEffect(() => {
-        setProfileForm({
-            username: user?.username || '',
-            activisionId: user?.activisionId || '',
-            platform: user?.platform || 'Crossplay'
-        });
-    }, [user?.username, user?.activisionId, user?.platform]);
+    const getCurrentProfileValues = () => ({
+        username: user?.username ?? '',
+        activisionId: user?.activisionId ?? '',
+        platform: user?.platform ?? 'Crossplay'
+    });
+
+    const handleEditToggle = () => {
+        if (isEditingProfile) {
+            setIsEditingProfile(false);
+            return;
+        }
+
+        setProfileForm(getCurrentProfileValues());
+        setIsEditingProfile(true);
+    };
 
     const handleProfileSave = async (e) => {
         e.preventDefault();
@@ -91,7 +99,7 @@ const Profile = () => {
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-black uppercase tracking-tight">Deployment Details</h2>
                     <button
-                        onClick={() => setIsEditingProfile((prev) => !prev)}
+                        onClick={handleEditToggle}
                         className="text-xs font-bold uppercase text-tactical-yellow hover:underline flex items-center gap-1"
                     >
                         {isEditingProfile ? 'Cancel Edit' : 'Edit Profile'} <ExternalLink className="w-3 h-3" />

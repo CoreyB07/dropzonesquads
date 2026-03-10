@@ -39,14 +39,35 @@ npm run dev
 
 Open `http://localhost:5173`.
 
-## 4. Deploy to GitHub Pages
+## 4. Deploy to GitHub Pages + Cloudflare
 
-1. Push this repo to GitHub.
-2. Configure a Pages workflow (Vite static build).
-3. In GitHub repo settings -> Secrets and variables -> Actions, add:
+1. Push this repo to GitHub (`main` branch).
+2. In GitHub repo settings -> Secrets and variables -> Actions, add:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_PUBLISHABLE_KEY`
-4. Add your custom domain (`dropzonesquads.com`) in GitHub Pages settings and configure DNS.
+3. In GitHub repo settings -> Pages:
+   - Source: `GitHub Actions`
+   - Custom domain: `www.dropzonesquads.com`
+   - Enable `Enforce HTTPS` after DNS is valid.
+4. In Cloudflare DNS for `dropzonesquads.com`, add:
+   - `CNAME` record: `www` -> `coreyb07.github.io`
+   - `A` record: `@` -> `185.199.108.153`
+   - `A` record: `@` -> `185.199.109.153`
+   - `A` record: `@` -> `185.199.110.153`
+   - `A` record: `@` -> `185.199.111.153`
+5. In Cloudflare Rules, add a redirect:
+   - `dropzonesquads.com/*` -> `https://www.dropzonesquads.com/$1` (301)
+6. Wait for DNS propagation, then rerun the deploy workflow if needed.
+
+## 5. Supabase Auth URLs (Required for Email Auth Flows)
+
+In Supabase -> Authentication -> URL Configuration:
+
+- Site URL: `https://www.dropzonesquads.com`
+- Additional Redirect URLs:
+  - `http://localhost:5173`
+  - `https://www.dropzonesquads.com`
+  - `https://dropzonesquads.com`
 
 ## Notes
 

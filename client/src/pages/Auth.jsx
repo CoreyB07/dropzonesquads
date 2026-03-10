@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import { Shield, Mail, User, Lock, Monitor, Smartphone, Layout } from 'lucide-react';
 
 const Auth = () => {
@@ -9,7 +9,7 @@ const Auth = () => {
     const location = useLocation();
     const { login, register } = useAuth();
     const { success, error: showError } = useToast();
-    const [isLogin, setIsLogin] = useState(() => new URLSearchParams(location.search).get('mode') !== 'signup');
+    const isLogin = new URLSearchParams(location.search).get('mode') !== 'signup';
     const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -20,6 +20,24 @@ const Auth = () => {
         platform: 'Crossplay',
         marketingOptIn: false
     });
+
+    const setAuthMode = (nextIsLogin) => {
+        const params = new URLSearchParams(location.search);
+        if (nextIsLogin) {
+            params.delete('mode');
+        } else {
+            params.set('mode', 'signup');
+        }
+
+        const search = params.toString();
+        navigate(
+            {
+                pathname: location.pathname,
+                search: search ? `?${search}` : ''
+            },
+            { replace: true }
+        );
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -32,7 +50,7 @@ const Auth = () => {
         if (result.success) {
             if (result.requiresEmailConfirmation) {
                 success(result.message || 'Account created. Please confirm your email before signing in.');
-                setIsLogin(true);
+                setAuthMode(true);
             } else {
                 success(isLogin ? 'Signed in successfully.' : 'Account created. You are now signed in.');
                 setTimeout(() => navigate('/'), 900);
@@ -43,11 +61,6 @@ const Auth = () => {
 
         setLoading(false);
     };
-
-    useEffect(() => {
-        const mode = new URLSearchParams(location.search).get('mode');
-        setIsLogin(mode !== 'signup');
-    }, [location.search]);
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center p-4">
@@ -193,7 +206,7 @@ const Auth = () => {
                     <div className="mt-8 pt-6 border-t border-military-gray/30 text-center">
                         <button
                             onClick={() => {
-                                setIsLogin(!isLogin);
+                                setAuthMode(!isLogin);
                             }}
                             className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-tactical-yellow transition-colors"
                         >

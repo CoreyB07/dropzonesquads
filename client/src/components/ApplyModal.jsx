@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Shield, Target, MessageSquare, Lock, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 
 const ApplyModal = ({ squad, onClose }) => {
     const navigate = useNavigate();

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, Shield, Users, Megaphone, Crown, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import { fetchAdminStats, fetchRecentSignups } from '../utils/adminApi';
 
 const formatDateTime = (value) => {
