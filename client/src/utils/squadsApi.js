@@ -1,6 +1,9 @@
 import { assertSupabaseConfigured, supabase } from './supabase';
 
 const toNumber = (value, fallback) => {
+    if (value === null || value === undefined || String(value).trim() === '') {
+        return fallback;
+    }
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : fallback;
 };
