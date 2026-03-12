@@ -90,6 +90,11 @@ export const AuthProvider = ({ children }) => {
             return;
         }
 
+        // Optimistic user state first so UI doesn't get stuck waiting on profile fetch/upsert.
+        const optimistic = normalizeProfile(authUser, null);
+        setUser(optimistic);
+        localStorage.setItem('warzone_hub_current_user', JSON.stringify(optimistic));
+
         try {
             const profile = await fetchProfile(authUser);
             const normalized = normalizeProfile(authUser, profile);
@@ -97,9 +102,6 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('warzone_hub_current_user', JSON.stringify(normalized));
         } catch (error) {
             console.error('Failed to hydrate user profile:', error);
-            const fallback = normalizeProfile(authUser, null);
-            setUser(fallback);
-            localStorage.setItem('warzone_hub_current_user', JSON.stringify(fallback));
         }
     }, [fetchProfile]);
 
@@ -120,14 +122,21 @@ export const AuthProvider = ({ children }) => {
                     throw error;
                 }
                 if (!active) return;
-                await hydrateUser(data.session?.user || null);
+
+                // Never block initial render on profile hydration.
+                setLoading(false);
+                const authUser = data.session?.user || null;
+                if (!authUser) {
+                    setUser(null);
+                    localStorage.removeItem('warzone_hub_current_user');
+                    return;
+                }
+
+                await hydrateUser(authUser);
             } catch (error) {
                 console.error('Failed to initialize auth session:', error);
                 if (active) {
                     setUser(null);
-                }
-            } finally {
-                if (active) {
                     setLoading(false);
                 }
             }
@@ -145,10 +154,8 @@ export const AuthProvider = ({ children }) => {
             data: { subscription }
         } = supabase.auth.onAuthStateChange(async (_event, session) => {
             if (!active) return;
+            setLoading(false);
             await hydrateUser(session?.user || null);
-            if (active) {
-                setLoading(false);
-            }
         });
 
         return () => {
