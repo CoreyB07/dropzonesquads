@@ -10,7 +10,7 @@ import { useToast } from '../context/useToast';
 import { getConversationReadAt, getSquadReadAt, isUnreadAfterReadAt, subscribeToMailReadState } from '../utils/mailState';
 
 const Inbox = () => {
-    const { user, isSupabaseReady } = useAuth();
+    const { user, isSupabaseReady, applications } = useAuth();
     const { mySquads } = useMySquads();
     const { error: showError } = useToast();
     const navigate = useNavigate();
@@ -317,6 +317,10 @@ const Inbox = () => {
 
     const unreadSquadCount = unreadSquadIds.length;
     const unreadDirectCount = conversations.filter((conversation) => conversation.unread).length;
+    const unreadNotificationCount = notifications.filter((n) => !n.read_at).length;
+    const pendingJoinRequestCount = (applications || []).filter(
+        (app) => app.status === 'pending' && app.squadCreatorUserId === user?.id
+    ).length;
 
     if (!user) {
         return (
@@ -339,6 +343,44 @@ const Inbox = () => {
                         <Mail className="w-8 h-8 text-tactical-yellow" /> Secure Inbox
                     </h1>
                     <p className="text-sm font-bold tracking-widest text-gray-400 uppercase mt-1">Encrypted Direct Messages & Squad Comms</p>
+                </div>
+            </div>
+
+            <div className="card-tactical space-y-3">
+                <h2 className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Needs Attention</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/my-squads')}
+                        className="rounded-lg border border-military-gray bg-charcoal-dark px-4 py-3 text-left hover:border-tactical-yellow-hover"
+                    >
+                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Join Requests</p>
+                        <p className="text-lg font-black text-white">{pendingJoinRequestCount}</p>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/inbox')}
+                        className="rounded-lg border border-military-gray bg-charcoal-dark px-4 py-3 text-left hover:border-tactical-yellow-hover"
+                    >
+                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Unread Notifications</p>
+                        <p className="text-lg font-black text-white">{unreadNotificationCount}</p>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/inbox')}
+                        className="rounded-lg border border-military-gray bg-charcoal-dark px-4 py-3 text-left hover:border-tactical-yellow-hover"
+                    >
+                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Unread Direct Messages</p>
+                        <p className="text-lg font-black text-white">{unreadDirectCount}</p>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/inbox')}
+                        className="rounded-lg border border-military-gray bg-charcoal-dark px-4 py-3 text-left hover:border-tactical-yellow-hover"
+                    >
+                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Unread Squad Chats</p>
+                        <p className="text-lg font-black text-white">{unreadSquadCount}</p>
+                    </button>
                 </div>
             </div>
 
