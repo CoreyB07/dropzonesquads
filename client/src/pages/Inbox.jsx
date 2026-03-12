@@ -5,7 +5,7 @@ import { useMySquads } from '../context/MySquadsContext';
 import SupporterBadge from '../components/SupporterBadge';
 import SquadNameText from '../components/SquadNameText';
 import { Mail, MessageSquare, Shield, ShieldAlert, UserRound, Users, ChevronRight, Bell } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../context/useToast';
 import { getConversationReadAt, getSquadReadAt, isUnreadAfterReadAt, subscribeToMailReadState } from '../utils/mailState';
 
@@ -13,6 +13,7 @@ const Inbox = () => {
     const { user, isSupabaseReady } = useAuth();
     const { mySquads } = useMySquads();
     const { error: showError } = useToast();
+    const navigate = useNavigate();
     const [conversations, setConversations] = useState([]);
     const [unreadSquadIds, setUnreadSquadIds] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -261,6 +262,37 @@ const Inbox = () => {
         }
     };
 
+    const handleNotificationClick = async (notification) => {
+        await markNotificationRead(notification.id);
+
+        const squadId = notification?.payload?.squad_id;
+        const actorId = notification?.actor_id;
+
+        if (notification.type === 'direct_message' && actorId) {
+            navigate(`/dm/${actorId}`);
+            return;
+        }
+
+        if (notification.type === 'squad_join_request' && squadId) {
+            navigate(`/squad/${squadId}/manage`);
+            return;
+        }
+
+        if ((notification.type === 'squad_join_request_accepted' || notification.type === 'squad_join_request_rejected') && squadId) {
+            navigate(`/squad/${squadId}`);
+            return;
+        }
+
+        if (notification.type === 'squad_message' && squadId) {
+            navigate(`/squad/${squadId}/chat`);
+            return;
+        }
+
+        if ((notification.type === 'friend_request' || notification.type === 'friend_request_accepted') && actorId) {
+            navigate(`/user/${actorId}`);
+        }
+    };
+
     const notificationLabel = (n) => {
         const actor = n.actor?.username || 'Someone';
         if (n.type === 'friend_request') return `${actor} sent you a friend request`;
@@ -384,7 +416,7 @@ const Inbox = () => {
                             {notifications.map((n) => (
                                 <button
                                     key={n.id}
-                                    onClick={() => markNotificationRead(n.id)}
+                                    onClick={() => handleNotificationClick(n)}
                                     className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors ${!n.read_at ? 'bg-charcoal-dark/50' : ''}`}
                                 >
                                     <div className="flex items-start justify-between gap-3">
