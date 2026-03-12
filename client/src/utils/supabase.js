@@ -11,38 +11,6 @@ const supabasePublishableKey = (
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const projectRef = (() => {
-    try {
-        return new URL(supabaseUrl).hostname.split('.')[0];
-    } catch {
-        return '';
-    }
-})();
-
-const authStorageKey = projectRef ? `sb-${projectRef}-auth-token` : '';
-
-const getStoredAccessToken = () => {
-    if (!authStorageKey || typeof localStorage === 'undefined') {
-        return null;
-    }
-
-    try {
-        const raw = localStorage.getItem(authStorageKey);
-        if (!raw) return null;
-
-        const parsed = JSON.parse(raw);
-        // Supabase has used a couple of shapes over time.
-        return (
-            parsed?.access_token ||
-            parsed?.currentSession?.access_token ||
-            parsed?.session?.access_token ||
-            null
-        );
-    } catch {
-        return null;
-    }
-};
-
 const resilientFetch = async (input, init = {}) => {
     const maxAttempts = 2;
     let lastError;
@@ -82,7 +50,6 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabasePublishableKe
 
 export const supabase = isSupabaseConfigured
     ? createClient(supabaseUrl, supabasePublishableKey, {
-        accessToken: async () => getStoredAccessToken(),
         global: {
             fetch: resilientFetch
         }
