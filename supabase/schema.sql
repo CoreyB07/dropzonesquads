@@ -205,27 +205,11 @@ on public.squads for insert
 to authenticated
 with check (creator_id = auth.uid());
 
-create policy "Squad managers can update squads"
+create policy "Squad creators can update squads"
 on public.squads for update
 to authenticated
-using (
-  creator_id = auth.uid()
-  or exists (
-    select 1 from public.squad_members sm
-    where sm.squad_id = squads.id
-      and sm.user_id = auth.uid()
-      and sm.role in ('leader', 'co-leader')
-  )
-)
-with check (
-  creator_id = auth.uid()
-  or exists (
-    select 1 from public.squad_members sm
-    where sm.squad_id = squads.id
-      and sm.user_id = auth.uid()
-      and sm.role in ('leader', 'co-leader')
-  )
-);
+using (creator_id = auth.uid())
+with check (creator_id = auth.uid());
 
 grant select on public.squads to anon, authenticated;
 grant insert, update on public.squads to authenticated;
@@ -304,6 +288,28 @@ using (
 );
 
 grant select, insert, update, delete on public.squad_members to authenticated;
+
+-- now that squad_members exists, allow leaders/co-leaders to update squads too
+drop policy if exists "Squad leaders can update squads" on public.squads;
+create policy "Squad leaders can update squads"
+on public.squads for update
+to authenticated
+using (
+  exists (
+    select 1 from public.squad_members sm
+    where sm.squad_id = squads.id
+      and sm.user_id = auth.uid()
+      and sm.role in ('leader', 'co-leader')
+  )
+)
+with check (
+  exists (
+    select 1 from public.squad_members sm
+    where sm.squad_id = squads.id
+      and sm.user_id = auth.uid()
+      and sm.role in ('leader', 'co-leader')
+  )
+);
 
 create table if not exists public.squad_applications (
   id uuid primary key default gen_random_uuid(),
