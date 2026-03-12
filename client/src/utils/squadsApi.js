@@ -1,4 +1,4 @@
-import { assertSupabaseConfigured, supabase } from './supabase';
+import { assertSupabaseConfigured, supabase, supabaseAuth } from './supabase';
 
 const toNumber = (value, fallback) => {
     if (value === null || value === undefined || String(value).trim() === '') {
@@ -65,7 +65,7 @@ export const createSquad = async ({ creatorId, ...formData }) => {
     assertSupabaseConfigured();
 
     // Always trust the live auth session user id to avoid stale local profile ids.
-    const { data: authData, error: authError } = await supabase.auth.getUser();
+    const { data: authData, error: authError } = await supabaseAuth.auth.getUser();
     if (authError) {
         const err = new Error(`auth-check failed: ${authError.message || 'unknown auth error'}`);
         err.code = authError.code;
@@ -135,7 +135,7 @@ export const createSquad = async ({ creatorId, ...formData }) => {
         if (String(firstInsertError?.message || '').toLowerCase().includes('timed out')) {
             // One automatic retry after refreshing auth session
             try {
-                await supabase.auth.refreshSession();
+                await supabaseAuth.auth.refreshSession();
                 const retryResult = await insertWithTimeout(15000);
                 error = retryResult?.error || null;
             } catch (retryError) {

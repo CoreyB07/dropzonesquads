@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { assertSupabaseConfigured, supabase } from '../utils/supabase';
+import { assertSupabaseConfigured, supabase, supabaseAuth } from '../utils/supabase';
 
 const AuthContext = createContext();
 const MARKETING_CONSENT_TEXT = 'I agree to receive updates and special offers from Drop Zone Squads.';
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
-    const isSupabaseReady = Boolean(supabase);
+    const isSupabaseReady = Boolean(supabase && supabaseAuth);
 
     const fetchProfile = useCallback(async (authUser) => {
         assertSupabaseConfigured();
@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }) => {
             let hasLiveAuthUser = true;
             try {
                 if (supabase) {
-                    const { data } = await supabase.auth.getUser();
+                    const { data } = await supabaseAuth.auth.getUser();
                     hasLiveAuthUser = Boolean(data?.user?.id);
                 }
             } catch {
@@ -154,7 +154,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('warzone_hub_current_user');
             try {
                 if (supabase) {
-                    await supabase.auth.signOut({ scope: 'local' });
+                    await supabaseAuth.auth.signOut({ scope: 'local' });
                 }
             } catch (signOutError) {
                 console.warn('Failed to clear local auth session after hydrate error:', signOutError);
@@ -186,7 +186,7 @@ export const AuthProvider = ({ children }) => {
                 // Some browser contexts can hang on getSession(); prefer getUser first, then fallback.
                 let authUser = null;
                 try {
-                    const { data: userData, error: userError } = await withTimeout(supabase.auth.getUser(), 'auth.getUser', 15000);
+                    const { data: userData, error: userError } = await withTimeout(supabaseAuth.auth.getUser(), 'auth.getUser', 15000);
                     if (userError) {
                         throw userError;
                     }
@@ -199,7 +199,7 @@ export const AuthProvider = ({ children }) => {
                         console.warn('getUser init failed/timed out, falling back to getSession:', userError);
                     }
 
-                    const { data, error } = await withTimeout(supabase.auth.getSession(), 'auth.getSession', 15000);
+                    const { data, error } = await withTimeout(supabaseAuth.auth.getSession(), 'auth.getSession', 15000);
                     if (error) {
                         throw error;
                     }
@@ -248,7 +248,7 @@ export const AuthProvider = ({ children }) => {
 
         const {
             data: { subscription }
-        } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        } = supabaseAuth.auth.onAuthStateChange(async (_event, session) => {
             if (!active) return;
             setLoading(false);
             await hydrateUser(session?.user || null);
@@ -335,7 +335,7 @@ export const AuthProvider = ({ children }) => {
         try {
             assertSupabaseConfigured();
             const { data, error } = await withTimeout(
-                supabase.auth.signInWithPassword({
+                supabaseAuth.auth.signInWithPassword({
                     email: normalizedEmail,
                     password
                 }),
@@ -365,7 +365,7 @@ export const AuthProvider = ({ children }) => {
 
         try {
             assertSupabaseConfigured();
-            const { error } = await supabase.auth.signInWithOAuth({
+            const { error } = await supabaseAuth.auth.signInWithOAuth({
                 provider,
                 options: {
                     redirectTo: `${window.location.origin}/auth/callback`
@@ -427,7 +427,7 @@ export const AuthProvider = ({ children }) => {
 
         try {
             assertSupabaseConfigured();
-            const { data, error } = await supabase.auth.signUp({
+            const { data, error } = await supabaseAuth.auth.signUp({
                 email: normalizedEmail,
                 password: normalizedPassword
             });
@@ -483,7 +483,7 @@ export const AuthProvider = ({ children }) => {
         try {
             assertSupabaseConfigured();
             await Promise.race([
-                supabase.auth.signOut({ scope: 'global' }),
+                supabaseAuth.auth.signOut({ scope: 'global' }),
                 new Promise((resolve) => setTimeout(resolve, 3000))
             ]);
         } catch (error) {
