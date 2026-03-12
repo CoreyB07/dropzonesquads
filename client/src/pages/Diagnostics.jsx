@@ -78,14 +78,21 @@ const Diagnostics = () => {
       return;
     }
 
-    // Network sanity check against Supabase REST endpoint (no auth required)
+    // Network sanity check against Supabase REST endpoint.
+    // 401 here is expected without auth headers and means endpoint is reachable.
     try {
       const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || 'https://imdkaqhnnmgzgiykmxnz.supabase.co').trim();
       const netResponse = await withTimeout(fetch(`${supabaseUrl}/rest/v1/`, { method: 'GET' }), 'NET_S1 supabase rest probe', 12000);
+      const status = netResponse?.status || null;
+      const reachableUnauthExpected = status === 401;
       out = push(out, {
         step: 'NET_S1',
-        ok: Boolean(netResponse),
-        data: { status: netResponse?.status || null, ok: Boolean(netResponse?.ok) }
+        ok: Boolean(netResponse) && (reachableUnauthExpected || Boolean(netResponse?.ok)),
+        data: {
+          status,
+          ok: Boolean(netResponse?.ok),
+          reachable_unauth_expected: reachableUnauthExpected
+        }
       });
     } catch (e) {
       out = push(out, { step: 'NET_S1', ok: false, error: fmtErr(e) });
@@ -253,6 +260,7 @@ const Diagnostics = () => {
       <div className="card-tactical space-y-4">
         <h1 className="text-2xl font-black uppercase tracking-widest text-white">Diagnostics</h1>
         <p className="text-sm text-gray-400">Runs deterministic auth + inbox + squad preflight checks and prints exact errors.</p>
+        <p className="text-xs text-gray-500">Note: On GitHub Pages SPA routing, opening <code>/diag</code> directly may log a console 404 before fallback routing loads the app. NET_S1 status 401 is expected for unauthenticated REST reachability.</p>
         <div className="flex items-center gap-3 flex-wrap">
           <button onClick={runChecks} disabled={running} className="btn-tactical">
             {running ? 'Running Checks...' : 'Run Checks'}
