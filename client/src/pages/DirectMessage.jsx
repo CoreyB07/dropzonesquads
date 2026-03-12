@@ -30,6 +30,7 @@ const DirectMessage = () => {
     const [loading, setLoading] = useState(true);
     const [otherProfile, setOtherProfile] = useState(null);
     const [conversationId, setConversationId] = useState(null);
+    const [debugError, setDebugError] = useState(null);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -43,6 +44,7 @@ const DirectMessage = () => {
             if (!isSupabaseReady) { setLoading(false); return; }
 
             try {
+                setDebugError(null);
                 // Fetch other user's profile
                 const { data: profile } = await supabase
                     .from('profiles')
@@ -107,8 +109,16 @@ const DirectMessage = () => {
                     .subscribe();
 
             } catch (err) {
-                console.error('Failed to load DM:', err);
-                showError('Could not load message history.');
+                const debugPayload = {
+                    code: err?.code || 'no-code',
+                    message: err?.message || 'unknown error',
+                    details: err?.details || null,
+                    hint: err?.hint || null,
+                    status: err?.status || null
+                };
+                console.error('Failed to load DM:', debugPayload, err);
+                setDebugError(debugPayload);
+                showError(`Could not load message history [${debugPayload.code}] ${debugPayload.message}`);
             } finally {
                 setLoading(false);
             }
@@ -214,6 +224,12 @@ const DirectMessage = () => {
 
             {/* Messages */}
             <div className="flex-1 bg-charcoal-light border-x border-military-gray overflow-y-auto p-4 space-y-4 scrollbar-tactical">
+                {debugError && (
+                    <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+                        <p className="text-xs font-black uppercase tracking-widest text-red-200">DM Debug</p>
+                        <pre className="mt-2 text-xs text-red-100 whitespace-pre-wrap">{JSON.stringify(debugError, null, 2)}</pre>
+                    </div>
+                )}
                 {loading ? (
                     <div className="flex items-center justify-center h-full text-tactical-yellow animate-pulse">
                         <Shield className="w-8 h-8 animate-spin-slow opacity-50" />
