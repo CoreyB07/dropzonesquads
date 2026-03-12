@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useMySquads } from '../context/MySquadsContext';
 import SupporterBadge from '../components/SupporterBadge';
 import SquadNameText from '../components/SquadNameText';
-import { Mail, MessageSquare, Shield, ShieldAlert, UserRound, Users, ChevronRight } from 'lucide-react';
+import { Mail, MessageSquare, Shield, ShieldAlert, UserRound, Users, ChevronRight, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../context/useToast';
 import { getConversationReadAt, getSquadReadAt, isUnreadAfterReadAt, subscribeToMailReadState } from '../utils/mailState';
@@ -16,6 +16,7 @@ const Inbox = () => {
     const [conversations, setConversations] = useState([]);
     const [unreadSquadIds, setUnreadSquadIds] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [notifications, setNotifications] = useState([]);
 
     const fetchConversations = useCallback(async () => {
         if (!user) return;
@@ -85,7 +86,17 @@ const Inbox = () => {
                 );
             }
 
-            const squadConversations = (mySquads || [])
+
+            const { data: notifData, error: notifErr } = await supabase
+                .from('notifications')
+                .select('id, recipient_id, actor_id, type, payload, read_at, created_at, actor:actor_id(username)')
+                .eq('recipient_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(25);
+            if (notifErr) throw notifErr;
+            setNotifications(notifData || []);
+
+                        const squadConversations = (mySquads || [])
                 .map((squad) => ({
                     squadId: String(squad.id || ''),
                     conversationId: squad.chatConversationId || squad.chat_conversation_id || null,
@@ -201,6 +212,32 @@ const Inbox = () => {
         };
     }, [fetchConversations, user, isSupabaseReady]);
 
+
+    const markNotificationRead = async (notificationId) => {
+        try {
+            await supabase
+                .from('notifications')
+                .update({ read_at: new Date().toISOString() })
+                .eq('id', notificationId)
+                .eq('recipient_id', user.id);
+            setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n));
+        } catch (err) {
+            console.error('Failed to mark notification read:', err);
+        }
+    };
+
+    const notificationLabel = (n) => {
+        const actor = n.actor?.username || 'Someone';
+        if (n.type === 'friend_request') return `${actor} sent you a friend request`;
+        if (n.type === 'friend_request_accepted') return `${actor} accepted your friend request`;
+        if (n.type === 'squad_join_request') return `${actor} requested to join ${n.payload?.squad_name || 'your squad'}`;
+        if (n.type === 'squad_join_request_accepted') return `Your join request was accepted for ${n.payload?.squad_name || 'a squad'}`;
+        if (n.type === 'squad_join_request_rejected') return `Your join request was rejected for ${n.payload?.squad_name || 'a squad'}`;
+        if (n.type === 'direct_message') return `${actor} sent you a direct message`;
+        if (n.type === 'squad_message') return `${actor} posted in squad chat`;
+        return n.type;
+    };
+
     const formatTime = (isoString) => {
         if (!isoString) return '';
         const date = new Date(isoString);
@@ -293,6 +330,44 @@ const Inbox = () => {
                     </div>
                 </div>
             )}
+
+
+            <div className="space-y-3">
+                <div className="flex items-center gap-2 pl-1">
+                    <h2 className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Notifications</h2>
+                    {notifications.filter((n) => !n.read_at).length > 0 && (
+                        <span className="inline-flex min-w-[1.1rem] h-[1.1rem] px-1 items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black leading-none">
+                            {notifications.filter((n) => !n.read_at).length > 9 ? '9+' : notifications.filter((n) => !n.read_at).length}
+                        </span>
+                    )}
+                </div>
+                <div className="bg-charcoal-light border border-military-gray rounded-xl overflow-hidden">
+                    {notifications.length === 0 ? (
+                        <div className="p-6 text-sm text-gray-500 uppercase tracking-widest font-bold">No notifications yet</div>
+                    ) : (
+                        <div className="divide-y divide-military-gray/50">
+                            {notifications.map((n) => (
+                                <button
+                                    key={n.id}
+                                    onClick={() => markNotificationRead(n.id)}
+                                    className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors ${!n.read_at ? 'bg-charcoal-dark/50' : ''}`}
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start gap-2">
+                                            <Bell className="w-4 h-4 mt-0.5 text-gray-400" />
+                                            <div>
+                                                <p className={`text-sm ${!n.read_at ? 'text-white font-bold' : 'text-gray-300'}`}>{notificationLabel(n)}</p>
+                                                <p className="text-[10px] uppercase tracking-widest text-gray-500">{formatTime(n.created_at)}</p>
+                                            </div>
+                                        </div>
+                                        {!n.read_at && <span className="h-2 w-2 rounded-full bg-red-500 mt-1"></span>}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
 
             <div className="space-y-3">
                 <div className="flex items-center gap-2 pl-1">

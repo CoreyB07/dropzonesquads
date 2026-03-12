@@ -133,6 +133,25 @@ const UserProfile = () => {
         }
     };
 
+
+    const cancelOrDeclineFriendRequest = async () => {
+        if (!friendship?.id) return;
+        setFriendBusy(true);
+        try {
+            const { error } = await supabase
+                .from('friendships')
+                .delete()
+                .eq('id', friendship.id);
+            if (error) throw error;
+            setFriendship(null);
+            success(friendship.addressee_id === user?.id ? 'Friend request declined.' : 'Friend request cancelled.');
+        } catch (err) {
+            showError(err?.message || 'Unable to update friend request.');
+        } finally {
+            setFriendBusy(false);
+        }
+    };
+
     const handleDM = () => {
         if (!user) { navigate('/auth'); return; }
         navigate(`/dm/${id}`);
@@ -221,16 +240,34 @@ const UserProfile = () => {
                                 </button>
                             )}
                             {!friendshipLoading && friendship?.status === 'pending' && friendship?.addressee_id === user?.id && (
-                                <button
-                                    onClick={acceptFriendRequest}
-                                    disabled={friendBusy}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-green-500/50 bg-green-500/10 text-green-300 font-black uppercase tracking-widest hover:bg-green-500/20 transition-all text-sm disabled:opacity-50"
-                                >
-                                    Accept Friend Request
-                                </button>
+                                <>
+                                    <button
+                                        onClick={acceptFriendRequest}
+                                        disabled={friendBusy}
+                                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-green-500/50 bg-green-500/10 text-green-300 font-black uppercase tracking-widest hover:bg-green-500/20 transition-all text-sm disabled:opacity-50"
+                                    >
+                                        Accept Friend Request
+                                    </button>
+                                    <button
+                                        onClick={cancelOrDeclineFriendRequest}
+                                        disabled={friendBusy}
+                                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-300 font-black uppercase tracking-widest hover:bg-red-500/20 transition-all text-sm disabled:opacity-50"
+                                    >
+                                        Decline
+                                    </button>
+                                </>
                             )}
                             {!friendshipLoading && friendship?.status === 'pending' && friendship?.requester_id === user?.id && (
-                                <span className="text-[11px] uppercase tracking-widest text-gray-400 font-bold text-center">Friend request pending</span>
+                                <>
+                                    <span className="text-[11px] uppercase tracking-widest text-gray-400 font-bold text-center">Friend request pending</span>
+                                    <button
+                                        onClick={cancelOrDeclineFriendRequest}
+                                        disabled={friendBusy}
+                                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-300 font-black uppercase tracking-widest hover:bg-red-500/20 transition-all text-sm disabled:opacity-50"
+                                    >
+                                        Cancel Request
+                                    </button>
+                                </>
                             )}
                             {!friendshipLoading && friendship?.status === 'accepted' && (
                                 <span className="text-[11px] uppercase tracking-widest text-green-300 font-bold text-center">Friends</span>

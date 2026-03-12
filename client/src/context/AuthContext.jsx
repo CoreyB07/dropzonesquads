@@ -478,6 +478,22 @@ export const AuthProvider = ({ children }) => {
                 app.id === appId ? { ...app, status: newStatus } : app
             );
             setApplications(updated);
+
+            const changed = updated.find(app => app.id === appId);
+            if (changed) {
+                try {
+                    if (newStatus === 'accepted' || newStatus === 'rejected') {
+                        await supabase.from('notifications').insert({
+                            recipient_id: changed.applicantUserId,
+                            actor_id: user?.id || null,
+                            type: `squad_join_request_${newStatus}`,
+                            payload: { squad_id: changed.squadId, squad_name: changed.squadName }
+                        });
+                    }
+                } catch (notifErr) {
+                    console.warn('Failed to send squad application status notification:', notifErr);
+                }
+            }
         } catch (err) {
             console.error('Failed to update application status:', err);
         }
@@ -526,6 +542,18 @@ export const AuthProvider = ({ children }) => {
                     date: data.created_at
                 };
                 setApplications(prev => [mappedApp, ...prev]);
+                try {
+                    if (mappedApp.squadCreatorUserId) {
+                        await supabase.from('notifications').insert({
+                            recipient_id: mappedApp.squadCreatorUserId,
+                            actor_id: user.id,
+                            type: 'squad_join_request',
+                            payload: { squad_id: mappedApp.squadId, squad_name: mappedApp.squadName, applicant_id: user.id }
+                        });
+                    }
+                } catch (notifErr) {
+                    console.warn('Failed to send squad join request notification:', notifErr);
+                }
                 return mappedApp;
             }
         } catch (err) {
