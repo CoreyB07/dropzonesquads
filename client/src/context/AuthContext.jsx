@@ -262,27 +262,48 @@ export const AuthProvider = ({ children }) => {
                     .from('squad_applications')
                     .select(`
                         id, squad_id, applicant_id, role, discord, status, created_at,
-                        squad:squad_id(name, creator_id),
-                        applicant:profiles(username, platform)
+                        squad:squad_id(name, creator_id)
                     `)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
                 if (data) {
-                    const mappedApps = data.map(app => ({
-                        id: app.id,
-                        squadId: app.squad_id,
-                        applicantUserId: app.applicant_id,
-                        applicantUsername: app.applicant?.username || 'Unknown',
-                        applicantPlatform: app.applicant?.platform || 'PC',
-                        squadName: app.squad?.name || 'Unknown Squad',
-                        squadCreatorUserId: app.squad?.creator_id,
-                        role: app.role,
-                        discord: app.discord,
-                        status: app.status,
-                        date: app.created_at
-                    }));
+                    const applicantIds = [...new Set(data.map((app) => app.applicant_id).filter(Boolean))];
+                    let profileById = {};
+
+                    if (applicantIds.length > 0) {
+                        const { data: profileRows, error: profileErr } = await supabase
+                            .from('profiles')
+                            .select('id, username, platform')
+                            .in('id', applicantIds);
+
+                        if (profileErr) {
+                            console.warn('Failed to resolve applicant profiles:', profileErr);
+                        } else if (profileRows) {
+                            profileById = profileRows.reduce((acc, row) => {
+                                acc[row.id] = row;
+                                return acc;
+                            }, {});
+                        }
+                    }
+
+                    const mappedApps = data.map(app => {
+                        const applicantProfile = profileById[app.applicant_id] || null;
+                        return {
+                            id: app.id,
+                            squadId: app.squad_id,
+                            applicantUserId: app.applicant_id,
+                            applicantUsername: applicantProfile?.username || 'Unknown',
+                            applicantPlatform: applicantProfile?.platform || 'PC',
+                            squadName: app.squad?.name || 'Unknown Squad',
+                            squadCreatorUserId: app.squad?.creator_id,
+                            role: app.role,
+                            discord: app.discord,
+                            status: app.status,
+                            date: app.created_at
+                        };
+                    });
                     setApplications(mappedApps);
                 }
             } catch (err) {
@@ -616,8 +637,7 @@ export const AuthProvider = ({ children }) => {
                 })
                 .select(`
                     id, squad_id, applicant_id, role, discord, status, created_at,
-                    squad:squad_id(name, creator_id),
-                    applicant:profiles!squad_applications_applicant_id_fkey(username, platform)
+                    squad:squad_id(name, creator_id)
                 `)
                 .single();
 
