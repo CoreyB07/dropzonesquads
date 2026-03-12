@@ -4,27 +4,35 @@ import { supabase } from './supabase';
 export const fetchSquadMembers = async (squadId) => {
     const { data, error } = await supabase
         .from('squad_members')
-        .select(`
-            id,
-            role,
-            joined_at,
-            profiles:user_id (
-                id,
-                username,
-                platform,
-                activision_id,
-                avatar_url
-            )
-        `)
+        .select('id, user_id, role, joined_at')
         .eq('squad_id', squadId)
         .order('joined_at', { ascending: true });
 
     if (error) throw error;
-    return (data || []).map(m => ({
+
+    const userIds = Array.from(new Set((data || []).map((m) => m.user_id).filter(Boolean)));
+    let profilesById = {};
+
+    if (userIds.length > 0) {
+        const { data: profileRows, error: profileErr } = await supabase
+            .from('profiles')
+            .select('id, username, platform, activision_id, avatar_url')
+            .in('id', userIds);
+
+        if (profileErr) throw profileErr;
+
+        profilesById = (profileRows || []).reduce((acc, row) => {
+            acc[row.id] = row;
+            return acc;
+        }, {});
+    }
+
+    return (data || []).map((m) => ({
         memberId: m.id,
+        id: m.user_id,
         role: m.role,
         joinedAt: m.joined_at,
-        ...m.profiles
+        ...(profilesById[m.user_id] || {})
     }));
 };
 
