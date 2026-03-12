@@ -3,9 +3,16 @@
 @theme {
   --color-charcoal-dark: #050505;
   --color-charcoal-light: #141414;
-  --color-tactical-yellow: #DC2626;
+  --color-tactical-yellow: #d97706;
+  --color-tactical-yellow-hover: #e48a12;
   --color-military-gray: #2A2A2A;
-  --color-accent-gold: #DC2626;
+  --color-accent-gold: #b45309;
+  --color-premium-gold: #b7791f;
+  --color-premium-gold-muted: #8b5a18;
+  --color-premium-gold-bright: #d4a14a;
+  --color-premium-gold-soft: #f3d89a;
+  --color-border-soft: #3a3a3a;
+  --color-border-strong: #666666;
 
   --font-tactical: "Inter", sans-serif;
 }
@@ -15,28 +22,93 @@
     background-color: #050505;
     @apply text-white font-tactical;
   }
+
+  /* Remove Native Spin Buttons for Number Inputs */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: #ffffff;
+    caret-color: #ffffff;
+    -webkit-box-shadow: 0 0 0px 1000px #050505 inset;
+    transition: background-color 9999s ease-in-out 0s;
+  }
 }
 
 @layer components {
   .btn-tactical {
-    @apply bg-tactical-yellow text-white font-bold py-2 px-6 rounded-md hover:bg-red-700 transition-colors uppercase tracking-wider;
+    @apply bg-tactical-yellow text-white font-bold py-2 px-6 rounded-md hover:bg-tactical-yellow-hover transition-colors uppercase tracking-wider;
   }
 
   .card-tactical {
-    @apply bg-charcoal-light border border-military-gray rounded-lg p-6 hover:border-tactical-yellow transition-all;
+    @apply bg-charcoal-light border border-military-gray rounded-lg p-6 hover:border-tactical-yellow-hover transition-all;
+  }
+
+  .standard-squad-card {
+    @apply relative overflow-hidden rounded-lg border;
+    border-color: rgba(180, 193, 208, 0.22);
+    background:
+      linear-gradient(165deg, rgba(141, 154, 170, 0.14) 0%, rgba(82, 104, 132, 0.2) 26%, rgba(28, 35, 45, 0.88) 58%, rgba(7, 9, 13, 0.99) 100%),
+      #141414;
+    box-shadow:
+      inset 0 0 0 1px rgba(214, 220, 228, 0.04),
+      0 14px 30px rgba(0, 0, 0, 0.42);
+    transition: box-shadow 250ms ease, border-color 250ms ease;
+  }
+
+  .standard-squad-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(188, 200, 216, 0.1);
+    pointer-events: none;
+  }
+
+  .standard-squad-card::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 48% 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg,
+        rgba(198, 210, 224, 0.11) 0%,
+        rgba(110, 137, 167, 0.12) 34%,
+        rgba(255, 255, 255, 0) 100%);
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+
+  .standard-squad-card:hover {
+    border-color: rgba(180, 193, 208, 0.22);
+    box-shadow:
+      inset 0 0 0 1px rgba(214, 220, 228, 0.04),
+      0 14px 30px rgba(0, 0, 0, 0.42);
   }
 
   .featured-card {
     @apply relative overflow-hidden rounded-lg border-2;
-    border-color: #f59e0b;
+    border-color: #e0b45d;
     background:
-      linear-gradient(165deg, rgba(220, 38, 38, 0.46) 0%, rgba(127, 29, 29, 0.7) 40%, rgba(10, 10, 10, 0.96) 84%),
+      linear-gradient(165deg, rgba(181, 119, 31, 0.44) 0%, rgba(120, 72, 18, 0.7) 38%, rgba(32, 20, 6, 0.9) 70%, rgba(10, 10, 10, 0.98) 100%),
       #141414;
     box-shadow:
-      inset 0 0 0 1px rgba(251, 191, 36, 0.35),
-      0 0 30px rgba(245, 158, 11, 0.24),
-      0 16px 36px rgba(0, 0, 0, 0.55);
-    transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
+      inset 0 0 0 1px rgba(224, 180, 93, 0.22),
+      0 0 28px rgba(224, 180, 93, 0.24),
+      0 0 58px rgba(180, 120, 20, 0.32),
+      0 0 104px rgba(120, 72, 18, 0.24),
+      0 18px 44px rgba(0, 0, 0, 0.64);
+    transition: box-shadow 250ms ease, border-color 250ms ease;
   }
 
   .featured-card::before {
@@ -44,7 +116,7 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    border: 1px solid rgba(253, 230, 138, 0.7);
+    border: 1px solid rgba(191, 144, 71, 0.32);
     pointer-events: none;
   }
 
@@ -53,32 +125,61 @@
     position: absolute;
     inset: 0 0 42% 0;
     border-radius: inherit;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.22) 0%,
-      rgba(255, 255, 255, 0.1) 35%,
-      rgba(255, 255, 255, 0) 100%
-    );
+    background: linear-gradient(180deg,
+        rgba(245, 200, 120, 0.14) 0%,
+        rgba(217, 158, 64, 0.08) 35%,
+        rgba(255, 255, 255, 0) 100%);
     mix-blend-mode: screen;
     pointer-events: none;
   }
 
   .featured-card:hover {
-    transform: translateY(-4px);
-    border-color: #fcd34d;
+    border-color: #e0b45d;
     box-shadow:
-      inset 0 0 0 1px rgba(254, 243, 199, 0.5),
-      0 0 42px rgba(245, 158, 11, 0.34),
-      0 22px 42px rgba(0, 0, 0, 0.62);
+      inset 0 0 0 1px rgba(224, 180, 93, 0.22),
+      0 0 28px rgba(224, 180, 93, 0.24),
+      0 0 58px rgba(180, 120, 20, 0.32),
+      0 0 104px rgba(120, 72, 18, 0.24),
+      0 18px 44px rgba(0, 0, 0, 0.64);
   }
 
   .featured-badge {
     @apply inline-flex items-center gap-1.5 px-2.5 py-1 mb-2 rounded-md text-[10px] font-black uppercase tracking-widest;
-    color: #fef3c7;
-    border: 1px solid rgba(251, 191, 36, 0.65);
-    background: linear-gradient(135deg, rgba(120, 53, 15, 0.72), rgba(185, 28, 28, 0.46));
+    color: #f3d89a;
+    border: 1px solid rgba(212, 161, 74, 0.58);
+    background: linear-gradient(135deg, rgba(68, 44, 14, 0.82), rgba(126, 84, 24, 0.64));
     box-shadow:
       inset 0 0 0 1px rgba(0, 0, 0, 0.22),
-      0 0 16px rgba(245, 158, 11, 0.2);
+      0 0 16px rgba(180, 120, 20, 0.22);
+  }
+
+  /* Flashy Supporter Badge Animation */
+  .text-premium-glow {
+    display: inline-block;
+    background-image: linear-gradient(180deg,
+      #ffefab 0%,
+      #f1cc5d 30%,
+      #cf9b21 62%,
+      #a66f0e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.34),
+      0 0 1px rgba(255, 233, 161, 0.16);
+  }
+
+  .text-squad-name {
+    display: inline-block;
+    background-image: linear-gradient(180deg,
+      #e8c86d 0%,
+      #cda140 42%,
+      #a8771d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
   }
 }

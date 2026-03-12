@@ -80,7 +80,12 @@ const Auth = () => {
                     <div className="space-y-3 mb-6">
                         <button
                             type="button"
-                            onClick={() => signInWithOAuth('discord')}
+                            onClick={async () => {
+                                const result = await signInWithOAuth('discord');
+                                if (!result?.success) {
+                                    showError(result?.message || 'Discord sign-in is unavailable right now.');
+                                }
+                            }}
                             disabled={loading}
                             className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-black uppercase tracking-wide py-3 px-4 rounded-lg flex items-center justify-center gap-3 transition-colors shadow-lg"
                         >
@@ -89,7 +94,12 @@ const Auth = () => {
                         </button>
                         <button
                             type="button"
-                            onClick={() => signInWithOAuth('google')}
+                            onClick={async () => {
+                                const result = await signInWithOAuth('google');
+                                if (!result?.success) {
+                                    showError(result?.message || 'Google sign-in is unavailable right now.');
+                                }
+                            }}
                             disabled={loading}
                             className="w-full bg-white hover:bg-gray-100 text-charcoal-dark font-black uppercase tracking-wide py-3 px-4 rounded-lg flex items-center justify-center gap-3 transition-colors shadow-lg"
                         >
@@ -132,7 +142,7 @@ const Auth = () => {
                                         required
                                         type="email"
                                         placeholder="ghost@ops.com"
-                                        className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-3 pl-10 pr-4 text-sm focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-700"
+                                        className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-3 pl-10 pr-4 text-sm text-white caret-white focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-700"
                                         value={formData.email}
                                         onChange={e => setFormData({ ...formData, email: e.target.value })}
                                     />
@@ -147,7 +157,7 @@ const Auth = () => {
                                         required
                                         type="password"
                                         placeholder="••••••••"
-                                        className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-3 pl-10 pr-4 text-sm focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-700"
+                                        className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-3 pl-10 pr-4 text-sm text-white caret-white focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-700"
                                         value={formData.password}
                                         onChange={e => setFormData({ ...formData, password: e.target.value })}
                                     />
