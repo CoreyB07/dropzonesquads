@@ -55,7 +55,8 @@ const Auth = () => {
             } else {
                 setConfirmationEmail('');
                 success(isLogin ? 'Signed in successfully.' : 'Account created. You are now signed in.');
-                setTimeout(() => navigate(isLogin ? '/' : '/onboarding'), 900);
+                const nextPath = result.onboardingComplete ? '/' : '/onboarding';
+                setTimeout(() => navigate(nextPath), 900);
             }
         } else {
             showError(result.message || 'Authentication failed');
@@ -104,7 +105,7 @@ const Auth = () => {
                                 }
                             }}
                             disabled={loading}
-                            className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-black uppercase tracking-wide py-3 px-4 rounded-lg flex items-center justify-center gap-3 transition-colors shadow-lg"
+                            className="w-full bg-[#5865F2] text-white font-black uppercase tracking-wide py-3 px-4 rounded-lg flex items-center justify-center gap-3 transition-colors shadow-lg"
                         >
                             <MessageSquare className="w-5 h-5" />
                             Continue with Discord

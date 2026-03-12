@@ -15,21 +15,34 @@ const readStoredValue = (key, fallback) => {
     }
 };
 
+const hasCompletedOnboarding = ({ username = '', platform = '', activisionId = '' }) => {
+    const normalizedUsername = String(username || '').trim();
+    const normalizedPlatform = String(platform || '').trim();
+    const normalizedActivision = String(activisionId || '').trim();
+
+    const validPlatform = ['PC', 'Xbox', 'PlayStation'].includes(normalizedPlatform);
+    const validUsername = normalizedUsername.length > 0 && normalizedUsername !== '__pending__';
+
+    return validUsername && validPlatform && normalizedActivision.length > 0;
+};
+
 const normalizeProfile = (authUser, profile) => {
-    const rawUsername = (profile?.username || authUser.user_metadata?.username || authUser.email?.split('@')[0] || 'Operator').trim();
-    const isSupporterVal = Boolean(profile?.is_supporter || profile?.supporter) || rawUsername === 'GHOST_OAUTH';
+    const rawUsername = (profile?.username || authUser.user_metadata?.username || authUser.email?.split('@')[0] || '').trim();
+    const platform = (profile?.platform || authUser.user_metadata?.platform || 'Crossplay').trim();
+    const activisionId = (profile?.activision_id || authUser.user_metadata?.activision_id || '').trim();
 
     return {
         id: authUser.id,
         email: authUser.email || profile?.email || '',
         username: rawUsername,
-        platform: (profile?.platform || authUser.user_metadata?.platform || 'PC').trim(),
-        activisionId: (profile?.activision_id || authUser.user_metadata?.activision_id || '').trim(),
+        platform,
+        activisionId,
         shareActivisionIdWithFriends: Boolean(profile?.share_activision_id_with_friends ?? authUser.user_metadata?.share_activision_id_with_friends),
         shareActivisionIdWithSquads: Boolean(profile?.share_activision_id_with_squads ?? authUser.user_metadata?.share_activision_id_with_squads),
         marketingOptIn: Boolean(profile?.marketing_opt_in ?? authUser.user_metadata?.marketing_opt_in),
         marketingOptInAt: profile?.marketing_opt_in_at || null,
-        isSupporter: isSupporterVal,
+        onboardingComplete: hasCompletedOnboarding({ username: rawUsername, platform, activisionId }),
+        isSupporter: Boolean(profile?.is_supporter || profile?.supporter),
         isAdmin: Boolean(profile?.is_admin),
         avatar_url: profile?.avatar_url || null
     };
@@ -87,7 +100,7 @@ export const AuthProvider = ({ children }) => {
         if (!authUser) {
             setUser(null);
             localStorage.removeItem('warzone_hub_current_user');
-            return;
+            return null;
         }
 
         // Optimistic user state first so UI doesn't get stuck waiting on profile fetch/upsert.
@@ -100,8 +113,10 @@ export const AuthProvider = ({ children }) => {
             const normalized = normalizeProfile(authUser, profile);
             setUser(normalized);
             localStorage.setItem('warzone_hub_current_user', JSON.stringify(normalized));
+            return normalized;
         } catch (error) {
             console.error('Failed to hydrate user profile:', error);
+            return optimistic;
         }
     }, [fetchProfile]);
 
@@ -226,8 +241,8 @@ export const AuthProvider = ({ children }) => {
                 return { success: false, message: error.message || 'Invalid credentials.' };
             }
 
-            await hydrateUser(data.user || null);
-            return { success: true };
+            const hydrated = await hydrateUser(data.user || null);
+            return { success: true, onboardingComplete: Boolean(hydrated?.onboardingComplete) };
         } catch (error) {
             console.error('Login failed:', error);
             return { success: false, message: 'Unable to sign in right now.' };
@@ -320,10 +335,10 @@ export const AuthProvider = ({ children }) => {
                         .upsert({
                             id: data.user.id,
                             email: normalizedEmail,
-                            username: normalizedEmail.split('@')[0],
-                            platform: 'PC', // Default until onboarding
+                            username: '__pending__',
+                            platform: 'Crossplay',
                             activision_id: '',
-                                        marketing_opt_in: false,
+                            marketing_opt_in: false,
                             marketing_opt_in_at: null
                         });
                 } catch (profileError) {
@@ -339,8 +354,8 @@ export const AuthProvider = ({ children }) => {
                 };
             }
 
-            await hydrateUser(data.session.user || data.user || null);
-            return { success: true };
+            const hydrated = await hydrateUser(data.session.user || data.user || null);
+            return { success: true, onboardingComplete: Boolean(hydrated?.onboardingComplete) };
         } catch (error) {
             console.error('Registration failed:', error);
             return { success: false, message: 'Unable to create account right now.' };
@@ -358,7 +373,10 @@ export const AuthProvider = ({ children }) => {
 
         try {
             assertSupabaseConfigured();
-            await supabase.auth.signOut();
+            await Promise.race([
+                supabase.auth.signOut(),
+                new Promise((resolve) => setTimeout(resolve, 3000))
+            ]);
         } catch (error) {
             console.error('Logout failed:', error);
         } finally {

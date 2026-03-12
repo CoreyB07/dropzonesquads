@@ -22,9 +22,10 @@ const Onboarding = () => {
             navigate('/auth', { replace: true });
         } else if (user) {
             // Pre-fill the username based on email/current username if available
+            const isPendingUsername = !user.username || user.username === '__pending__' || user.username === user.email?.split('@')[0];
             setFormData(prev => ({
                 ...prev,
-                username: user.username && user.username !== 'Operator' ? user.username : (user.email?.split('@')[0] || ''),
+                username: isPendingUsername ? '' : user.username,
                 platform: user.platform === 'PC' || user.platform === 'Xbox' || user.platform === 'PlayStation' ? user.platform : '',
                 activisionId: user.activisionId || '',
             }));

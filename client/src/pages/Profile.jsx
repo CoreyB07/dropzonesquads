@@ -100,7 +100,6 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
-    const [showSupporterPreview, setShowSupporterPreview] = useState(false);
     const [form, setForm] = useState({ username: '', activisionId: '', shareActivisionIdWithFriends: false, shareActivisionIdWithSquads: false, platform: 'PC' });
     const isProfileSetupMode = new URLSearchParams(location.search).get('setup') === '1';
 
@@ -168,7 +167,7 @@ const Profile = () => {
     const joinedSquadsCount = mySquads.length;
     const leadershipCount = mySquads.filter((squad) => squad.role === 'leader' || squad.role === 'co-leader').length;
     const isSupporter = Boolean(user?.isSupporter || user?.supporter);
-    const showSupporterView = isSupporter || showSupporterPreview;
+    const showSupporterView = isSupporter;
     const descriptor = hasActivisionId
         ? 'Tactical, squad-focused operator'
         : 'Add your Activision ID to finish setup and unlock squad requests';
@@ -235,19 +234,6 @@ const Profile = () => {
 
                             {!isEditing && (
                                 <div className="flex flex-col items-stretch sm:items-end gap-2.5 ml-auto">
-                                    {!isSupporter && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowSupporterPreview((current) => !current)}
-                                            className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg border text-[11px] font-black uppercase tracking-widest transition-all ${showSupporterPreview
-                                                ? 'border-premium-gold/40 bg-premium-gold/10 text-premium-gold-soft'
-                                                : 'border-military-gray bg-charcoal-dark text-gray-400 hover:text-white hover:border-gray-400'
-                                                }`}
-                                        >
-                                            <Trophy className="w-3.5 h-3.5" />
-                                            {showSupporterPreview ? 'Hide Supporter Preview' : 'Preview Supporter'}
-                                        </button>
-                                    )}
                                     <button
                                         onClick={openEditor}
                                         className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-military-gray bg-charcoal-dark text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white hover:border-gray-400 transition-all"
@@ -459,7 +445,7 @@ const ProfileDetailsSection = ({ user, mySquads, isSupporter, showSupporterView 
                 <SummaryCard icon={ShieldCheck} title="Account Access" eyebrow="Account Intel" accent="bronze">
                     <div className="space-y-1">
                         <SnapshotItem label="Linked Email" value={user?.email || 'No Email'} tone="muted" />
-                        <SnapshotItem label="Supporter Access" value={showSupporterView ? (isSupporter ? 'Supporter Active' : 'Preview Enabled') : supporterState} tone={showSupporterView ? 'bronze' : 'muted'} />
+                        <SnapshotItem label="Supporter Access" value={supporterState} tone={showSupporterView ? 'bronze' : 'muted'} />
                         <SnapshotItem label="Leadership Roles" value={`${leadershipCount}`} tone={leadershipCount > 0 ? 'blue' : 'muted'} />
                     </div>
                     <div className="rounded-xl border border-military-gray/70 bg-charcoal-dark/50 px-4 py-4">

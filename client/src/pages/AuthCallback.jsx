@@ -10,9 +10,8 @@ const AuthCallback = () => {
     useEffect(() => {
         if (!loading) {
             if (user) {
-                // OAuth users should always land on Home first to avoid route dead-ends,
-                // then they can finish profile setup from the profile/onboarding paths.
-                navigate('/', { replace: true });
+                const nextPath = user.onboardingComplete ? '/' : '/onboarding';
+                navigate(nextPath, { replace: true });
             } else {
                 // If there's no user after loading finishes, the OAuth failed or session is invalid
                 navigate('/auth', { replace: true });
