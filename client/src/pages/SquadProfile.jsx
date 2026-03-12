@@ -320,15 +320,6 @@ const SquadProfile = () => {
                 </div>
             </div>
 
-            <div className="rounded-xl border border-military-gray bg-charcoal-light p-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Badge Legend</p>
-                <div className="flex flex-wrap gap-2">
-                    <BadgeChip label="Serious" category="serious" compact />
-                    <BadgeChip label="Funny" category="funny" compact />
-                    <BadgeChip label="Status" category="status" compact />
-                </div>
-            </div>
-
             {expandedBadgesFor && (
                 <div className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setExpandedBadgesFor(null)}>
                     <div className="w-full max-w-lg rounded-xl border border-military-gray bg-charcoal-light p-5" onClick={(e) => e.stopPropagation()}>
