@@ -64,12 +64,18 @@ export const createSquad = async ({ creatorId, ...formData }) => {
     // Always trust the live auth session user id to avoid stale local profile ids.
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError) {
-        throw authError;
+        const err = new Error(`auth-check failed: ${authError.message || 'unknown auth error'}`);
+        err.code = authError.code;
+        err.details = authError.details;
+        err.hint = authError.hint;
+        throw err;
     }
 
     const liveCreatorId = authData?.user?.id || creatorId;
     if (!liveCreatorId) {
-        throw new Error('No authenticated user found for squad creation.');
+        const err = new Error('auth-check failed: no authenticated user found for squad creation');
+        err.code = 'AUTH_USER_MISSING';
+        throw err;
     }
 
     const listingType = formData.listingType || 'squad_looking_for_players';
@@ -108,13 +114,19 @@ export const createSquad = async ({ creatorId, ...formData }) => {
 
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData?.session) {
-        throw new Error('Your session is no longer valid. Please sign in again.');
+        const err = new Error('auth-check failed: no active session');
+        err.code = 'SESSION_MISSING';
+        throw err;
     }
 
     const insertWithTimeout = async (timeoutMs = 15000) => {
         const insertPromise = supabase.from('squads').insert(payload);
         const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Squad insert timed out.')), timeoutMs)
+            setTimeout(() => {
+                const timeoutError = new Error('squad-insert failed: timed out');
+                timeoutError.code = 'SQUAD_INSERT_TIMEOUT';
+                reject(timeoutError);
+            }, timeoutMs)
         );
         return Promise.race([insertPromise, timeoutPromise]);
     };
@@ -131,9 +143,11 @@ export const createSquad = async ({ creatorId, ...formData }) => {
                 const retryResult = await insertWithTimeout(15000);
                 error = retryResult?.error || null;
             } catch (retryError) {
+                retryError.message = `squad-insert failed after retry: ${retryError.message || 'unknown error'}`;
                 throw retryError;
             }
         } else {
+            firstInsertError.message = `squad-insert failed: ${firstInsertError.message || 'unknown error'}`;
             throw firstInsertError;
         }
     }
@@ -146,11 +160,15 @@ export const createSquad = async ({ creatorId, ...formData }) => {
                 .from('squads')
                 .insert(fallbackPayload);
 
-            if (fallbackError) throw fallbackError;
+            if (fallbackError) {
+                fallbackError.message = `squad-insert fallback failed: ${fallbackError.message || 'unknown error'}`;
+                throw fallbackError;
+            }
 
             await supabase.from('squad_members').insert({ squad_id: squadId, user_id: liveCreatorId, role: 'leader' }).catch(console.warn);
             return normalizeSquad({ id: squadId, creator_id: liveCreatorId, ...common });
         }
+        error.message = `squad-insert failed: ${error.message || 'unknown error'}`;
         throw error;
     }
 

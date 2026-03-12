@@ -79,16 +79,12 @@ const PostSquad = () => {
         } catch (error) {
             console.error('Error posting squad:', error);
 
-            const message = String(error?.message || '').toLowerCase();
-            const code = error?.code;
+            const msg = error?.message || 'unknown error';
+            const code = error?.code || 'no-code';
+            const hint = error?.hint ? ` | hint: ${error.hint}` : '';
+            const details = error?.details ? ` | details: ${error.details}` : '';
 
-            if (code === '23503' || message.includes('foreign key') || message.includes('creator_id')) {
-                showError('Session expired or account record changed. Please sign out, refresh, and sign back in.');
-            } else if (message.includes('duplicate key') || code === '23505') {
-                showError('A conflicting record already exists. Try a different listing name or refresh and retry.');
-            } else {
-                showError(error?.message || 'Unable to deploy squad listing right now.');
-            }
+            showError(`Deploy failed [${code}] ${msg}${hint}${details}`);
         } finally {
             setIsSubmitting(false);
         }
