@@ -10,9 +10,9 @@ const AuthCallback = () => {
     useEffect(() => {
         if (!loading) {
             if (user) {
-                // If they don't have a marketing_opt_in_at timestamp, they haven't seen the onboarding/registration form
-                const isNewProfile = !user.marketingOptInAt;
-                navigate(isNewProfile ? '/onboarding' : '/', { replace: true });
+                // OAuth users should always land on Home first to avoid route dead-ends,
+                // then they can finish profile setup from the profile/onboarding paths.
+                navigate('/', { replace: true });
             } else {
                 // If there's no user after loading finishes, the OAuth failed or session is invalid
                 navigate('/auth', { replace: true });
