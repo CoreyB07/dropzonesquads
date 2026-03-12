@@ -80,8 +80,27 @@ export const getMyRoleInSquad = async (squadId, myUserId) => {
 export const fetchUserSquads = async (userId) => {
     const { data, error } = await supabase
         .from('squad_members')
-        .select('role, squads(*)')
+        .select('role, squad_id')
         .eq('user_id', userId);
     if (error) throw error;
-    return (data || []).map(row => ({ role: row.role, ...row.squads }));
+
+    const squadIds = Array.from(new Set((data || []).map((row) => row.squad_id).filter(Boolean)));
+    let squadsById = {};
+
+    if (squadIds.length > 0) {
+        const { data: squadRows, error: squadErr } = await supabase
+            .from('squads')
+            .select('*')
+            .in('id', squadIds);
+        if (squadErr) throw squadErr;
+
+        squadsById = (squadRows || []).reduce((acc, row) => {
+            acc[row.id] = row;
+            return acc;
+        }, {});
+    }
+
+    return (data || [])
+        .map((row) => ({ role: row.role, ...(squadsById[row.squad_id] || {}) }))
+        .filter((row) => row.id);
 };

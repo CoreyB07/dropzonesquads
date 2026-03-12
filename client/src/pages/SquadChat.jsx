@@ -56,19 +56,36 @@ const SquadChat = () => {
                 // Fetch last 50 messages from direct_messages table (which doubles as group chat msgs when tied to a squad conversation)
                 const { data, error } = await supabase
                     .from('messages')
-                    .select(`
-id,
-    body,
-    created_at,
-    sender_id,
-    profiles: sender_id(username, platform, supporter, is_supporter)
-                    `)
+                    .select('id, body, created_at, sender_id')
                     .eq('conversation_id', conversationId)
                     .order('created_at', { ascending: false })
                     .limit(50);
 
                 if (error) throw error;
-                if (data) setMessages(data.reverse());
+                if (data) {
+                    const senderIds = [...new Set(data.map((m) => m.sender_id).filter(Boolean))];
+                    let profilesById = {};
+
+                    if (senderIds.length > 0) {
+                        const { data: senderProfiles, error: profileError } = await supabase
+                            .from('profiles')
+                            .select('id, username, platform, supporter, is_supporter')
+                            .in('id', senderIds);
+
+                        if (!profileError && senderProfiles) {
+                            profilesById = senderProfiles.reduce((acc, p) => {
+                                acc[p.id] = p;
+                                return acc;
+                            }, {});
+                        }
+                    }
+
+                    setMessages(
+                        data
+                            .map((m) => ({ ...m, profiles: profilesById[m.sender_id] || { username: 'Unknown', platform: 'PC' } }))
+                            .reverse()
+                    );
+                }
 
                 // Subscribe to realtime inserts
                 channel = supabase
