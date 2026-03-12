@@ -116,7 +116,18 @@ export const AuthProvider = ({ children }) => {
             return normalized;
         } catch (error) {
             console.error('Failed to hydrate user profile:', error);
-            return optimistic;
+            // If profile hydration fails (ex: user deleted/reset), clear local auth state
+            // so the UI doesn't get stuck as a phantom signed-in user.
+            setUser(null);
+            localStorage.removeItem('warzone_hub_current_user');
+            try {
+                if (supabase) {
+                    await supabase.auth.signOut({ scope: 'local' });
+                }
+            } catch (signOutError) {
+                console.warn('Failed to clear local auth session after hydrate error:', signOutError);
+            }
+            return null;
         }
     }, [fetchProfile]);
 
@@ -374,7 +385,7 @@ export const AuthProvider = ({ children }) => {
         try {
             assertSupabaseConfigured();
             await Promise.race([
-                supabase.auth.signOut(),
+                supabase.auth.signOut({ scope: 'global' }),
                 new Promise((resolve) => setTimeout(resolve, 3000))
             ]);
         } catch (error) {
