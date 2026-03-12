@@ -83,6 +83,7 @@ const ManageSquad = () => {
     const [members, setMembers] = useState([]);
     const [draftRoles, setDraftRoles] = useState({});
     const [canManage, setCanManage] = useState(false);
+    const [debugError, setDebugError] = useState(null);
 
     useEffect(() => {
         const load = async () => {
@@ -95,6 +96,7 @@ const ManageSquad = () => {
             }
 
             try {
+                setDebugError(null);
                 const { data, error } = await supabase
                     .from('squads')
                     .select('*')
@@ -115,8 +117,16 @@ const ManageSquad = () => {
                 setMembers(squadMembers);
                 setDraftRoles(Object.fromEntries(squadMembers.map((member) => [member.id, member.role])));
             } catch (error) {
-                console.error('Failed to load squad manager:', error);
-                showError('Could not load squad management.');
+                const debugPayload = {
+                    code: error?.code || 'no-code',
+                    message: error?.message || 'unknown error',
+                    details: error?.details || null,
+                    hint: error?.hint || null,
+                    status: error?.status || null
+                };
+                console.error('Failed to load squad manager:', debugPayload, error);
+                setDebugError(debugPayload);
+                showError(`Could not load squad management [${debugPayload.code}] ${debugPayload.message}`);
             } finally {
                 setLoading(false);
             }
@@ -265,13 +275,19 @@ const ManageSquad = () => {
 
     if (!squad || !canManage) {
         return (
-            <div className="max-w-3xl mx-auto py-16">
+            <div className="max-w-3xl mx-auto py-16 space-y-4">
                 <div className="card-tactical text-center space-y-4">
                     <AlertTriangle className="w-10 h-10 text-tactical-yellow mx-auto" />
                     <h2 className="text-2xl font-black uppercase tracking-tight text-white">Access Locked</h2>
                     <p className="text-gray-400 text-sm">Only squad leaders and co-leaders can edit this squad.</p>
                     <button onClick={() => navigate(`/squad/${id}`)} className="btn-tactical w-full">Back to Squad</button>
                 </div>
+                {debugError && (
+                    <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+                        <p className="text-xs font-black uppercase tracking-widest text-red-200">Manage Squad Debug</p>
+                        <pre className="mt-2 text-xs text-red-100 whitespace-pre-wrap">{JSON.stringify(debugError, null, 2)}</pre>
+                    </div>
+                )}
             </div>
         );
     }
