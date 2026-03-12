@@ -70,26 +70,9 @@ export const createSquad = async ({ creatorId, ...formData }) => {
         throw new Error('Squad tags must be 1 to 5 letters only.');
     }
 
-    // 1. Create the conversation for this squad
-    let conversationId = null;
-    try {
-        const { data: conv, error: convErr } = await supabase
-            .from('conversations')
-            .insert({ type: 'squad', created_by: creatorId })
-            .select('id')
-            .single();
-        if (convErr) throw convErr;
-
-        // Add creator to the conversation
-        await supabase.from('conversation_participants').insert({
-            conversation_id: conv.id,
-            user_id: creatorId
-        });
-
-        conversationId = conv.id;
-    } catch (err) {
-        console.warn('Failed to pre-create squad conversation:', err);
-    }
+    // Do not block squad listing creation on chat conversation setup.
+    // Conversation can be created lazily later when squad chat is opened.
+    const conversationId = null;
 
     const common = {
         name: normalizedName,
