@@ -50,7 +50,7 @@ const UserProfile = () => {
 
                 const { data: badgeRows, error: badgeErr } = await supabase
                     .from('member_badges')
-                    .select('squad_id, badge_id, badge:badge_id(label, category, description), expires_at, is_public')
+                    .select('squad_id, badge_id, badge:badge_id(label, category, description, icon), expires_at, is_public')
                     .eq('user_id', id)
                     .is('expires_at', null)
                     .eq('is_public', true);
@@ -59,7 +59,7 @@ const UserProfile = () => {
                     const grouped = badgeRows.reduce((acc, row) => {
                         if (!row?.badge?.label) return acc;
                         acc[row.squad_id] = acc[row.squad_id] || [];
-                        acc[row.squad_id].push({ id: row.badge_id, label: row.badge.label, category: row.badge.category, description: row.badge.description || '' });
+                        acc[row.squad_id].push({ id: row.badge_id, label: row.badge.label, category: row.badge.category, icon: row.badge.icon || '', description: row.badge.description || '' });
                         return acc;
                     }, {});
                     setBadgesBySquad(grouped);
@@ -358,7 +358,7 @@ const UserProfile = () => {
                                     {(badgesBySquad[sq.id] || []).length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 pt-1">
                                             {(badgesBySquad[sq.id] || []).slice(0, 3).map((badge) => (
-                                                <BadgeChip key={`${sq.id}-${badge.id}`} label={badge.label} category={badge.category} description={badge.description} compact />
+                                                <BadgeChip key={`${sq.id}-${badge.id}`} label={badge.label} category={badge.category} icon={badge.icon} description={badge.description} compact />
                                             ))}
                                         </div>
                                     )}

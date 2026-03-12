@@ -86,6 +86,7 @@ const ManageSquad = () => {
     const [canManage, setCanManage] = useState(false);
     const [actingApplicationId, setActingApplicationId] = useState(null);
     const [badgeCatalog, setBadgeCatalog] = useState([]);
+    const [memberSearch, setMemberSearch] = useState('');
     const [initialBadges, setInitialBadges] = useState({});
     const [draftBadges, setDraftBadges] = useState({});
     const [debugError, setDebugError] = useState(null);
@@ -191,6 +192,14 @@ const ManageSquad = () => {
     const seriousBadges = badgeCatalog.filter((b) => b.category === 'serious');
     const funnyBadges = badgeCatalog.filter((b) => b.category === 'funny');
     const statusBadges = badgeCatalog.filter((b) => b.category === 'status');
+
+    const filteredMembers = useMemo(() => {
+        const q = memberSearch.trim().toLowerCase();
+        if (!q) return members;
+        return members.filter((member) =>
+            `${member.username || ''} ${member.platform || ''} ${member.role || ''}`.toLowerCase().includes(q)
+        );
+    }, [members, memberSearch]);
 
     const incomingApplications = useMemo(
         () => (applications || []).filter((app) => String(app.squadId) === String(id) && app.status === 'pending'),
@@ -523,7 +532,14 @@ const ManageSquad = () => {
                         </div>
 
                         <div className="space-y-3">
-                            {members.map((member) => {
+                            <input
+                                type="text"
+                                value={memberSearch}
+                                onChange={(e) => setMemberSearch(e.target.value)}
+                                placeholder="Search members by name/platform/role"
+                                className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2.5 px-3 text-xs text-white outline-none focus:border-tactical-yellow"
+                            />
+                            {filteredMembers.map((member) => {
                                 const isLeader = member.role === 'leader';
                                 return (
                                     <div key={member.id} className="rounded-xl border border-military-gray bg-charcoal-dark/70 p-4 flex flex-col gap-3">
@@ -596,6 +612,11 @@ const ManageSquad = () => {
                                     </div>
                                 );
                             })}
+                            {filteredMembers.length === 0 && (
+                                <div className="rounded-lg border border-military-gray bg-charcoal-dark/60 p-4 text-xs font-black uppercase tracking-widest text-gray-500 text-center">
+                                    No members match your search.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

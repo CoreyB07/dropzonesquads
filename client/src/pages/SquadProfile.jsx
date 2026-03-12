@@ -91,6 +91,7 @@ const SquadProfile = () => {
                         id: row.badge_id,
                         label: row.badge.label,
                         category: row.badge.category,
+                        icon: row.badge.icon || '',
                         description: row.badge.description || ''
                     });
                     return acc;
@@ -295,7 +296,7 @@ const SquadProfile = () => {
                                     {(memberBadges[member.id] || []).length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 pt-1">
                                             {(memberBadges[member.id] || []).slice(0, 3).map((badge) => (
-                                                <BadgeChip key={`${member.id}-${badge.id}`} label={badge.label} category={badge.category} description={badge.description} compact />
+                                                <BadgeChip key={`${member.id}-${badge.id}`} label={badge.label} category={badge.category} icon={badge.icon} description={badge.description} compact />
                                             ))}
                                             {(memberBadges[member.id] || []).length > 3 && (
                                                 <button
@@ -337,7 +338,7 @@ const SquadProfile = () => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {(memberBadges[expandedBadgesFor] || []).map((badge) => (
-                                <BadgeChip key={`${expandedBadgesFor}-${badge.id}`} label={badge.label} category={badge.category} description={badge.description} />
+                                <BadgeChip key={`${expandedBadgesFor}-${badge.id}`} label={badge.label} category={badge.category} icon={badge.icon} description={badge.description} />
                             ))}
                         </div>
                     </div>
