@@ -71,10 +71,11 @@ export const createSquad = async ({ creatorId, ...formData }) => {
     }
 
     // Do not block squad listing creation on chat conversation setup.
-    // Conversation can be created lazily later when squad chat is opened.
     const conversationId = null;
+    const squadId = crypto.randomUUID();
 
     const common = {
+        id: squadId,
         name: normalizedName,
         game_mode: formData.gameMode,
         platform: formData.platform,
@@ -94,36 +95,33 @@ export const createSquad = async ({ creatorId, ...formData }) => {
 
     const payload = { creator_id: creatorId, ...common };
 
-    const { data, error } = await supabase
-        .from('squads')
-        .insert(payload)
-        .select('*')
-        .single();
+    const insertPromise = supabase.from('squads').insert(payload);
+    const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Squad insert timed out.')), 10000)
+    );
+
+    const { error } = await Promise.race([insertPromise, timeoutPromise]);
 
     if (error) {
         // Fallback for older schemas that used leader_id instead of creator_id
         if (error.message?.includes('creator_id') || error.code === '42703') {
             const fallbackPayload = { leader_id: creatorId, ...common };
-            const { data: fallbackData, error: fallbackError } = await supabase
+            const { error: fallbackError } = await supabase
                 .from('squads')
-                .insert(fallbackPayload)
-                .select('*')
-                .single();
+                .insert(fallbackPayload);
 
             if (fallbackError) throw fallbackError;
 
-            await supabase.from('squad_members').insert({ squad_id: fallbackData.id, user_id: creatorId, role: 'leader' }).catch(console.warn);
-            return normalizeSquad(fallbackData);
+            await supabase.from('squad_members').insert({ squad_id: squadId, user_id: creatorId, role: 'leader' }).catch(console.warn);
+            return normalizeSquad({ id: squadId, creator_id: creatorId, ...common });
         }
         throw error;
     }
 
-    const squad = normalizeSquad(data);
-
     // Seed the creator as leader in squad_members
     try {
         await supabase.from('squad_members').insert({
-            squad_id: squad.id,
+            squad_id: squadId,
             user_id: creatorId,
             role: 'leader'
         });
@@ -131,7 +129,7 @@ export const createSquad = async ({ creatorId, ...formData }) => {
         console.warn('squad_members insert failed:', memberErr);
     }
 
-    return squad;
+    return normalizeSquad({ id: squadId, creator_id: creatorId, ...common });
 };
 
 export const updateSquad = async (squadId, formData) => {
