@@ -15,6 +15,23 @@ const readStoredValue = (key, fallback) => {
     }
 };
 
+const withTimeout = async (promise, label, ms = 10000) => {
+    let timer;
+    const timeoutPromise = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+            const err = new Error(`${label} timed out after ${ms}ms`);
+            err.code = 'TIMEOUT';
+            reject(err);
+        }, ms);
+    });
+
+    try {
+        return await Promise.race([promise, timeoutPromise]);
+    } finally {
+        clearTimeout(timer);
+    }
+};
+
 const hasCompletedOnboarding = ({ username = '', platform = '' }) => {
     const normalizedUsername = String(username || '').trim();
     const normalizedPlatform = String(platform || '').trim();
@@ -158,15 +175,28 @@ export const AuthProvider = ({ children }) => {
 
             try {
                 assertSupabaseConfigured();
-                const { data, error } = await supabase.auth.getSession();
-                if (error) {
-                    throw error;
+
+                // Some browser contexts can hang on getSession(); fall back to getUser().
+                let authUser = null;
+                try {
+                    const { data, error } = await withTimeout(supabase.auth.getSession(), 'auth.getSession', 10000);
+                    if (error) {
+                        throw error;
+                    }
+                    authUser = data?.session?.user || null;
+                } catch (sessionError) {
+                    console.warn('getSession init failed/timed out, falling back to getUser:', sessionError);
+                    const { data: userData, error: userError } = await withTimeout(supabase.auth.getUser(), 'auth.getUser', 10000);
+                    if (userError) {
+                        throw userError;
+                    }
+                    authUser = userData?.user || null;
                 }
+
                 if (!active) return;
 
                 // Never block initial render on profile hydration.
                 setLoading(false);
-                const authUser = data.session?.user || null;
                 if (!authUser) {
                     setUser(null);
                     localStorage.removeItem('warzone_hub_current_user');
