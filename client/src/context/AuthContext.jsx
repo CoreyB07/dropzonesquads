@@ -198,6 +198,14 @@ export const AuthProvider = ({ children }) => {
                 // Never block initial render on profile hydration.
                 setLoading(false);
                 if (!authUser) {
+                    // If auth lookup is flaky in this browser context, keep cached user
+                    // instead of hard-signing out immediately.
+                    const cachedUser = readStoredValue('warzone_hub_current_user', null);
+                    if (cachedUser?.id) {
+                        setUser(cachedUser);
+                        return;
+                    }
+
                     setUser(null);
                     localStorage.removeItem('warzone_hub_current_user');
                     return;
@@ -207,7 +215,12 @@ export const AuthProvider = ({ children }) => {
             } catch (error) {
                 console.error('Failed to initialize auth session:', error);
                 if (active) {
-                    setUser(null);
+                    const cachedUser = readStoredValue('warzone_hub_current_user', null);
+                    if (cachedUser?.id) {
+                        setUser(cachedUser);
+                    } else {
+                        setUser(null);
+                    }
                     setLoading(false);
                 }
             }
