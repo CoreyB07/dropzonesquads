@@ -4,7 +4,6 @@ import { Crosshair, LayoutDashboard, LogIn, UserPlus, Mail, Users } from 'lucide
 import { useAuth } from '../context/AuthContext';
 import { useMySquads } from '../context/MySquadsContext';
 import { supabase } from '../utils/supabase';
-import { MOCK_INBOX, MOCK_SQUAD_MESSAGES } from '../utils/mockData';
 import { getConversationReadAt, getSquadReadAt, isUnreadAfterReadAt, subscribeToMailReadState } from '../utils/mailState';
 import SupporterBadge from './SupporterBadge';
 
@@ -139,35 +138,6 @@ const Navbar = () => {
         let active = true;
 
         const checkUnread = async () => {
-            if (user.isDemo) {
-                const unreadDirectCount = MOCK_INBOX.filter((conversation) => {
-                    const conversationId = `demo-conv-${conversation.userId}`;
-                    const readAt = getConversationReadAt(user.id, conversationId);
-                    return isUnreadAfterReadAt(conversation.timestamp, readAt);
-                }).length;
-                const unreadSquadIds = new Set();
-                (mySquads || []).forEach((squad) => {
-                    const squadId = String(squad.id || '');
-                    const messages = MOCK_SQUAD_MESSAGES[squadId] || [];
-                    const latestIncomingMessage = [...messages]
-                        .reverse()
-                        .find((message) => message.sender_id !== user.id);
-
-                    if (!latestIncomingMessage) {
-                        return;
-                    }
-
-                    const readAt = getSquadReadAt(user.id, squadId);
-                    if (isUnreadAfterReadAt(latestIncomingMessage.created_at, readAt)) {
-                        unreadSquadIds.add(squadId);
-                    }
-                });
-                if (active) {
-                    setUnreadCount(unreadDirectCount + unreadSquadIds.size);
-                }
-                return;
-            }
-
             if (!isSupabaseReady) {
                 if (active) {
                     setUnreadCount(0);
@@ -190,12 +160,12 @@ const Navbar = () => {
         let notificationsChannel = null;
         let directMessagesChannel = null;
 
-        if (!user.isDemo && isSupabaseReady && supabase) {
+        if (isSupabaseReady && supabase) {
             notificationsChannel = supabase
                 .channel(`navbar-notifications-${user.id}`)
                 .on(
                     'postgres_changes',
-                    { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+                    { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${user.id}` },
                     () => {
                         checkUnread();
                     }

@@ -5,7 +5,6 @@ import { Mail, Send, Shield, User, ArrowLeft } from 'lucide-react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../context/useToast';
 import SupporterBadge from '../components/SupporterBadge';
-import { MOCK_DM_MESSAGES, MOCK_INBOX } from '../utils/mockData';
 import { markConversationRead } from '../utils/mailState';
 
 /**
@@ -41,21 +40,7 @@ const DirectMessage = () => {
         let channel = null;
 
         const initDM = async () => {
-            if (!isSupabaseReady && !user?.isDemo) { setLoading(false); return; }
-
-            // Demo mode
-            if (user?.isDemo) {
-                const inboxEntry = MOCK_INBOX.find(c => c.userId === otherUserId);
-                setOtherProfile({ username: inboxEntry?.username || 'Shadow_Ops', platform: 'PlayStation', is_supporter: !!inboxEntry?.is_supporter });
-                setConversationId(`demo-conv-${otherUserId}`);
-                const convo = MOCK_DM_MESSAGES?.[otherUserId] || [
-                    { id: 'demo-dm-1', created_at: new Date(Date.now() - 900000).toISOString(), body: 'Hey, saw your squad post. Still looking?', sender_id: otherUserId, profiles: { username: inboxEntry?.username || 'Shadow_Ops', is_supporter: !!inboxEntry?.is_supporter } },
-                    { id: 'demo-dm-2', created_at: new Date(Date.now() - 600000).toISOString(), body: 'Yeah, what platform are you on?', sender_id: user.id, profiles: { username: user.username, is_supporter: !!user.isSupporter } },
-                ];
-                setMessages(convo);
-                setLoading(false);
-                return;
-            }
+            if (!isSupabaseReady) { setLoading(false); return; }
 
             try {
                 // Fetch other user's profile
@@ -126,21 +111,6 @@ const DirectMessage = () => {
         const trimmed = newMessage.trim();
         if (!trimmed) return;
         setNewMessage('');
-
-        if (user.isDemo) {
-            const createdAt = new Date().toISOString();
-            setMessages(prev => [...prev, {
-                id: `demo-${Date.now()}`,
-                body: trimmed,
-                created_at: createdAt,
-                sender_id: user.id,
-                profiles: { username: user.username, platform: user.platform || 'PC' }
-            }]);
-            if (conversationId) {
-                markConversationRead(user.id, conversationId, createdAt);
-            }
-            return;
-        }
 
         try {
             const convId = conversationId || await getOrCreateConversation(user.id, otherUserId);

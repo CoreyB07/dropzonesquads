@@ -5,7 +5,25 @@ const toNumber = (value, fallback) => {
     return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const normalizeSquad = (row) => ({
+export const sanitizeSquadTag = (value) => String(value || '').replace(/[^a-z]/gi, '').toUpperCase().slice(0, 5);
+
+export const isValidSquadTag = (value) => /^[A-Z]{1,5}$/.test(sanitizeSquadTag(value));
+
+const normalizeTags = (tags) => {
+    if (!Array.isArray(tags)) {
+        return [];
+    }
+
+    return Array.from(
+        new Set(
+            tags
+                .map((tag) => String(tag || '').trim())
+                .filter(Boolean)
+        )
+    );
+};
+
+export const normalizeSquad = (row) => ({
     id: row.id,
     creatorId: row.creator_id ?? row.creatorId ?? row.leader_id ?? null,
     name: row.name ?? '',
@@ -20,7 +38,9 @@ const normalizeSquad = (row) => ({
     playerCount: toNumber(row.player_count ?? row.playerCount, 1),
     acceptingPlayers: row.accepting_players ?? row.acceptingPlayers ?? true,
     tags: Array.isArray(row.tags) ? row.tags : [],
-    createdAt: row.created_at ?? row.createdAt ?? new Date().toISOString()
+    listingType: row.listing_type ?? row.listingType ?? 'squad_looking_for_players',
+    createdAt: row.created_at ?? row.createdAt ?? new Date().toISOString(),
+    chatConversationId: row.chat_conversation_id ?? null
 });
 
 export const fetchSquads = async () => {
@@ -38,38 +58,41 @@ export const fetchSquads = async () => {
     return (data || []).map(normalizeSquad);
 };
 
-const shouldTryFallbackInsert = (error) => {
-    const code = error?.code || '';
-    const message = String(error?.message || '').toLowerCase();
-    return (
-        code === 'PGRST204' ||
-        code === '42703' ||
-        code === '22P02' ||
-        message.includes('column') ||
-        message.includes('does not exist') ||
-        message.includes('invalid input syntax for type uuid')
-    );
-};
-
-const insertAndReturn = async (payload) => {
-    const { data, error } = await supabase
-        .from('squads')
-        .insert(payload)
-        .select('*')
-        .single();
-
-    if (error) {
-        return { data: null, error };
-    }
-
-    return { data, error: null };
-};
-
 export const createSquad = async ({ creatorId, ...formData }) => {
     assertSupabaseConfigured();
 
+    const listingType = formData.listingType || 'squad_looking_for_players';
+    const normalizedName = listingType === 'squad_looking_for_players'
+        ? sanitizeSquadTag(formData.name)
+        : String(formData.name || '').trim();
+
+    if (listingType === 'squad_looking_for_players' && !isValidSquadTag(normalizedName)) {
+        throw new Error('Squad tags must be 1 to 5 letters only.');
+    }
+
+    // 1. Create the conversation for this squad
+    let conversationId = null;
+    try {
+        const { data: conv, error: convErr } = await supabase
+            .from('conversations')
+            .insert({ type: 'squad', created_by: creatorId })
+            .select('id')
+            .single();
+        if (convErr) throw convErr;
+
+        // Add creator to the conversation
+        await supabase.from('conversation_participants').insert({
+            conversation_id: conv.id,
+            user_id: creatorId
+        });
+
+        conversationId = conv.id;
+    } catch (err) {
+        console.warn('Failed to pre-create squad conversation:', err);
+    }
+
     const common = {
-        name: formData.name,
+        name: normalizedName,
         game_mode: formData.gameMode,
         platform: formData.platform,
         mic_required: true,
@@ -81,40 +104,94 @@ export const createSquad = async ({ creatorId, ...formData }) => {
         player_count: 1,
         accepting_players: true,
         tags: Array.isArray(formData.tags) ? formData.tags : [],
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        listing_type: listingType,
+        chat_conversation_id: conversationId
     };
 
-    // Try modern app schema first, then fall back to legacy schema variants.
-    const payloadVariants = [
-        { creator_id: creatorId, ...common },
-        { leader_id: creatorId, ...common },
-        {
-            name: common.name,
-            game_mode: common.game_mode,
-            platform: common.platform,
-            mic_required: common.mic_required,
-            skill_level: common.skill_level,
-            description: common.description,
-            max_players: common.max_players,
-            player_count: common.player_count,
-            tags: common.tags,
-            created_at: common.created_at
-        }
-    ];
+    const payload = { creator_id: creatorId, ...common };
 
-    let lastError = null;
+    const { data, error } = await supabase
+        .from('squads')
+        .insert(payload)
+        .select('*')
+        .single();
 
-    for (const payload of payloadVariants) {
-        const { data, error } = await insertAndReturn(payload);
-        if (!error) {
-            return normalizeSquad(data);
-        }
+    if (error) {
+        // Fallback for older schemas that used leader_id instead of creator_id
+        if (error.message?.includes('creator_id') || error.code === '42703') {
+            const fallbackPayload = { leader_id: creatorId, ...common };
+            const { data: fallbackData, error: fallbackError } = await supabase
+                .from('squads')
+                .insert(fallbackPayload)
+                .select('*')
+                .single();
 
-        lastError = error;
-        if (!shouldTryFallbackInsert(error)) {
-            throw error;
+            if (fallbackError) throw fallbackError;
+
+            await supabase.from('squad_members').insert({ squad_id: fallbackData.id, user_id: creatorId, role: 'leader' }).catch(console.warn);
+            return normalizeSquad(fallbackData);
         }
+        throw error;
     }
 
-    throw lastError || new Error('Failed to create squad.');
+    const squad = normalizeSquad(data);
+
+    // Seed the creator as leader in squad_members
+    try {
+        await supabase.from('squad_members').insert({
+            squad_id: squad.id,
+            user_id: creatorId,
+            role: 'leader'
+        });
+    } catch (memberErr) {
+        console.warn('squad_members insert failed:', memberErr);
+    }
+
+    return squad;
+};
+
+export const updateSquad = async (squadId, formData) => {
+    assertSupabaseConfigured();
+
+    const listingType = formData.listingType || 'squad_looking_for_players';
+    const normalizedName = listingType === 'squad_looking_for_players'
+        ? sanitizeSquadTag(formData.name)
+        : String(formData.name || '').trim();
+
+    if (!normalizedName) {
+        throw new Error('Squad name is required.');
+    }
+
+    if (listingType === 'squad_looking_for_players' && !isValidSquadTag(normalizedName)) {
+        throw new Error('Squad tags must be 1 to 5 letters only.');
+    }
+
+    const payload = {
+        name: normalizedName,
+        game_mode: formData.gameMode,
+        platform: formData.platform,
+        mic_required: Boolean(formData.micRequired),
+        skill_level: formData.skillLevel,
+        audience: formData.audience ?? 'Open to All',
+        comms: formData.comms ?? 'Game',
+        description: String(formData.description || '').trim(),
+        max_players: toNumber(formData.maxPlayers, 4),
+        accepting_players: Boolean(formData.acceptingPlayers),
+        tags: normalizeTags(formData.tags),
+        listing_type: listingType,
+    };
+
+    const { data, error } = await supabase
+        .from('squads')
+        .update(payload)
+        .eq('id', squadId)
+        .select('*')
+        .single();
+
+    if (error) {
+        throw error;
+    }
+
+    return normalizeSquad(data);
 };

@@ -7,7 +7,6 @@ import SquadNameText from '../components/SquadNameText';
 import { useToast } from '../context/useToast';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useMySquads } from '../context/MySquadsContext';
-import { MOCK_SQUADS, MOCK_SQUAD_MESSAGES } from '../utils/mockData';
 import { markSquadRead } from '../utils/mailState';
 
 const SquadChat = () => {
@@ -23,7 +22,7 @@ const SquadChat = () => {
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef(null);
 
-    const squadDetail = mySquads.find(s => String(s.id) === String(squadId)) || MOCK_SQUADS.find(s => String(s.id) === String(squadId));
+    const squadDetail = mySquads.find(s => String(s.id) === String(squadId));
     // The chat_conversation_id generated and assigned when the squad was created
     const conversationId = squadDetail?.chatConversationId || squadDetail?.chat_conversation_id;
 
@@ -37,29 +36,12 @@ const SquadChat = () => {
         const fetchMessages = async () => {
             if (squadsLoading || !user) return;
 
-            if (!isMemberOf(squadId) && !user.isAdmin && !user.isDemo) {
+            if (!isMemberOf(squadId) && !user.isAdmin) {
                 setLoading(false);
                 return;
             }
 
-            if (!isSupabaseReady && !user?.isDemo) {
-                setLoading(false);
-                return;
-            }
-
-            // Demo / guest mode
-            if (user?.isDemo) {
-                setMessages(
-                    MOCK_SQUAD_MESSAGES[String(squadId)] || [
-                        {
-                            id: 'demo-sq-1',
-                            created_at: new Date(Date.now() - 3600000).toISOString(),
-                            body: 'Welcome to the squad secure channel operators.',
-                            sender_id: 'system',
-                            profiles: { username: squadDetail?.name || 'Squad Command', platform: 'PC', is_supporter: true }
-                        }
-                    ]
-                );
+            if (!isSupabaseReady) {
                 setLoading(false);
                 return;
             }
@@ -135,7 +117,7 @@ id,
         e.preventDefault();
 
         if (!user) return;
-        if (!isMemberOf(squadId) && !user.isDemo) {
+        if (!isMemberOf(squadId)) {
             showError("You must be a member of this squad to transmit.");
             return;
         }
@@ -143,19 +125,6 @@ id,
         const trimmed = newMessage.trim();
         if (!trimmed) return;
         setNewMessage('');
-
-        if (user.isDemo) {
-            const createdAt = new Date().toISOString();
-            setMessages(prev => [...prev, {
-                id: `demo-${Date.now()}`,
-                body: trimmed,
-                created_at: createdAt,
-                sender_id: user.id,
-                profiles: { username: user.username, platform: user.platform || 'PC' }
-            }]);
-            markSquadRead(user.id, squadId, createdAt);
-            return;
-        }
 
         if (!conversationId) {
             showError("This squad was created before the Group Chat feature was enabled and cannot receive messages.");
@@ -216,7 +185,7 @@ id,
         );
     }
 
-    if (!isMemberOf(squadId) && !user?.isDemo) {
+    if (!isMemberOf(squadId)) {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-4">
                 <Shield className="w-16 h-16 text-tactical-yellow opacity-50" />
@@ -249,7 +218,7 @@ id,
                             <span>Comms</span>
                         </h1>
                         <p className="text-xs text-gray-400 font-bold tracking-widest uppercase">
-                            {user?.isDemo ? 'Offline Simulation' : 'Secure Squad Channel'}
+                            {'Secure Squad Channel'}
                         </p>
                     </div>
                 </div>
@@ -310,7 +279,7 @@ id,
                             onChange={(e) => setNewMessage(e.target.value)}
                             placeholder="Type a secure message..."
                             maxLength={280}
-                            disabled={!conversationId && !user?.isDemo}
+                            disabled={!conversationId}
                             className="w-full bg-charcoal-light border border-military-gray rounded-lg py-3 pl-4 pr-12 text-white text-sm focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-600">
@@ -319,7 +288,7 @@ id,
                     </div>
                     <button
                         type="submit"
-                        disabled={!newMessage.trim() || (!conversationId && !user?.isDemo)}
+                        disabled={!newMessage.trim() || !conversationId}
                         className="bg-tactical-yellow text-charcoal-dark p-3 rounded-lg hover:bg-tactical-yellow-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed group flex-shrink-0"
                     >
                         <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />

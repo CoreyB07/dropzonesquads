@@ -7,7 +7,6 @@ import SquadNameText from '../components/SquadNameText';
 import { Mail, MessageSquare, Shield, ShieldAlert, UserRound, Users, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../context/useToast';
-import { MOCK_INBOX, MOCK_SQUAD_MESSAGES } from '../utils/mockData';
 import { getConversationReadAt, getSquadReadAt, isUnreadAfterReadAt, subscribeToMailReadState } from '../utils/mailState';
 
 const Inbox = () => {
@@ -20,48 +19,7 @@ const Inbox = () => {
 
     const fetchConversations = useCallback(async () => {
         if (!user) return;
-        if (!isSupabaseReady && !user.isDemo) {
-            setLoading(false);
-            return;
-        }
-
-        if (user.isDemo) {
-            const unreadSquads = (mySquads || [])
-                .filter((squad) => {
-                    const squadId = String(squad.id || '');
-                    const messages = MOCK_SQUAD_MESSAGES[squadId] || [];
-                    const latestIncomingMessage = [...messages]
-                        .reverse()
-                        .find((message) => message.sender_id !== user.id);
-
-                    if (!latestIncomingMessage) {
-                        return false;
-                    }
-
-                    const readAt = getSquadReadAt(user.id, squadId);
-                    return isUnreadAfterReadAt(latestIncomingMessage.created_at, readAt);
-                })
-                .map((squad) => String(squad.id));
-            setUnreadSquadIds(unreadSquads);
-
-            setConversations(
-                MOCK_INBOX.map((conversation) => ({
-                    conversationId: `demo-conv-${conversation.userId}`,
-                    other_user: {
-                        id: conversation.userId,
-                        username: conversation.username,
-                        platform: 'PC',
-                        is_supporter: !!conversation.is_supporter
-                    },
-                    lastMessage: conversation.lastMessage,
-                    lastMessageTime: conversation.timestamp,
-                    iAmSender: false,
-                    unread: isUnreadAfterReadAt(
-                        conversation.timestamp,
-                        getConversationReadAt(user.id, `demo-conv-${conversation.userId}`)
-                    )
-                }))
-            );
+        if (!isSupabaseReady) {
             setLoading(false);
             return;
         }
@@ -105,7 +63,7 @@ const Inbox = () => {
                 (latestMessages || []).forEach((message) => {
                     const conversation = convMap.get(message.conversation_id);
                     if (conversation && !conversation.lastMessageTime) {
-                        conversation.lastMessage = message.content;
+                        conversation.lastMessage = message.body;
                         conversation.lastMessageTime = message.created_at;
                         conversation.iAmSender = message.sender_id === user.id;
                     }
@@ -194,7 +152,7 @@ const Inbox = () => {
         let participantsChannel = null;
         let squadMembersChannel = null;
 
-        if (user && !user.isDemo && isSupabaseReady && supabase) {
+        if (user && isSupabaseReady && supabase) {
             directMessagesChannel = supabase
                 .channel(`inbox-direct-messages-${user.id}`)
                 .on(
