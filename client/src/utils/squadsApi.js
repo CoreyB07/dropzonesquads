@@ -61,6 +61,17 @@ export const fetchSquads = async () => {
 export const createSquad = async ({ creatorId, ...formData }) => {
     assertSupabaseConfigured();
 
+    // Always trust the live auth session user id to avoid stale local profile ids.
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+        throw authError;
+    }
+
+    const liveCreatorId = authData?.user?.id || creatorId;
+    if (!liveCreatorId) {
+        throw new Error('No authenticated user found for squad creation.');
+    }
+
     const listingType = formData.listingType || 'squad_looking_for_players';
     const normalizedName = listingType === 'squad_looking_for_players'
         ? sanitizeSquadTag(formData.name)
@@ -93,7 +104,7 @@ export const createSquad = async ({ creatorId, ...formData }) => {
         chat_conversation_id: conversationId
     };
 
-    const payload = { creator_id: creatorId, ...common };
+    const payload = { creator_id: liveCreatorId, ...common };
 
     const insertPromise = supabase.from('squads').insert(payload);
     const timeoutPromise = new Promise((_, reject) =>
@@ -105,15 +116,15 @@ export const createSquad = async ({ creatorId, ...formData }) => {
     if (error) {
         // Fallback for older schemas that used leader_id instead of creator_id
         if (error.message?.includes('creator_id') || error.code === '42703') {
-            const fallbackPayload = { leader_id: creatorId, ...common };
+            const fallbackPayload = { leader_id: liveCreatorId, ...common };
             const { error: fallbackError } = await supabase
                 .from('squads')
                 .insert(fallbackPayload);
 
             if (fallbackError) throw fallbackError;
 
-            await supabase.from('squad_members').insert({ squad_id: squadId, user_id: creatorId, role: 'leader' }).catch(console.warn);
-            return normalizeSquad({ id: squadId, creator_id: creatorId, ...common });
+            await supabase.from('squad_members').insert({ squad_id: squadId, user_id: liveCreatorId, role: 'leader' }).catch(console.warn);
+            return normalizeSquad({ id: squadId, creator_id: liveCreatorId, ...common });
         }
         throw error;
     }
@@ -122,14 +133,14 @@ export const createSquad = async ({ creatorId, ...formData }) => {
     try {
         await supabase.from('squad_members').insert({
             squad_id: squadId,
-            user_id: creatorId,
+            user_id: liveCreatorId,
             role: 'leader'
         });
     } catch (memberErr) {
         console.warn('squad_members insert failed:', memberErr);
     }
 
-    return normalizeSquad({ id: squadId, creator_id: creatorId, ...common });
+    return normalizeSquad({ id: squadId, creator_id: liveCreatorId, ...common });
 };
 
 export const updateSquad = async (squadId, formData) => {
