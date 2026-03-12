@@ -38,11 +38,27 @@ const Inbox = () => {
             } else {
                 const convIds = partRows.map((row) => row.conversation_id);
 
-                const { data: allParticipants } = await supabase
+                const { data: allParticipants, error: participantsError } = await supabase
                     .from('conversation_participants')
-                    .select('conversation_id, user_id, profiles:user_id(id, username, platform, is_supporter, supporter)')
+                    .select('conversation_id, user_id')
                     .in('conversation_id', convIds)
                     .neq('user_id', user.id);
+
+                if (participantsError) throw participantsError;
+
+                const otherUserIds = Array.from(new Set((allParticipants || []).map((participant) => participant.user_id)));
+                let profileMap = new Map();
+
+                if (otherUserIds.length > 0) {
+                    const { data: profileRows, error: profilesError } = await supabase
+                        .from('profiles')
+                        .select('id, username, platform, is_supporter, supporter')
+                        .in('id', otherUserIds);
+
+                    if (profilesError) throw profilesError;
+
+                    profileMap = new Map((profileRows || []).map((row) => [row.id, row]));
+                }
 
                 const { data: latestMessages } = await supabase
                     .from('messages')
@@ -54,7 +70,7 @@ const Inbox = () => {
                 (allParticipants || []).forEach((participant) => {
                     convMap.set(participant.conversation_id, {
                         conversationId: participant.conversation_id,
-                        other_user: participant.profiles || { id: participant.user_id, username: 'Unknown', platform: 'PC' },
+                        other_user: profileMap.get(participant.user_id) || { id: participant.user_id, username: 'Unknown', platform: 'PC' },
                         lastMessage: '',
                         lastMessageTime: null,
                         iAmSender: false,

@@ -75,6 +75,7 @@ const ManageSquad = () => {
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [squad, setSquad] = useState(null);
     const [originalSquad, setOriginalSquad] = useState(null);
@@ -142,6 +143,7 @@ const ManageSquad = () => {
     );
 
     const hasChanges = squadChanges.length > 0 || roleChanges.length > 0;
+    const canDeleteSquad = Boolean(user?.id && squad?.creatorId === user.id);
 
     const handleFieldChange = (field, value) => {
         setForm((current) => ({
@@ -205,6 +207,38 @@ const ManageSquad = () => {
             showError(error.message || 'Could not save squad updates.');
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDeleteSquad = async () => {
+        if (!canDeleteSquad || deleting) {
+            return;
+        }
+
+        const confirmed = window.confirm('Delete this squad listing? This cannot be undone.');
+        if (!confirmed) {
+            return;
+        }
+
+        setDeleting(true);
+        try {
+            const { error } = await supabase
+                .from('squads')
+                .delete()
+                .eq('id', id)
+                .eq('creator_id', user.id);
+
+            if (error) {
+                throw error;
+            }
+
+            success('Squad listing deleted.');
+            navigate('/find');
+        } catch (error) {
+            console.error('Failed to delete squad:', error);
+            showError(error.message || 'Could not delete squad listing.');
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -402,6 +436,16 @@ const ManageSquad = () => {
                     >
                         Cancel
                     </button>
+                    {canDeleteSquad && (
+                        <button
+                            type="button"
+                            onClick={handleDeleteSquad}
+                            disabled={deleting}
+                            className="flex-1 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-xs font-black uppercase tracking-widest text-red-300 disabled:opacity-50"
+                        >
+                            {deleting ? 'Deleting...' : 'Delete Listing'}
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={() => setConfirmOpen(true)}
