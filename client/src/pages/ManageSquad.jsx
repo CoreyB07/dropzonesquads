@@ -69,7 +69,7 @@ const buildSquadChanges = (original, draft, listingType) => {
 const ManageSquad = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, applications, updateApplicationStatus } = useAuth();
     const { mySquads } = useMySquads();
     const { success, error: showError } = useToast();
 
@@ -83,6 +83,7 @@ const ManageSquad = () => {
     const [members, setMembers] = useState([]);
     const [draftRoles, setDraftRoles] = useState({});
     const [canManage, setCanManage] = useState(false);
+    const [actingApplicationId, setActingApplicationId] = useState(null);
     const [debugError, setDebugError] = useState(null);
 
     useEffect(() => {
@@ -154,6 +155,28 @@ const ManageSquad = () => {
 
     const hasChanges = squadChanges.length > 0 || roleChanges.length > 0;
     const canDeleteSquad = Boolean(user?.id && squad?.creatorId === user.id);
+
+    const incomingApplications = useMemo(
+        () => (applications || []).filter((app) => String(app.squadId) === String(id) && app.status === 'pending'),
+        [applications, id]
+    );
+
+    const handleApplicationDecision = async (applicationId, status) => {
+        if (!applicationId || !status || actingApplicationId) {
+            return;
+        }
+
+        setActingApplicationId(applicationId);
+        try {
+            await updateApplicationStatus(applicationId, status);
+            success(status === 'accepted' ? 'Request accepted.' : 'Request rejected.');
+        } catch (error) {
+            console.error('Failed to process join request:', error);
+            showError(error?.message || 'Could not process join request.');
+        } finally {
+            setActingApplicationId(null);
+        }
+    };
 
     const handleFieldChange = (field, value) => {
         setForm((current) => ({
@@ -401,6 +424,45 @@ const ManageSquad = () => {
                     </div>
 
                     <div className="space-y-4">
+                        <div className="rounded-xl border border-military-gray bg-charcoal-dark/60 p-4 space-y-3">
+                            <div className="flex items-center gap-2">
+                                <Users className="w-4 h-4 text-tactical-yellow" />
+                                <p className="text-sm font-black uppercase tracking-widest text-white">Join Requests</p>
+                            </div>
+                            {incomingApplications.length === 0 ? (
+                                <p className="text-xs text-gray-400">No pending requests right now.</p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {incomingApplications.map((app) => (
+                                        <div key={app.id} className="rounded-lg border border-military-gray bg-charcoal-dark p-3 flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="text-sm font-black uppercase tracking-wide text-white">{app.applicantUsername || 'Unknown'}</p>
+                                                <p className="text-[11px] uppercase tracking-widest text-gray-500">{app.applicantPlatform || 'PC'} / {app.role || 'Operator'}</p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleApplicationDecision(app.id, 'rejected')}
+                                                    disabled={actingApplicationId === app.id}
+                                                    className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-red-300 disabled:opacity-50"
+                                                >
+                                                    Reject
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleApplicationDecision(app.id, 'accepted')}
+                                                    disabled={actingApplicationId === app.id}
+                                                    className="rounded-lg bg-tactical-yellow px-3 py-2 text-[10px] font-black uppercase tracking-widest text-charcoal-dark disabled:opacity-50"
+                                                >
+                                                    Accept
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         <div className="rounded-xl border border-military-gray bg-charcoal-dark/60 p-4 space-y-3">
                             <div className="flex items-center gap-2">
                                 <Users className="w-4 h-4 text-tactical-yellow" />

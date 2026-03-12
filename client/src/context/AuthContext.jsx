@@ -616,6 +616,26 @@ export const AuthProvider = ({ children }) => {
 
             const changed = updated.find(app => app.id === appId);
             if (changed) {
+                if (newStatus === 'accepted') {
+                    try {
+                        const { error: memberErr } = await supabase
+                            .from('squad_members')
+                            .upsert(
+                                {
+                                    squad_id: changed.squadId,
+                                    user_id: changed.applicantUserId,
+                                    role: 'member'
+                                },
+                                { onConflict: 'squad_id,user_id' }
+                            );
+                        if (memberErr) {
+                            throw memberErr;
+                        }
+                    } catch (memberErr) {
+                        console.warn('Failed to add accepted applicant to squad_members:', memberErr);
+                    }
+                }
+
                 try {
                     if (newStatus === 'accepted' || newStatus === 'rejected') {
                         await supabase.from('notifications').insert({
@@ -631,6 +651,7 @@ export const AuthProvider = ({ children }) => {
             }
         } catch (err) {
             console.error('Failed to update application status:', err);
+            throw err;
         }
     };
 
