@@ -32,12 +32,6 @@ Purpose: track reusable UI pieces, where they are used, and what to reuse before
 **Purpose:** Modal flow for applying to join a squad.  
 **Used in:** `pages/Home.jsx`, `pages/FindSquad.jsx`, `pages/SquadProfile.jsx`
 
-### `JoinModal.jsx`
-**Purpose:** Join-related modal component.  
-**Current usage:** _No imports found in `src/`._
-
-> Action note: verify if `JoinModal.jsx` is still needed; remove or rewire if deprecated.
-
 ---
 
 ## 3) Identity / Badge Components
@@ -112,3 +106,4 @@ Before creating a new component:
 - Run a quick import scan periodically to catch unused components.
 - Keep this in sync with `docs/UI_STYLE_GUIDE.md`.
 - If a component becomes page-specific and single-use, consider inlining it to reduce abstraction noise.
+- 2026-03-12: Removed unused `JoinModal.jsx` after inventory audit.

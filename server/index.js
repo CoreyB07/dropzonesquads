@@ -23,7 +23,8 @@ if (supabaseUrl && supabaseKey) {
     console.warn('Supabase credentials missing. API will run in limited mode.');
 }
 
-const normalizeClanTag = (value) => String(value || '').trim().toUpperCase();
+const normalizeClanTag = (value) => String(value || '').replace(/[^a-z]/gi, '').toUpperCase().slice(0, 5);
+const isValidClanTag = (value) => /^[A-Z]{1,5}$/.test(normalizeClanTag(value));
 
 const dedupeSquadsByName = (squads = []) => {
     const sorted = [...squads].sort(
@@ -44,7 +45,7 @@ const dedupeSquadsByName = (squads = []) => {
 };
 
 app.get('/', (req, res) => {
-    res.send('Warzone Squad Hub API is running');
+    res.send('Drop Zone Squads API is running');
 });
 
 // Profiles Endpoints
@@ -62,9 +63,15 @@ app.get('/api/squads', async (req, res) => {
 app.post('/api/squads', async (req, res) => {
     try {
         const squads = await readData('squads');
-        const requestedName = normalizeClanTag(req.body.name);
+        const listingType = req.body.listingType || 'squad_looking_for_players';
+        const requestedName = listingType === 'squad_looking_for_players'
+            ? normalizeClanTag(req.body.name)
+            : String(req.body.name || '').trim();
         if (!requestedName) {
             return res.status(400).json({ error: 'Squad name is required' });
+        }
+        if (listingType === 'squad_looking_for_players' && !isValidClanTag(requestedName)) {
+            return res.status(400).json({ error: 'Squad tags must be 1 to 5 letters only.' });
         }
         const duplicateNameExists = squads.some(
             (squad) => normalizeClanTag(squad?.name) === requestedName
@@ -86,6 +93,7 @@ app.post('/api/squads', async (req, res) => {
             micRequired,
             description,
             acceptingPlayers,
+            listingType,
             tags: Array.isArray(req.body.tags)
                 ? Array.from(new Set([...req.body.tags, audience, comms]))
                 : [audience, comms],

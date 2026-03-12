@@ -1,47 +1,15 @@
 import React from 'react';
-import { Users, Monitor, Gamepad2, Mic, Star, MessageCircle } from 'lucide-react';
-
-const CHIP_STYLE_MAP = {
-    platform: {
-        pc: { color: '#FFD08A', borderColor: '#FF9A1F8C', backgroundColor: 'rgba(255,154,31,0.18)' },
-        xbox: { color: '#B8FF6A', borderColor: '#7DFF1D99', backgroundColor: 'rgba(125,255,29,0.20)' },
-        playstation: { color: '#8AC4FF', borderColor: '#3B82F69A', backgroundColor: 'rgba(59,130,246,0.18)' },
-        crossplay: { color: '#BAE6FD', borderColor: '#0284C799', backgroundColor: 'rgba(2,132,199,0.18)' },
-        default: { color: '#D1D5DB', borderColor: '#6B728099', backgroundColor: 'rgba(75,85,99,0.20)' }
-    },
-    mic: {
-        on: { color: '#E5E7EB', borderColor: '#9CA3AF99', backgroundColor: 'rgba(156,163,175,0.18)' },
-        off: { color: '#FF9AA8', borderColor: '#F43F5E99', backgroundColor: 'rgba(244,63,94,0.18)' }
-    },
-    skill: {
-        ranked: { color: '#FF8A8A', borderColor: '#EF44449A', backgroundColor: 'rgba(239,68,68,0.18)' },
-        'elite / pro': { color: '#FF8A8A', borderColor: '#EF44449A', backgroundColor: 'rgba(239,68,68,0.18)' },
-        competitive: { color: '#FFE58A', borderColor: '#EAB3089A', backgroundColor: 'rgba(234,179,8,0.18)' },
-        casual: { color: '#C4B5FD', borderColor: '#8B5CF69A', backgroundColor: 'rgba(139,92,246,0.18)' },
-        default: { color: '#C4B5FD', borderColor: '#8B5CF69A', backgroundColor: 'rgba(139,92,246,0.18)' }
-    },
-    audience: {
-        'women only': { color: '#FF9FE8', borderColor: '#EC48999A', backgroundColor: 'rgba(236,72,153,0.18)' },
-        'men only': { color: '#A5B4FC', borderColor: '#6366F199', backgroundColor: 'rgba(99,102,241,0.18)' },
-        'open to all': { color: '#CBFF8A', borderColor: '#84CC169A', backgroundColor: 'rgba(132,204,22,0.18)' },
-        default: { color: '#CBFF8A', borderColor: '#84CC169A', backgroundColor: 'rgba(132,204,22,0.18)' }
-    },
-    comms: {
-        discord: { color: '#DDD6FE', borderColor: '#7C3AED99', backgroundColor: 'rgba(124,58,237,0.18)' },
-        game: { color: '#C5D2E9', borderColor: '#64748B99', backgroundColor: 'rgba(100,116,139,0.20)' },
-        any: { color: '#F1F5F9', borderColor: '#CBD5E199', backgroundColor: 'rgba(203,213,225,0.20)' },
-        default: { color: '#C5D2E9', borderColor: '#64748B99', backgroundColor: 'rgba(100,116,139,0.20)' }
-    }
-};
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Users, Monitor, Gamepad2, Mic, Star, MessageCircle, MessageSquare } from 'lucide-react';
+import { useMySquads } from '../context/MySquadsContext';
+import SquadNameText from './SquadNameText';
 
 const normalize = (value) => String(value || '').toLowerCase().trim();
 
-const getMappedStyle = (group, value) => {
-    const key = normalize(value);
-    return CHIP_STYLE_MAP[group][key] ?? CHIP_STYLE_MAP[group].default;
-};
-
 const SquadCard = ({ squad, onJoin, featured = false }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { isMemberOf } = useMySquads();
     const {
         name,
         gameMode,
@@ -52,10 +20,18 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
         comms = 'Game',
         playerCount,
         maxPlayers,
-        acceptingPlayers = true
+        acceptingPlayers = true,
+        listingType = 'squad_looking_for_players'
     } = squad;
-    const isOpen = acceptingPlayers !== false && Number(playerCount || 0) < Number(maxPlayers || 0);
+
+    // An LFG post is 'player_looking_for_squad'
+    const isLfg = listingType === 'player_looking_for_squad';
+    // If it's an LFG post, the "player count" logic changes slightly:
+    // They are open if maxPlayers is 99 (Any) or if playerCount < maxPlayers
+    const isOpen = acceptingPlayers !== false && (isLfg || Number(playerCount || 0) < Number(maxPlayers || 0));
     const canJoin = Boolean(onJoin) && isOpen;
+    const memberCount = Math.max(Number(playerCount || (isLfg ? 1 : 0)), 0);
+    const handleCardOpen = () => navigate(`/squad/${squad.id}`);
 
     const getPlatformIcon = (plt) => {
         switch (plt.toLowerCase()) {
@@ -65,86 +41,95 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
         }
     };
 
-    const chipStyles = {
-        platform: getMappedStyle('platform', platform),
-        mic: getMappedStyle('mic', micRequired ? 'on' : 'off'),
-        skill: getMappedStyle('skill', skillLevel),
-        audience: getMappedStyle('audience', audience),
-        comms: getMappedStyle('comms', comms)
-    };
+
 
     return (
         <div
-            className={`card-tactical group ${featured
-                ? 'featured-card'
-                : ''
-                } ${canJoin
-                    ? featured
-                        ? 'cursor-pointer transition-all duration-300'
-                        : 'cursor-pointer hover:border-tactical-yellow/40 transition-colors'
-                    : ''
-                }`}
-            onClick={() => {
-                if (canJoin) onJoin(squad);
-            }}
-            onKeyDown={(e) => {
-                if (!canJoin) return;
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onJoin(squad);
-                }
-            }}
-            role={canJoin ? 'button' : undefined}
-            tabIndex={canJoin ? 0 : -1}
-            aria-label={canJoin ? `Open request modal for ${name}` : undefined}
+            className={`card-tactical relative overflow-hidden group cursor-default transition-all duration-300 ${featured ? 'featured-card' : 'standard-squad-card'}`}
         >
+            {/* Top Accent Strip */}
+            {!featured && (
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-slate-200/70 via-slate-300/80 to-sky-200/70 opacity-85" />
+            )}
+
             <div className="relative z-10 space-y-4">
-                <div className="flex justify-between items-start">
-                    <div>
+                {/* Header Row */}
+                <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1">
                         {featured && (
-                            <span className="featured-badge">
+                            <span className="featured-badge mb-2 block w-max">
                                 Featured Squad
                             </span>
                         )}
-                        <h3 className={`text-xl font-bold uppercase transition-colors ${featured ? 'text-white group-hover:text-amber-100' : 'text-white group-hover:text-tactical-yellow'}`}>{name}</h3>
-                        <p className={`text-xs font-bold uppercase tracking-wider ${featured ? 'text-amber-100/85' : 'text-gray-500'}`}>{gameMode}</p>
-                        <p className={`text-[10px] font-black uppercase tracking-widest mt-1 ${isOpen ? 'text-green-400' : 'text-red-400'}`}>
-                            {isOpen ? 'Accepting Players' : 'Closed'}
+                        <h3 className="text-xl font-black uppercase tracking-wide leading-tight line-clamp-2 min-h-[50px]" title={name}>
+                            <SquadNameText name={name} />
+                        </h3>
+                        <p className={`text-xs font-bold uppercase tracking-wider mt-0.5 truncate ${featured ? 'text-premium-gold-soft/85' : 'text-gray-500'}`}>
+                            {gameMode} / {skillLevel}
                         </p>
+
+                        {!isOpen && (
+                            <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest mt-1.5 text-red-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                CLOSED
+                            </p>
+                        )}
                     </div>
-                    <div className={`px-2 py-1 rounded border text-xs font-bold ${isOpen
-                        ? featured
-                            ? 'bg-amber-200/10 text-amber-100 border-amber-200/35'
-                            : 'bg-tactical-yellow/10 text-tactical-yellow border-tactical-yellow/20'
-                        : 'bg-red-500/10 text-red-300 border-red-500/30'
+                    <div className={`shrink-0 px-2.5 py-1 rounded border text-[10px] font-black tracking-widest uppercase ${featured
+                        ? 'bg-premium-gold/12 text-premium-gold-soft border-premium-gold-bright/35'
+                        : 'bg-slate-300/10 border-slate-300/20 text-slate-100 shadow-inner shadow-black/40'
                         }`}>
-                        {playerCount}/{maxPlayers} PLAYERS
+                        MEMBERS {memberCount}
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 items-center text-[10px] font-bold tracking-wider">
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border" style={chipStyles.platform}>
+                <div className="flex flex-wrap gap-2 items-center text-[10px] font-bold tracking-wider pt-1 h-[26px] overflow-hidden">
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
                         {getPlatformIcon(platform)}
                         <span className="uppercase">{platform}</span>
                     </div>
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
+                        <MessageCircle className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="uppercase">{comms}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
+                        <Users className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="uppercase">{audience}</span>
+                    </div>
                     {micRequired && (
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border" style={chipStyles.mic}>
-                            <Mic className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
+                            <Mic className="w-3.5 h-3.5 text-gray-400" />
                             <span className="uppercase">Mic On</span>
                         </div>
                     )}
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border" style={chipStyles.skill}>
-                        <Star className="w-3.5 h-3.5" />
-                        <span className="uppercase">{skillLevel}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border" style={chipStyles.audience}>
-                        <Users className="w-3.5 h-3.5" />
-                        <span className="uppercase">{audience}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border" style={chipStyles.comms}>
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span className="uppercase">{comms}</span>
-                    </div>
+                </div>
+
+                {/* Card Actions Footer */}
+                <div className="pt-4 mt-2 border-t border-military-gray/50 flex items-center justify-between gap-3 relative before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleCardOpen(); }}
+                        className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded ${featured ? 'bg-premium-gold/18 border border-premium-gold-bright/60 text-white shadow-[0_0_18px_rgba(183,121,31,0.24)]' : 'bg-slate-500 border border-slate-400 text-slate-100'}`}
+                    >
+                        View Squad
+                    </button>
+                    {isMemberOf(squad.id) ? (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/squad/${squad.id}/chat`, { state: { from: location.pathname } });
+                            }}
+                        className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded flex justify-center items-center gap-2 ${featured ? 'bg-premium-gold-bright text-charcoal-dark border border-premium-gold-bright/45' : 'bg-tactical-yellow text-charcoal-dark shadow-[0_0_10px_rgba(255,154,31,0.1)]'}`}
+                        >
+                            <MessageSquare className="w-3.5 h-3.5" /> Squad Chat
+                        </button>
+                    ) : canJoin ? (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onJoin(squad); }}
+                            className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded ${featured ? 'bg-premium-gold-bright text-charcoal-dark border border-premium-gold-bright/45 shadow-md' : 'bg-tactical-yellow text-white border border-tactical-yellow shadow-[0_0_10px_rgba(217,119,6,0.2)]'}`}
+                        >
+                            {isLfg ? 'Message Player' : 'Request to Join'}
+                        </button>
+                    ) : null}
                 </div>
             </div>
         </div>
