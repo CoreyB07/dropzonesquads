@@ -89,7 +89,7 @@ const SquadProfile = () => {
                     acc[uid] = acc[uid] || [];
                     acc[uid].push({
                         id: row.badge_id,
-                        label: row.badge.label,
+                        label: row.custom_label || row.badge.label,
                         category: row.badge.category,
                         icon: row.badge.icon || '',
                         description: row.badge.description || ''

@@ -15,14 +15,14 @@ export const fetchBadgeCatalog = async () => {
 export const fetchSquadMemberBadges = async (squadId) => {
   const { data, error } = await supabase
     .from('member_badges')
-    .select('id, user_id, badge_id, reason, expires_at, is_public, badge:badge_id(id, category, label, description, icon)')
+    .select('id, user_id, badge_id, custom_label, custom_description, reason, expires_at, is_public, badge:badge_id(id, category, label, description, icon)')
     .eq('squad_id', squadId);
 
   if (error) throw error;
   return data || [];
 };
 
-export const saveMemberBadgeSelection = async ({ squadId, userId, seriousBadgeId, funnyBadgeId, statusBadgeId, assignedBy }) => {
+export const saveMemberBadgeSelection = async ({ squadId, userId, seriousBadgeId, funnyBadgeId, statusBadgeId, seriousCustomLabel, funnyCustomLabel, statusCustomLabel, assignedBy }) => {
   // Remove active badges in the three managed categories, then re-insert selections.
   const { data: existing, error: existingErr } = await supabase
     .from('member_badges')
@@ -42,12 +42,17 @@ export const saveMemberBadgeSelection = async ({ squadId, userId, seriousBadgeId
     if (delErr) throw delErr;
   }
 
-  const inserts = [seriousBadgeId, funnyBadgeId, statusBadgeId]
-    .filter(Boolean)
-    .map((badgeId) => ({
+  const inserts = [
+    { badgeId: seriousBadgeId, customLabel: seriousCustomLabel },
+    { badgeId: funnyBadgeId, customLabel: funnyCustomLabel },
+    { badgeId: statusBadgeId, customLabel: statusCustomLabel }
+  ]
+    .filter((x) => Boolean(x.badgeId))
+    .map(({ badgeId, customLabel }) => ({
       squad_id: squadId,
       user_id: userId,
       badge_id: badgeId,
+      custom_label: (customLabel || '').trim() || null,
       assigned_by: assignedBy || null,
       is_public: true
     }));

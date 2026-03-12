@@ -111,7 +111,7 @@ const Profile = () => {
             if (!user?.id) return;
             const { data, error } = await supabase
                 .from('member_badges')
-                .select('squad_id, badge_id, badge:badge_id(label, category, description, icon), expires_at')
+                .select('squad_id, badge_id, custom_label, badge:badge_id(label, category, description, icon), expires_at')
                 .eq('user_id', user.id)
                 .is('expires_at', null);
 
@@ -119,7 +119,7 @@ const Profile = () => {
                 const grouped = data.reduce((acc, row) => {
                     if (!row?.badge?.label) return acc;
                     acc[row.squad_id] = acc[row.squad_id] || [];
-                    acc[row.squad_id].push({ id: row.badge_id, label: row.badge.label, category: row.badge.category, icon: row.badge.icon || '', description: row.badge.description || '' });
+                    acc[row.squad_id].push({ id: row.badge_id, label: row.custom_label || row.badge.label, category: row.badge.category, icon: row.badge.icon || '', description: row.badge.description || '' });
                     return acc;
                 }, {});
                 setBadgesBySquad(grouped);

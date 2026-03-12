@@ -125,9 +125,13 @@ const ManageSquad = () => {
                     const userId = row.user_id;
                     const category = row?.badge?.category;
                     if (!userId || !category) return;
-                    draftByUser[userId] = draftByUser[userId] || { serious: '', funny: '', status: '' };
+                    draftByUser[userId] = draftByUser[userId] || {
+                        serious: '', funny: '', status: '',
+                        seriousCustom: '', funnyCustom: '', statusCustom: ''
+                    };
                     if (['serious', 'funny', 'status'].includes(category)) {
                         draftByUser[userId][category] = row.badge_id;
+                        draftByUser[userId][`${category}Custom`] = row.custom_label || '';
                     }
                 });
 
@@ -179,9 +183,16 @@ const ManageSquad = () => {
     const badgeChanges = useMemo(
         () => members
             .filter((member) => {
-                const baseline = initialBadges[member.id] || { serious: '', funny: '', status: '' };
-                const next = draftBadges[member.id] || { serious: '', funny: '', status: '' };
-                return baseline.serious !== next.serious || baseline.funny !== next.funny || baseline.status !== next.status;
+                const baseline = initialBadges[member.id] || { serious: '', funny: '', status: '', seriousCustom: '', funnyCustom: '', statusCustom: '' };
+                const next = draftBadges[member.id] || { serious: '', funny: '', status: '', seriousCustom: '', funnyCustom: '', statusCustom: '' };
+                return (
+                    baseline.serious !== next.serious ||
+                    baseline.funny !== next.funny ||
+                    baseline.status !== next.status ||
+                    baseline.seriousCustom !== next.seriousCustom ||
+                    baseline.funnyCustom !== next.funnyCustom ||
+                    baseline.statusCustom !== next.statusCustom
+                );
             }),
         [members, draftBadges, initialBadges]
     );
@@ -271,13 +282,16 @@ const ManageSquad = () => {
 
             if (badgeChanges.length > 0) {
                 for (const member of members) {
-                    const selection = draftBadges[member.id] || { serious: '', funny: '', status: '' };
+                    const selection = draftBadges[member.id] || { serious: '', funny: '', status: '', seriousCustom: '', funnyCustom: '', statusCustom: '' };
                     await saveMemberBadgeSelection({
                         squadId: id,
                         userId: member.id,
                         seriousBadgeId: selection.serious || null,
                         funnyBadgeId: selection.funny || null,
                         statusBadgeId: selection.status || null,
+                        seriousCustomLabel: selection.seriousCustom || null,
+                        funnyCustomLabel: selection.funnyCustom || null,
+                        statusCustomLabel: selection.statusCustom || null,
                         assignedBy: user?.id || null
                     });
                 }
@@ -579,6 +593,17 @@ const ManageSquad = () => {
                                                     <option value="">None</option>
                                                     {seriousBadges.map((badge) => <option key={badge.id} value={badge.id}>{badge.label}</option>)}
                                                 </select>
+                                                <input
+                                                    type="text"
+                                                    maxLength={40}
+                                                    placeholder="Custom name (optional)"
+                                                    value={(draftBadges[member.id]?.seriousCustom) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), seriousCustom: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-[11px] text-white outline-none focus:border-tactical-yellow"
+                                                />
                                             </label>
                                             <label className="space-y-1">
                                                 <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Funny Badge</span>
@@ -593,6 +618,17 @@ const ManageSquad = () => {
                                                     <option value="">None</option>
                                                     {funnyBadges.map((badge) => <option key={badge.id} value={badge.id}>{badge.label}</option>)}
                                                 </select>
+                                                <input
+                                                    type="text"
+                                                    maxLength={40}
+                                                    placeholder="Custom name (optional)"
+                                                    value={(draftBadges[member.id]?.funnyCustom) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), funnyCustom: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-[11px] text-white outline-none focus:border-tactical-yellow"
+                                                />
                                             </label>
                                             <label className="space-y-1">
                                                 <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Status Badge</span>
@@ -607,6 +643,17 @@ const ManageSquad = () => {
                                                     <option value="">None</option>
                                                     {statusBadges.map((badge) => <option key={badge.id} value={badge.id}>{badge.label}</option>)}
                                                 </select>
+                                                <input
+                                                    type="text"
+                                                    maxLength={40}
+                                                    placeholder="Custom name (optional)"
+                                                    value={(draftBadges[member.id]?.statusCustom) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), statusCustom: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-[11px] text-white outline-none focus:border-tactical-yellow"
+                                                />
                                             </label>
                                         </div>
                                     </div>
