@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import SquadCard from '../components/SquadCard';
 import ApplyModal from '../components/ApplyModal';
 import SkeletonCard from '../components/SkeletonCard';
-import { Search, Crown, ShieldCheck, Mail, ArrowRight } from 'lucide-react';
+import FilterDrawer, { DEFAULT_FILTERS, applyFilters, countActiveFilters } from '../components/FilterDrawer';
+import { Crown, ShieldCheck, Mail, ArrowRight } from 'lucide-react';
 import { fetchSquads as fetchSquadsFromDb } from '../utils/squadsApi';
+import { MOCK_SQUADS } from '../utils/mockData';
 
 const isSquadOpen = (squad) => {
     const current = Number(squad?.playerCount || 0);
@@ -32,7 +34,7 @@ const PREMIUM_PERKS = [
     'Direct feedback and support channel'
 ];
 
-const STANDOUT_HEADING_CLASS = 'inline-flex items-center px-3 py-1 rounded-md bg-white text-black text-sm font-black uppercase tracking-widest';
+const STANDOUT_HEADING_CLASS = 'text-xs font-black uppercase tracking-widest text-gray-500 mb-1';
 
 const Home = () => {
     const navigate = useNavigate();
@@ -40,23 +42,17 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
     const [selectedSquad, setSelectedSquad] = useState(null);
     const [showMoreAds, setShowMoreAds] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filters, setFilters] = useState({
-        platform: 'Any Platform',
-        mode: 'All Modes',
-        group: 'Any Group',
-        comms: 'Any Comms'
-    });
-    const filterSelectClass = 'w-full bg-charcoal-dark text-white border border-military-gray p-2 rounded text-sm outline-none focus:border-tactical-yellow focus:ring-1 focus:ring-tactical-yellow/40';
+    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const activeCount = countActiveFilters(filters);
 
     useEffect(() => {
         const loadSquads = async () => {
             try {
                 const data = await fetchSquadsFromDb();
-                setSquads(data);
+                setSquads(data && data.length > 0 ? data : MOCK_SQUADS);
             } catch (error) {
-                console.error('Error fetching squads:', error);
-                setSquads([]);
+                console.error('Error fetching squads, using mock data:', error);
+                setSquads(MOCK_SQUADS);
             } finally {
                 setLoading(false);
             }
@@ -65,36 +61,10 @@ const Home = () => {
         loadSquads();
     }, []);
 
-    const filteredSquads = React.useMemo(() => {
-        return squads.filter((squad) => {
-            const searchMatch = !searchTerm || squad.name.toLowerCase().includes(searchTerm.toLowerCase());
-            const platformMatch =
-                filters.platform === 'Any Platform' || squad.platform === filters.platform;
-
-            const skillLevel = String(squad.skillLevel || '').toLowerCase();
-            const modeMatch = (() => {
-                if (filters.mode === 'All Modes') return true;
-                if (filters.mode === 'Ranked') return skillLevel === 'ranked';
-                if (filters.mode === 'Casual') return skillLevel === 'casual';
-                return skillLevel === 'competitive';
-            })();
-
-            const audience = squad.audience || 'Open to All';
-            const groupMatch = (() => {
-                if (filters.group === 'Any Group') return true;
-                if (filters.group === 'Men') return audience === 'Men Only';
-                if (filters.group === 'Women') return audience === 'Women Only';
-                if (filters.group === 'Open') return audience === 'Open to All';
-                return true;
-            })();
-
-            const commsMatch =
-                filters.comms === 'Any Comms' ||
-                (filters.comms === 'Discord Only' && squad.comms === 'Discord');
-
-            return searchMatch && platformMatch && modeMatch && groupMatch && commsMatch;
-        });
-    }, [squads, filters, searchTerm]);
+    const filteredSquads = React.useMemo(
+        () => applyFilters(squads, filters),
+        [squads, filters]
+    );
 
     const prioritized = React.useMemo(() => {
         const openSquads = [];
@@ -144,26 +114,31 @@ const Home = () => {
                     }}
                 />
                 <div className="relative z-10 text-center space-y-6 px-4">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/20 bg-black/40 backdrop-blur-sm text-[10px] md:text-xs font-black uppercase tracking-[0.22em] text-amber-200">
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-premium-gold/25 bg-black/40 backdrop-blur-sm text-[10px] md:text-xs font-black uppercase tracking-[0.22em] text-premium-gold-soft">
                         <ShieldCheck className="w-3.5 h-3.5" />
                         100% Free Core Matchmaking
                     </span>
-                    <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter text-white drop-shadow-2xl">
-                        Find Your <span className="text-tactical-yellow">Warzone</span> Squad
-                    </h1>
-                    <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto font-medium">
-                        Find your Warzone squad. 100% free. Always.
+                    <div className="space-y-4 pt-2">
+                        <h2 className="text-sm md:text-lg font-black uppercase tracking-[0.2em] text-white/90">
+                            Why Drop With Randoms?
+                        </h2>
+                        <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter text-white drop-shadow-2xl">
+                            Find Your <span className="text-premium-glow inline-block" data-text="Warzone">Warzone</span> Squad
+                        </h1>
+                    </div>
+                    <p className="text-xl md:text-2xl text-gray-300 max-w-xl mx-auto font-medium">
+                        Stop wasting matches on random fills. Find players that match your style.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                         <button
                             onClick={() => navigate('/find')}
-                            className="btn-tactical text-lg px-10 py-4"
+                            className="bg-tactical-yellow text-charcoal-dark font-black py-4 px-10 rounded-md hover:bg-tactical-yellow-hover transition-colors uppercase tracking-wider text-lg"
                         >
                             Find a Squad
                         </button>
                         <button
                             onClick={() => navigate('/post')}
-                            className="bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-10 rounded-md transition-all backdrop-blur-md border border-white/20 uppercase tracking-wider text-lg"
+                            className="bg-tactical-yellow/10 hover:bg-tactical-yellow/20 text-tactical-yellow font-black py-4 px-10 rounded-md transition-all backdrop-blur-md border border-tactical-yellow/35 hover:border-tactical-yellow-hover uppercase tracking-wider text-lg"
                         >
                             Post a Squad
                         </button>
@@ -173,208 +148,180 @@ const Home = () => {
                 {/* Overlay Gradients */}
                 <div className="absolute inset-0 bg-gradient-to-t from-charcoal-dark via-transparent to-transparent z-5" />
             </section>
-            {/* Search Bar */}
-            <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                    type="text"
-                    placeholder="Search squads by name..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-charcoal-light border border-military-gray rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-gray-500 text-sm focus:border-tactical-yellow focus:ring-1 focus:ring-tactical-yellow/30 outline-none transition-all"
-                />
-            </div>
 
-            {/* Filters + All Ads */}
-            <div className="space-y-6 pt-2" id="featured-squads">
-                <section className="bg-charcoal-light p-4 rounded-xl border border-military-gray grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Platform</label>
-                        <select
-                            value={filters.platform}
-                            onChange={(e) => setFilters({ ...filters, platform: e.target.value })}
-                            className={filterSelectClass}
-                        >
-                            <option className="bg-charcoal-dark text-white">Any Platform</option>
-                            <option className="bg-charcoal-dark text-white">PC</option>
-                            <option className="bg-charcoal-dark text-white">PlayStation</option>
-                            <option className="bg-charcoal-dark text-white">Xbox</option>
-                            <option className="bg-charcoal-dark text-white">Crossplay</option>
-                        </select>
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Mode</label>
-                        <select
-                            value={filters.mode}
-                            onChange={(e) => setFilters({ ...filters, mode: e.target.value })}
-                            className={filterSelectClass}
-                        >
-                            <option className="bg-charcoal-dark text-white">All Modes</option>
-                            <option className="bg-charcoal-dark text-white">Regular</option>
-                            <option className="bg-charcoal-dark text-white">Ranked</option>
-                            <option className="bg-charcoal-dark text-white">Casual</option>
-                        </select>
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Group</label>
-                        <select
-                            value={filters.group}
-                            onChange={(e) => setFilters({ ...filters, group: e.target.value })}
-                            className={filterSelectClass}
-                        >
-                            <option className="bg-charcoal-dark text-white">Any Group</option>
-                            <option className="bg-charcoal-dark text-white">Men</option>
-                            <option className="bg-charcoal-dark text-white">Women</option>
-                            <option className="bg-charcoal-dark text-white">Open</option>
-                        </select>
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Comms</label>
-                        <select
-                            value={filters.comms}
-                            onChange={(e) => setFilters({ ...filters, comms: e.target.value })}
-                            className={filterSelectClass}
-                        >
-                            <option className="bg-charcoal-dark text-white">Any Comms</option>
-                            <option className="bg-charcoal-dark text-white">Discord Only</option>
-                        </select>
-                    </div>
-                </section>
-
-                {loading ? (
-                    <div className="space-y-8">
-                        <section className="space-y-3">
-                            <h2 className={STANDOUT_HEADING_CLASS}>Featured Squads</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {Array(4).fill(0).map((_, i) => <SkeletonCard key={`featured-skeleton-${i}`} />)}
-                            </div>
-                        </section>
-                        <section className="space-y-3">
-                            <h2 className={STANDOUT_HEADING_CLASS}>Clan Ads</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {Array(12).fill(0).map((_, i) => <SkeletonCard key={`ads-skeleton-${i}`} />)}
-                            </div>
-                        </section>
-                    </div>
-                ) : (
-                    <div className="space-y-8">
-                        <section className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <h2 className={STANDOUT_HEADING_CLASS}>Featured Squads</h2>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {prioritized.featured.length > 0 ? (
-                                    prioritized.featured.map((squad) => (
-                                        <SquadCard
-                                            key={squad.id}
-                                            squad={squad}
-                                            featured
-                                            onJoin={(picked) => setSelectedSquad(picked)}
-                                        />
-                                    ))
-                                ) : (
-                                    <div className="col-span-full text-center py-10 text-gray-500 font-bold uppercase tracking-widest bg-charcoal-light/50 rounded-3xl border border-dashed border-military-gray">
-                                        No open squads match current filters
-                                    </div>
-                                )}
-                            </div>
-                        </section>
-
-                        <section className="space-y-3">
-                            <h2 className={STANDOUT_HEADING_CLASS}>Clan Ads</h2>
-                            {visibleClanAds.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {visibleClanAds.map((squad) => (
-                                        <SquadCard
-                                            key={squad.id}
-                                            squad={squad}
-                                            onJoin={(picked) => setSelectedSquad(picked)}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="col-span-full text-center py-10 text-gray-500 font-bold uppercase tracking-widest bg-charcoal-light/50 rounded-3xl border border-dashed border-military-gray">
-                                    No additional clan ads right now
-                                </div>
-                            )}
-                            {hasMoreAds && (
-                                <div className="pt-2 text-center">
+            {/* Filter Button + Active chips */}
+            <div className="flex flex-wrap items-center gap-3">
+                <FilterDrawer filters={filters} onChange={setFilters} />
+                {activeCount > 0 && (
+                    <>
+                        {Object.entries(filters).flatMap(([key, values]) =>
+                            values.map(v => (
+                                <span
+                                    key={`${key}-${v}`}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-charcoal-dark border border-military-gray text-gray-300 text-xs font-black uppercase tracking-wider"
+                                >
+                                    {v}
                                     <button
-                                        type="button"
-                                        onClick={() => setShowMoreAds((prev) => !prev)}
-                                        className={`${STANDOUT_HEADING_CLASS} border border-black hover:bg-gray-200 transition-colors`}
+                                        onClick={() => setFilters(f => ({
+                                            ...f,
+                                            [key]: f[key].filter(x => x !== v)
+                                        }))}
+                                        className="text-gray-500 hover:text-red-400 leading-none"
                                     >
-                                        {showMoreAds ? 'Show Less' : 'More'}
+                                        ×
                                     </button>
-                                </div>
-                            )}
-                        </section>
-
-                        {prioritized.featured.length === 0 &&
-                            allClanAds.length === 0 && (
-                                <div className="col-span-full text-center py-20 text-gray-500 font-bold uppercase tracking-widest bg-charcoal-light/50 rounded-3xl border border-dashed border-military-gray">
-                                    No ads found for current filters
-                                </div>
-                            )}
-                    </div>
+                                </span>
+                            ))
+                        )}
+                        <button
+                            onClick={() => setFilters(DEFAULT_FILTERS)}
+                            className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-red-400 transition-colors"
+                        >
+                            Clear all
+                        </button>
+                    </>
                 )}
             </div>
 
-            {/* Free + Premium + Contact */}
+            {loading ? (
+                <div className="space-y-8">
+                    <section className="space-y-3">
+                        <h2 className={STANDOUT_HEADING_CLASS}>Featured Squads</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {Array(4).fill(0).map((_, i) => <SkeletonCard key={`featured-skeleton-${i}`} />)}
+                        </div>
+                    </section>
+                    <section className="space-y-3">
+                        <h2 className={STANDOUT_HEADING_CLASS}>Squads</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {Array(12).fill(0).map((_, i) => <SkeletonCard key={`ads-skeleton-${i}`} />)}
+                        </div>
+                    </section>
+                </div>
+            ) : (
+                <div className="space-y-8">
+                    <section className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h2 className={STANDOUT_HEADING_CLASS}>Featured Squads</h2>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {prioritized.featured.length > 0 ? (
+                                prioritized.featured.map((squad) => (
+                                    <SquadCard
+                                        key={squad.id}
+                                        squad={squad}
+                                        featured
+                                        onJoin={(picked) => setSelectedSquad(picked)}
+                                    />
+                                ))
+                            ) : (
+                                <div className="col-span-full text-center py-10 text-gray-500 font-bold uppercase tracking-widest bg-charcoal-light/50 rounded-3xl border border-dashed border-military-gray">
+                                    No open squads match current filters
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
+                    <section className="space-y-3">
+                        <h2 className={STANDOUT_HEADING_CLASS}>Squads</h2>
+                        {visibleClanAds.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {visibleClanAds.map((squad) => (
+                                    <SquadCard
+                                        key={squad.id}
+                                        squad={squad}
+                                        onJoin={(picked) => setSelectedSquad(picked)}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="col-span-full text-center py-10 text-gray-500 font-bold uppercase tracking-widest bg-charcoal-light/50 rounded-3xl border border-dashed border-military-gray">
+                                No squads right now — check back soon
+                            </div>
+                        )}
+                        {hasMoreAds && (
+                            <div className="pt-4 text-center">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowMoreAds((prev) => !prev)}
+                                    className="inline-flex items-center gap-2 px-8 py-3 rounded-xl border border-military-gray bg-charcoal-light text-white text-sm font-black uppercase tracking-widest hover:border-tactical-yellow-hover hover:text-tactical-yellow-hover transition-all"
+                                >
+                                    {showMoreAds ? 'Show Less' : 'See More Squads'}
+                                </button>
+                            </div>
+                        )}
+                    </section>
+
+                    {prioritized.featured.length === 0 &&
+                        allClanAds.length === 0 && (
+                            <div className="col-span-full text-center py-20 text-gray-500 font-bold uppercase tracking-widest bg-charcoal-light/50 rounded-3xl border border-dashed border-military-gray">
+                                No ads found for current filters
+                            </div>
+                        )}
+                </div>
+            )}
+
+            {/* Community Support & Free Features */}
             <section className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                {/* Why Free Card */}
                 <article className="card-tactical xl:col-span-6 space-y-4">
                     <div className="flex items-center gap-2">
                         <ShieldCheck className="w-5 h-5 text-green-400" />
-                        <h2 className="text-sm font-black uppercase tracking-widest text-gray-200">Why We Are Free</h2>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-gray-200">Why Drop Zone Squads Is Free</h2>
                     </div>
                     <p className="text-sm text-gray-300 leading-relaxed">
-                        Core squad finding is free so the community stays large and active. Browse freely, then sign in with a free account when you are ready to join or post.
+                        Drop Zone Squads is free for all users. Browse squads, create your profile, post squads, send join requests, and connect with players without paying. The goal is to keep squad finding open, active, and easy for everyone.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-3">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Free Tier Includes</p>
-                            <p className="mt-1 text-sm font-bold text-white">Unlimited browsing for all visitors</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Free For All Users</p>
+                            <p className="mt-1 text-sm font-bold text-white">Full access to core features</p>
                         </div>
                         <div className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-3">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Free Membership</p>
-                            <p className="mt-1 text-sm font-bold text-white">Sign in with email + your chosen username to join or post squads</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">No Paywalls</p>
+                            <p className="mt-1 text-sm font-bold text-white">Squad finding, posting, and messaging stay open</p>
                         </div>
                     </div>
                     <p className="text-xs font-bold uppercase tracking-widest text-green-300">
-                        All core features are free for everyone.
+                        Core features are free for everyone.
                     </p>
                 </article>
 
+                {/* Support Site Card */}
                 <article className="card-tactical xl:col-span-6 space-y-4">
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
-                            <Crown className="w-5 h-5 text-amber-300" />
-                            <h2 className="text-sm font-black uppercase tracking-widest text-gray-100">Optional Supporter Pass</h2>
+                            <Crown className="w-5 h-5 text-tactical-yellow" />
+                            <h2 className="text-sm font-black uppercase tracking-widest text-gray-100">Support The Site</h2>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border border-military-gray bg-charcoal-dark text-gray-300">
-                            from $4.99 / year
-                        </span>
                     </div>
                     <p className="text-sm text-gray-300 leading-relaxed">
-                        Keep us 100% free. Support the site for a low yearly amount and get optional cosmetic perks.
+                        Drop Zone Squads is community-supported. Donations are optional and help cover hosting, development, and future improvements.
                     </p>
                     <div className="space-y-2">
-                        {PREMIUM_PERKS.map((perk) => (
-                            <p key={perk} className="text-sm text-gray-200 flex items-start gap-2">
-                                <ArrowRight className="w-3.5 h-3.5 mt-0.5 text-amber-300 shrink-0" />
-                                <span>{perk}</span>
-                            </p>
-                        ))}
+                        <p className="text-sm text-gray-200 flex items-start gap-2">
+                            <ArrowRight className="w-3.5 h-3.5 mt-0.5 text-tactical-yellow shrink-0" />
+                            <span>Helps keep the site online</span>
+                        </p>
+                        <p className="text-sm text-gray-200 flex items-start gap-2">
+                            <ArrowRight className="w-3.5 h-3.5 mt-0.5 text-tactical-yellow shrink-0" />
+                            <span>Supports development and new features</span>
+                        </p>
+                        <p className="text-sm text-gray-200 flex items-start gap-2">
+                            <ArrowRight className="w-3.5 h-3.5 mt-0.5 text-tactical-yellow shrink-0" />
+                            <span>Never required to use the platform</span>
+                        </p>
+                        <p className="text-sm text-gray-200 flex items-start gap-2">
+                            <ArrowRight className="w-3.5 h-3.5 mt-0.5 text-tactical-yellow shrink-0" />
+                            <span>No core features are locked</span>
+                        </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1 text-xs font-black uppercase tracking-wider">
                         <a
                             href={SUPPORT_CONFIG.cashAppUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-gray-300 hover:text-amber-200 underline decoration-military-gray hover:decoration-amber-300 underline-offset-4 transition-colors"
+                            className="bg-charcoal-dark border border-military-gray px-4 py-2 hover:border-tactical-yellow-hover transition-colors rounded text-gray-300 hover:text-white"
                         >
                             Support via Cash App
                         </a>
@@ -382,54 +329,80 @@ const Home = () => {
                             href={SUPPORT_CONFIG.paypalUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-gray-300 hover:text-amber-200 underline decoration-military-gray hover:decoration-amber-300 underline-offset-4 transition-colors"
+                            className="bg-charcoal-dark border border-military-gray px-4 py-2 hover:border-tactical-yellow-hover transition-colors rounded text-gray-300 hover:text-white"
                         >
                             Support via PayPal
                         </a>
                     </div>
                     <p className="text-[11px] text-gray-400">
-                        Optional supporter status is manually activated after payment receipt.
+                        Donations are optional and do not unlock required features.
                     </p>
                 </article>
 
+                {/* Everything You Can Do Free */}
                 <article className="card-tactical xl:col-span-12 space-y-4">
-                    <h2 className="text-sm font-black uppercase tracking-widest text-gray-200">Free vs Premium</h2>
+                    <h2 className="text-sm font-black uppercase tracking-widest text-gray-200">Everything You Can Do For Free</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-4 space-y-2">
-                            <p className="text-xs font-black uppercase tracking-widest text-gray-300">Free For Everyone</p>
-                            <p className="text-sm text-gray-300">Unlimited browsing without an account</p>
-                            <p className="text-sm text-gray-300">Standard squad cards</p>
-                            <p className="text-sm text-gray-300">Free sign-in required for join requests and posting</p>
+                            <p className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Included for all users</p>
+                            <p className="text-sm text-gray-300 flex items-center gap-2"><ArrowRight className="w-3 h-3 text-gray-500" /> Browse squads</p>
+                            <p className="text-sm text-gray-300 flex items-center gap-2"><ArrowRight className="w-3 h-3 text-gray-500" /> Create an account</p>
+                            <p className="text-sm text-gray-300 flex items-center gap-2"><ArrowRight className="w-3 h-3 text-gray-500" /> Create a player profile</p>
+                            <p className="text-sm text-gray-300 flex items-center gap-2"><ArrowRight className="w-3 h-3 text-gray-500" /> Post squads</p>
                         </div>
-                        <div className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-4 space-y-2">
-                            <p className="text-xs font-black uppercase tracking-widest text-amber-100">Supporter Perks (Optional)</p>
-                            <p className="text-sm text-gray-100">Cosmetic highlight + supporter badge</p>
-                            <p className="text-sm text-gray-100">Profile flair and theme previews</p>
-                            <p className="text-sm text-gray-100">No core access is locked behind payment</p>
+                        <div className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-4 space-y-2 md:mt-6">
+                            <p className="text-sm text-gray-300 flex items-center gap-2"><ArrowRight className="w-3 h-3 text-gray-500" /> Request to join squads</p>
+                            <p className="text-sm text-gray-300 flex items-center gap-2"><ArrowRight className="w-3 h-3 text-gray-500" /> Use direct messages</p>
+                            <p className="text-sm text-gray-300 flex items-center gap-2"><ArrowRight className="w-3 h-3 text-gray-500" /> Use squad chat</p>
+                            <p className="text-sm text-gray-300 flex items-center gap-2"><ArrowRight className="w-3 h-3 text-gray-500" /> Join squads and unlock private squad comms</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-3">
-                        <a
-                            href={`mailto:${SUPPORT_CONFIG.email}`}
-                            className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-4 hover:border-amber-300/40 transition-colors"
-                        >
-                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
-                                <Mail className="w-3.5 h-3.5" />
-                                Contact Email
-                            </p>
-                            <p className="text-sm font-bold text-gray-200 mt-1">{SUPPORT_CONFIG.email}</p>
-                        </a>
+                </article>
+
+                {/* Contact Section */}
+                <article className="card-tactical xl:col-span-12 space-y-4">
+                    <div className="flex items-center gap-2">
+                        <Mail className="w-5 h-5 text-gray-400" />
+                        <h2 className="text-sm font-black uppercase tracking-widest text-gray-200">Contact Drop Zone Squads</h2>
                     </div>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                        Questions, support requests, bug reports, or suggestions? Send a message below.
+                    </p>
+                    <form className="space-y-4 max-w-2xl" onSubmit={(e) => { e.preventDefault(); alert("Feature coming soon! (Need backend endpoint)"); }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Name</label>
+                                <input type="text" required placeholder="Your username or name" className="w-full bg-charcoal-dark border border-military-gray rounded p-2.5 text-sm text-white focus:border-tactical-yellow outline-none transition-colors" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Email</label>
+                                <input type="email" required placeholder="For replies" className="w-full bg-charcoal-dark border border-military-gray rounded p-2.5 text-sm text-white focus:border-tactical-yellow outline-none transition-colors" />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Subject</label>
+                            <input type="text" required placeholder="What is this regarding?" className="w-full bg-charcoal-dark border border-military-gray rounded p-2.5 text-sm text-white focus:border-tactical-yellow outline-none transition-colors" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Message</label>
+                            <textarea required rows={4} placeholder="Type your message here..." className="w-full bg-charcoal-dark border border-military-gray rounded p-2.5 text-sm text-white focus:border-tactical-yellow outline-none transition-colors"></textarea>
+                        </div>
+                        <button type="submit" className="bg-tactical-yellow text-charcoal-dark hover:bg-tactical-yellow-hover text-xs font-black uppercase tracking-widest py-3 px-6 rounded transition-colors w-full md:w-auto">
+                            Send Message
+                        </button>
+                    </form>
                 </article>
             </section>
 
-            {selectedSquad && (
-                <ApplyModal
-                    squad={selectedSquad}
-                    onClose={() => setSelectedSquad(null)}
-                />
-            )}
-        </div>
+            {
+                selectedSquad && (
+                    <ApplyModal
+                        squad={selectedSquad}
+                        onClose={() => setSelectedSquad(null)}
+                    />
+                )
+            }
+        </div >
     );
 };
 
