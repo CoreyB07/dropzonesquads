@@ -7,6 +7,7 @@ import { useToast } from '../context/useToast';
 import { useMySquads } from '../context/MySquadsContext';
 import { normalizeSquad, sanitizeSquadTag, updateSquad } from '../utils/squadsApi';
 import { fetchSquadMembers, getMyRoleInSquad, updateMemberRole } from '../utils/squadMembersApi';
+import { fetchBadgeCatalog, fetchSquadMemberBadges, saveMemberBadgeSelection } from '../utils/badgeApi';
 
 const ROLE_OPTIONS = [
     { value: 'recruit', label: 'Recruit' },
@@ -84,6 +85,9 @@ const ManageSquad = () => {
     const [draftRoles, setDraftRoles] = useState({});
     const [canManage, setCanManage] = useState(false);
     const [actingApplicationId, setActingApplicationId] = useState(null);
+    const [badgeCatalog, setBadgeCatalog] = useState([]);
+    const [initialBadges, setInitialBadges] = useState({});
+    const [draftBadges, setDraftBadges] = useState({});
     const [debugError, setDebugError] = useState(null);
 
     useEffect(() => {
@@ -110,6 +114,21 @@ const ManageSquad = () => {
                 const role = await getMyRoleInSquad(id, user.id);
                 const allowed = normalized.creatorId === user.id || role === 'leader' || role === 'co-leader';
                 const squadMembers = await fetchSquadMembers(id);
+                const [catalogRows, memberBadgeRows] = await Promise.all([
+                    fetchBadgeCatalog(),
+                    fetchSquadMemberBadges(id)
+                ]);
+
+                const draftByUser = {};
+                (memberBadgeRows || []).forEach((row) => {
+                    const userId = row.user_id;
+                    const category = row?.badge?.category;
+                    if (!userId || !category) return;
+                    draftByUser[userId] = draftByUser[userId] || { serious: '', funny: '', status: '' };
+                    if (['serious', 'funny', 'status'].includes(category)) {
+                        draftByUser[userId][category] = row.badge_id;
+                    }
+                });
 
                 setCanManage(allowed);
                 setSquad(normalized);
@@ -117,6 +136,9 @@ const ManageSquad = () => {
                 setForm(buildFormState(normalized));
                 setMembers(squadMembers);
                 setDraftRoles(Object.fromEntries(squadMembers.map((member) => [member.id, member.role])));
+                setBadgeCatalog(catalogRows || []);
+                setInitialBadges(draftByUser);
+                setDraftBadges(draftByUser);
             } catch (error) {
                 const debugPayload = {
                     code: error?.code || 'no-code',
@@ -153,8 +175,22 @@ const ManageSquad = () => {
         [draftRoles, members]
     );
 
-    const hasChanges = squadChanges.length > 0 || roleChanges.length > 0;
+    const badgeChanges = useMemo(
+        () => members
+            .filter((member) => {
+                const baseline = initialBadges[member.id] || { serious: '', funny: '', status: '' };
+                const next = draftBadges[member.id] || { serious: '', funny: '', status: '' };
+                return baseline.serious !== next.serious || baseline.funny !== next.funny || baseline.status !== next.status;
+            }),
+        [members, draftBadges, initialBadges]
+    );
+
+    const hasChanges = squadChanges.length > 0 || roleChanges.length > 0 || badgeChanges.length > 0;
     const canDeleteSquad = Boolean(user?.id && squad?.creatorId === user.id);
+
+    const seriousBadges = badgeCatalog.filter((b) => b.category === 'serious');
+    const funnyBadges = badgeCatalog.filter((b) => b.category === 'funny');
+    const statusBadges = badgeCatalog.filter((b) => b.category === 'status');
 
     const incomingApplications = useMemo(
         () => (applications || []).filter((app) => String(app.squadId) === String(id) && app.status === 'pending'),
@@ -224,6 +260,20 @@ const ManageSquad = () => {
                 }
             }
 
+            if (badgeChanges.length > 0) {
+                for (const member of members) {
+                    const selection = draftBadges[member.id] || { serious: '', funny: '', status: '' };
+                    await saveMemberBadgeSelection({
+                        squadId: id,
+                        userId: member.id,
+                        seriousBadgeId: selection.serious || null,
+                        funnyBadgeId: selection.funny || null,
+                        statusBadgeId: selection.status || null,
+                        assignedBy: user?.id || null
+                    });
+                }
+            }
+
             const nextMembers = members.map((member) => ({
                 ...member,
                 role: draftRoles[member.id],
@@ -233,6 +283,7 @@ const ManageSquad = () => {
             setOriginalSquad(nextSquad);
             setMembers(nextMembers);
             setDraftRoles(Object.fromEntries(nextMembers.map((member) => [member.id, member.role])));
+            setInitialBadges(draftBadges);
             setConfirmOpen(false);
             success('Squad updates confirmed.');
         } catch (error) {
@@ -475,26 +526,73 @@ const ManageSquad = () => {
                             {members.map((member) => {
                                 const isLeader = member.role === 'leader';
                                 return (
-                                    <div key={member.id} className="rounded-xl border border-military-gray bg-charcoal-dark/70 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <div>
-                                            <p className="text-sm font-black uppercase tracking-wide text-white">{member.username || 'Unknown Operator'}</p>
-                                            <p className="text-[11px] uppercase tracking-widest text-gray-500">{member.platform || 'PC'} / {roleLabel(member.role)}</p>
+                                    <div key={member.id} className="rounded-xl border border-military-gray bg-charcoal-dark/70 p-4 flex flex-col gap-3">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <div>
+                                                <p className="text-sm font-black uppercase tracking-wide text-white">{member.username || 'Unknown Operator'}</p>
+                                                <p className="text-[11px] uppercase tracking-widest text-gray-500">{member.platform || 'PC'} / {roleLabel(member.role)}</p>
+                                            </div>
+                                            {isLeader ? (
+                                                <span className="inline-flex items-center justify-center rounded-lg border border-red-500/35 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-red-300">
+                                                    Locked Leader
+                                                </span>
+                                            ) : (
+                                                <select
+                                                    value={draftRoles[member.id] || member.role}
+                                                    onChange={(e) => setDraftRoles((current) => ({ ...current, [member.id]: e.target.value }))}
+                                                    className="w-full sm:w-44 bg-charcoal-dark border border-military-gray rounded-lg py-3 px-4 text-sm text-white outline-none focus:border-tactical-yellow"
+                                                >
+                                                    {ROLE_OPTIONS.map((option) => (
+                                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                                    ))}
+                                                </select>
+                                            )}
                                         </div>
-                                        {isLeader ? (
-                                            <span className="inline-flex items-center justify-center rounded-lg border border-red-500/35 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-red-300">
-                                                Locked Leader
-                                            </span>
-                                        ) : (
-                                            <select
-                                                value={draftRoles[member.id] || member.role}
-                                                onChange={(e) => setDraftRoles((current) => ({ ...current, [member.id]: e.target.value }))}
-                                                className="w-full sm:w-44 bg-charcoal-dark border border-military-gray rounded-lg py-3 px-4 text-sm text-white outline-none focus:border-tactical-yellow"
-                                            >
-                                                {ROLE_OPTIONS.map((option) => (
-                                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                                ))}
-                                            </select>
-                                        )}
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                            <label className="space-y-1">
+                                                <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Serious Badge</span>
+                                                <select
+                                                    value={(draftBadges[member.id]?.serious) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), serious: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-xs text-white outline-none focus:border-tactical-yellow"
+                                                >
+                                                    <option value="">None</option>
+                                                    {seriousBadges.map((badge) => <option key={badge.id} value={badge.id}>{badge.label}</option>)}
+                                                </select>
+                                            </label>
+                                            <label className="space-y-1">
+                                                <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Funny Badge</span>
+                                                <select
+                                                    value={(draftBadges[member.id]?.funny) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), funny: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-xs text-white outline-none focus:border-tactical-yellow"
+                                                >
+                                                    <option value="">None</option>
+                                                    {funnyBadges.map((badge) => <option key={badge.id} value={badge.id}>{badge.label}</option>)}
+                                                </select>
+                                            </label>
+                                            <label className="space-y-1">
+                                                <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Status Badge</span>
+                                                <select
+                                                    value={(draftBadges[member.id]?.status) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), status: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-xs text-white outline-none focus:border-tactical-yellow"
+                                                >
+                                                    <option value="">None</option>
+                                                    {statusBadges.map((badge) => <option key={badge.id} value={badge.id}>{badge.label}</option>)}
+                                                </select>
+                                            </label>
+                                        </div>
                                     </div>
                                 );
                             })}
