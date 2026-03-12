@@ -3,8 +3,10 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
 import { fetchUserSquads } from '../utils/squadMembersApi';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/useToast';
 import { MessageCircle, Monitor, Shield, Crown, ArrowLeft, ChevronRight, User, Target, Medal } from 'lucide-react';
 import SquadNameText from '../components/SquadNameText';
+import SupporterBadge from '../components/SupporterBadge';
 
 
 const platformColors = {
@@ -23,6 +25,11 @@ const UserProfile = () => {
     const [profile, setProfile] = useState(null);
     const [squads, setSquads] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [friendship, setFriendship] = useState(null);
+    const [friendshipLoading, setFriendshipLoading] = useState(true);
+    const [friendBusy, setFriendBusy] = useState(false);
+    const [sharedActivisionId, setSharedActivisionId] = useState(null);
+    const { success, error: showError } = useToast();
 
     useEffect(() => {
         const load = async () => {
@@ -30,21 +37,101 @@ const UserProfile = () => {
             try {
                 const { data: profileData } = await supabase
                     .from('profiles')
-                    .select('*')
+                    .select('id, username, platform, avatar_url, bio, created_at, supporter, is_supporter')
                     .eq('id', id)
                     .single();
                 setProfile(profileData);
 
+
                 const userSquads = await fetchUserSquads(id);
                 setSquads(userSquads);
+
+                const { data: sharedId } = await supabase
+                    .rpc('get_shared_activision_id', { target_user_id: id });
+                setSharedActivisionId(sharedId || null);
+
+                if (user?.id && id && user.id !== id) {
+                    const { data: friendshipRows } = await supabase
+                        .from('friendships')
+                        .select('*')
+                        .or(`and(requester_id.eq.${user.id},addressee_id.eq.${id}),and(requester_id.eq.${id},addressee_id.eq.${user.id})`)
+                        .limit(1);
+                    setFriendship(friendshipRows?.[0] || null);
+                } else {
+                    setFriendship(null);
+                }
+
             } catch (err) {
                 console.error('Error loading user profile:', err);
             } finally {
                 setLoading(false);
+                setFriendshipLoading(false);
             }
         };
         load();
-    }, [id]);
+    }, [id, user?.id]);
+
+
+    const sendFriendRequest = async () => {
+        if (!user) { navigate('/auth'); return; }
+        if (!id || user.id === id) return;
+
+        setFriendBusy(true);
+        try {
+            const { data, error } = await supabase
+                .from('friendships')
+                .insert({ requester_id: user.id, addressee_id: id, status: 'pending' })
+                .select('*')
+                .single();
+            if (error) throw error;
+            setFriendship(data);
+            try {
+                await supabase.from('notifications').insert({
+                    recipient_id: id,
+                    actor_id: user.id,
+                    type: 'friend_request',
+                    payload: { requester_id: user.id }
+                });
+            } catch {}
+            success('Friend request sent.');
+        } catch (err) {
+            if (err?.code === '23505') {
+                showError('A friend request already exists between you two.');
+            } else {
+                showError(err?.message || 'Unable to send friend request.');
+            }
+        } finally {
+            setFriendBusy(false);
+        }
+    };
+
+    const acceptFriendRequest = async () => {
+        if (!friendship?.id) return;
+        setFriendBusy(true);
+        try {
+            const { data, error } = await supabase
+                .from('friendships')
+                .update({ status: 'accepted' })
+                .eq('id', friendship.id)
+                .select('*')
+                .single();
+            if (error) throw error;
+            setFriendship(data);
+            try {
+                await supabase.from('notifications').insert({
+                    recipient_id: friendship.requester_id,
+                    actor_id: user.id,
+                    type: 'friend_request_accepted',
+                    payload: { friendship_id: friendship.id }
+                });
+            } catch {}
+            success('Friend request accepted.');
+        } catch (err) {
+            showError(err?.message || 'Unable to accept request.');
+        } finally {
+            setFriendBusy(false);
+        }
+    };
 
     const handleDM = () => {
         if (!user) { navigate('/auth'); return; }
@@ -102,8 +189,8 @@ const UserProfile = () => {
                             )}
                         </div>
 
-                        {profile.activision_id && (
-                            <p className="text-sm font-bold text-gray-400 font-mono">{profile.activision_id}</p>
+                        {sharedActivisionId && (
+                            <p className="text-sm font-bold text-gray-400 font-mono">{sharedActivisionId}</p>
                         )}
 
                         {profile.bio && (
@@ -124,6 +211,30 @@ const UserProfile = () => {
                             >
                                 <MessageCircle className="w-4 h-4" /> Message
                             </button>
+                            {!friendshipLoading && (!friendship || friendship.status === 'blocked') && (
+                                <button
+                                    onClick={sendFriendRequest}
+                                    disabled={friendBusy}
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-military-gray bg-charcoal-dark text-white font-black uppercase tracking-widest hover:border-tactical-yellow-hover hover:text-tactical-yellow-hover transition-all text-sm disabled:opacity-50"
+                                >
+                                    Add Friend
+                                </button>
+                            )}
+                            {!friendshipLoading && friendship?.status === 'pending' && friendship?.addressee_id === user?.id && (
+                                <button
+                                    onClick={acceptFriendRequest}
+                                    disabled={friendBusy}
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-green-500/50 bg-green-500/10 text-green-300 font-black uppercase tracking-widest hover:bg-green-500/20 transition-all text-sm disabled:opacity-50"
+                                >
+                                    Accept Friend Request
+                                </button>
+                            )}
+                            {!friendshipLoading && friendship?.status === 'pending' && friendship?.requester_id === user?.id && (
+                                <span className="text-[11px] uppercase tracking-widest text-gray-400 font-bold text-center">Friend request pending</span>
+                            )}
+                            {!friendshipLoading && friendship?.status === 'accepted' && (
+                                <span className="text-[11px] uppercase tracking-widest text-green-300 font-bold text-center">Friends</span>
+                            )}
                         </div>
                     )}
                     {isOwnProfile && (
