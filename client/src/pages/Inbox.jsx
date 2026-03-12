@@ -105,12 +105,27 @@ const Inbox = () => {
 
             const { data: notifData, error: notifErr } = await supabase
                 .from('notifications')
-                .select('id, recipient_id, actor_id, type, payload, read_at, created_at, actor:actor_id(username)')
+                .select('id, recipient_id, actor_id, type, payload, read_at, created_at')
                 .eq('recipient_id', user.id)
                 .order('created_at', { ascending: false })
                 .limit(25);
             if (notifErr) throw notifErr;
-            setNotifications(notifData || []);
+
+            const actorIds = Array.from(new Set((notifData || []).map((n) => n.actor_id).filter(Boolean)));
+            let actorMap = new Map();
+            if (actorIds.length > 0) {
+                const { data: actorProfiles, error: actorErr } = await supabase
+                    .from('profiles')
+                    .select('id, username')
+                    .in('id', actorIds);
+                if (actorErr) throw actorErr;
+                actorMap = new Map((actorProfiles || []).map((row) => [row.id, row]));
+            }
+
+            setNotifications((notifData || []).map((n) => ({
+                ...n,
+                actor: actorMap.get(n.actor_id) || null
+            })));
 
                         const squadConversations = (mySquads || [])
                 .map((squad) => ({
@@ -165,7 +180,11 @@ const Inbox = () => {
             }
         } catch (err) {
             console.error('Fetch Inbox error:', err);
-            showError('Could not load your inbox.');
+            const code = err?.code || 'no-code';
+            const msg = err?.message || 'unknown error';
+            const details = err?.details ? ` | details: ${err.details}` : '';
+            const hint = err?.hint ? ` | hint: ${err.hint}` : '';
+            showError(`Could not load your inbox [${code}] ${msg}${details}${hint}`);
         } finally {
             setLoading(false);
         }
