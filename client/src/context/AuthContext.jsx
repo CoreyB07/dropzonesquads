@@ -19,7 +19,7 @@ const hasCompletedOnboarding = ({ username = '', platform = '' }) => {
     const normalizedUsername = String(username || '').trim();
     const normalizedPlatform = String(platform || '').trim();
 
-    const validPlatform = ['PC', 'Xbox', 'PlayStation'].includes(normalizedPlatform);
+    const validPlatform = ['PC', 'Xbox', 'PlayStation', 'Console', 'Crossplay'].includes(normalizedPlatform);
     const validUsername = normalizedUsername.length > 0 && normalizedUsername !== '__pending__';
 
     return validUsername && validPlatform;
