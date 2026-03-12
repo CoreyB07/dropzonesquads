@@ -61,23 +61,23 @@ as $$
 $$;
 
 -- policies
-create policy if not exists "Users can read own profile"
+create policy "Users can read own profile"
 on public.profiles for select
 to authenticated
 using (auth.uid() = id);
 
-create policy if not exists "Users can insert own profile"
+create policy "Users can insert own profile"
 on public.profiles for insert
 to authenticated
 with check (auth.uid() = id);
 
-create policy if not exists "Users can update own profile"
+create policy "Users can update own profile"
 on public.profiles for update
 to authenticated
 using (auth.uid() = id)
 with check (auth.uid() = id);
 
-create policy if not exists "Admins can read all profiles"
+create policy "Admins can read all profiles"
 on public.profiles for select
 to authenticated
 using (public.is_admin_user());
@@ -151,12 +151,12 @@ on public.marketing_subscribers (lower(email));
 
 alter table public.marketing_subscribers enable row level security;
 
-create policy if not exists "Public can insert subscribers"
+create policy "Public can insert subscribers"
 on public.marketing_subscribers for insert
 to anon, authenticated
 with check (length(trim(coalesce(email, ''))) > 3 and subscribed = true);
 
-create policy if not exists "Admins can read subscribers"
+create policy "Admins can read subscribers"
 on public.marketing_subscribers for select
 to authenticated
 using (public.is_admin_user());
@@ -195,17 +195,17 @@ create table if not exists public.squads (
 
 alter table public.squads enable row level security;
 
-create policy if not exists "Public read squads"
+create policy "Public read squads"
 on public.squads for select
 to anon, authenticated
 using (true);
 
-create policy if not exists "Authenticated insert squads"
+create policy "Authenticated insert squads"
 on public.squads for insert
 to authenticated
 with check (creator_id = auth.uid());
 
-create policy if not exists "Squad managers can update squads"
+create policy "Squad managers can update squads"
 on public.squads for update
 to authenticated
 using (
@@ -249,12 +249,12 @@ create index if not exists squad_members_squad_idx on public.squad_members (squa
 
 alter table public.squad_members enable row level security;
 
-create policy if not exists "Authenticated users can read squad members"
+create policy "Authenticated users can read squad members"
 on public.squad_members for select
 to authenticated
 using (true);
 
-create policy if not exists "Squad managers can insert members"
+create policy "Squad managers can insert members"
 on public.squad_members for insert
 to authenticated
 with check (
@@ -268,7 +268,7 @@ with check (
   )
 );
 
-create policy if not exists "Squad managers can update members"
+create policy "Squad managers can update members"
 on public.squad_members for update
 to authenticated
 using (
@@ -290,7 +290,7 @@ with check (
   )
 );
 
-create policy if not exists "Squad managers can delete members"
+create policy "Squad managers can delete members"
 on public.squad_members for delete
 to authenticated
 using (
@@ -325,17 +325,17 @@ create index if not exists squad_applications_applicant_status_idx on public.squ
 
 alter table public.squad_applications enable row level security;
 
-create policy if not exists "Applicants can insert their own applications"
+create policy "Applicants can insert their own applications"
 on public.squad_applications for insert
 to authenticated
 with check (applicant_id = auth.uid());
 
-create policy if not exists "Applicants can view their applications"
+create policy "Applicants can view their applications"
 on public.squad_applications for select
 to authenticated
 using (applicant_id = auth.uid());
 
-create policy if not exists "Squad managers can view squad applications"
+create policy "Squad managers can view squad applications"
 on public.squad_applications for select
 to authenticated
 using (
@@ -351,7 +351,7 @@ using (
   )
 );
 
-create policy if not exists "Squad managers can update squad applications"
+create policy "Squad managers can update squad applications"
 on public.squad_applications for update
 to authenticated
 using (
@@ -407,23 +407,23 @@ create index if not exists friendships_addressee_idx on public.friendships (addr
 
 alter table public.friendships enable row level security;
 
-create policy if not exists "Users can read their own friendships"
+create policy "Users can read their own friendships"
 on public.friendships for select
 to authenticated
 using (auth.uid() = requester_id or auth.uid() = addressee_id);
 
-create policy if not exists "Users can create friendship requests"
+create policy "Users can create friendship requests"
 on public.friendships for insert
 to authenticated
 with check (auth.uid() = requester_id and status = 'pending' and requester_id <> addressee_id);
 
-create policy if not exists "Friend participants can update"
+create policy "Friend participants can update"
 on public.friendships for update
 to authenticated
 using (auth.uid() = requester_id or auth.uid() = addressee_id)
 with check (auth.uid() = requester_id or auth.uid() = addressee_id);
 
-create policy if not exists "Friend participants can delete"
+create policy "Friend participants can delete"
 on public.friendships for delete
 to authenticated
 using (auth.uid() = requester_id or auth.uid() = addressee_id);
@@ -656,46 +656,46 @@ end;
 $$;
 
 -- conversation RLS
-create policy if not exists "Participants can read conversations"
+create policy "Participants can read conversations"
 on public.conversations for select
 to authenticated
 using (public.is_conversation_participant(id, auth.uid()));
 
-create policy if not exists "Authenticated users can create conversations"
+create policy "Authenticated users can create conversations"
 on public.conversations for insert
 to authenticated
 with check (created_by = auth.uid());
 
-create policy if not exists "Participants can update conversations"
+create policy "Participants can update conversations"
 on public.conversations for update
 to authenticated
 using (public.is_conversation_participant(id, auth.uid()))
 with check (public.is_conversation_participant(id, auth.uid()));
 
 -- participant RLS
-create policy if not exists "Users can read participant rows in own conversations"
+create policy "Users can read participant rows in own conversations"
 on public.conversation_participants for select
 to authenticated
 using (public.is_conversation_participant(conversation_id, auth.uid()));
 
-create policy if not exists "Users can insert self as participant"
+create policy "Users can insert self as participant"
 on public.conversation_participants for insert
 to authenticated
 with check (user_id = auth.uid() or public.is_admin_user());
 
-create policy if not exists "Users can update own participant row"
+create policy "Users can update own participant row"
 on public.conversation_participants for update
 to authenticated
 using (user_id = auth.uid())
 with check (user_id = auth.uid());
 
 -- messages RLS
-create policy if not exists "Participants can read messages"
+create policy "Participants can read messages"
 on public.messages for select
 to authenticated
 using (public.is_conversation_participant(conversation_id, auth.uid()));
 
-create policy if not exists "Participants can send messages"
+create policy "Participants can send messages"
 on public.messages for insert
 to authenticated
 with check (
@@ -708,19 +708,19 @@ grant select, insert, update on public.conversation_participants to authenticate
 grant select, insert on public.messages to authenticated;
 
 -- notifications RLS
-create policy if not exists "Users can read own notifications"
+create policy "Users can read own notifications"
 on public.notifications for select
 to authenticated
 using (recipient_id = auth.uid());
 
-create policy if not exists "Users can update own notifications"
+create policy "Users can update own notifications"
 on public.notifications for update
 to authenticated
 using (recipient_id = auth.uid())
 with check (recipient_id = auth.uid());
 
 -- allow inserts from authenticated users; app logic must ensure correct recipient
-create policy if not exists "Authenticated users can insert notifications"
+create policy "Authenticated users can insert notifications"
 on public.notifications for insert
 to authenticated
 with check (auth.uid() is not null);
