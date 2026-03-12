@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
-import { Shield, Mail, Lock, MessageSquare } from 'lucide-react';
+import { Shield, Mail, Lock, MessageSquare, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 const Auth = () => {
     const navigate = useNavigate();
@@ -11,6 +11,8 @@ const Auth = () => {
     const { success, error: showError } = useToast();
     const isLogin = new URLSearchParams(location.search).get('mode') !== 'signup';
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [confirmationEmail, setConfirmationEmail] = useState('');
 
     const [formData, setFormData] = useState({
         email: '',
@@ -46,9 +48,12 @@ const Auth = () => {
 
         if (result.success) {
             if (result.requiresEmailConfirmation) {
-                success(result.message || 'Account created. Please confirm your email before signing in.');
+                setConfirmationEmail(formData.email);
+                success(result.message || 'Account created. Confirm your email, then sign in.');
                 setAuthMode(true);
+                setFormData((prev) => ({ ...prev, password: '' }));
             } else {
+                setConfirmationEmail('');
                 success(isLogin ? 'Signed in successfully.' : 'Account created. You are now signed in.');
                 setTimeout(() => navigate(isLogin ? '/' : '/onboarding'), 900);
             }
@@ -77,6 +82,18 @@ const Auth = () => {
                 </div>
 
                 <div className="card-tactical border-t-4 border-t-tactical-yellow p-8">
+                    {confirmationEmail && (
+                        <div className="mb-5 rounded-lg border border-green-500/40 bg-green-500/10 px-4 py-3 text-green-300">
+                            <p className="flex items-start gap-2 text-xs font-black uppercase tracking-wide">
+                                <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                Account created. Confirm your email before signing in.
+                            </p>
+                            <p className="mt-2 text-[11px] font-semibold normal-case tracking-normal text-green-200/90">
+                                We sent a confirmation link to <span className="font-bold">{confirmationEmail}</span>.
+                            </p>
+                        </div>
+                    )}
+
                     <div className="space-y-3 mb-6">
                         <button
                             type="button"
@@ -155,12 +172,20 @@ const Auth = () => {
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                     <input
                                         required
-                                        type="password"
+                                        type={showPassword ? 'text' : 'password'}
                                         placeholder="••••••••"
-                                        className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-3 pl-10 pr-4 text-sm text-white caret-white focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-700"
+                                        className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-3 pl-10 pr-12 text-sm text-white caret-white focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-700"
                                         value={formData.password}
                                         onChange={e => setFormData({ ...formData, password: e.target.value })}
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
                                 </div>
                             </div>
 

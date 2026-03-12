@@ -9,7 +9,7 @@ export const ToastProvider = ({ children }) => {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, []);
 
-    const addToast = useCallback(({ type = 'info', message, duration = 4000 }) => {
+    const addToast = useCallback(({ type = 'info', message, duration = 7000 }) => {
         const id = Date.now().toString();
         setToasts((prev) => [...prev, { id, type, message }]);
 
@@ -40,7 +40,7 @@ export const ToastProvider = ({ children }) => {
                         {toast.type === 'error' && <ShieldAlert className="w-5 h-5 flex-shrink-0" />}
                         {toast.type === 'info' && <Info className="w-5 h-5 flex-shrink-0 text-tactical-yellow" />}
 
-                        <p className="text-sm font-bold uppercase tracking-wide flex-1">{toast.message}</p>
+                        <p className="text-sm font-semibold flex-1 leading-snug">{toast.message}</p>
 
                         <button
                             onClick={() => removeToast(toast.id)}
