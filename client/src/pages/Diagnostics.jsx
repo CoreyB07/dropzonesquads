@@ -50,48 +50,30 @@ const Diagnostics = () => {
       return;
     }
 
-    let authUserData = null;
-
-    // AUTH_S1
-    try {
-      const { data: sessionData, error: sessionErr } = await withTimeout(supabase.auth.getSession(), 'AUTH_S1 getSession');
-      if (sessionErr) {
-        out = push(out, { step: 'AUTH_S1', ok: false, error: fmtErr(sessionErr) });
-      } else {
-        out = push(out, {
-          step: 'AUTH_S1',
-          ok: Boolean(sessionData?.session),
-          data: {
-            hasSession: Boolean(sessionData?.session),
-            sessionUserId: sessionData?.session?.user?.id || null,
-            contextUserId: user?.id || null
-          }
-        });
+    // AUTH checks use app context only to avoid browser-specific Supabase auth hangs/side effects.
+    out = push(out, {
+      step: 'AUTH_S1',
+      ok: Boolean(user?.id),
+      data: {
+        hasContextUser: Boolean(user?.id),
+        contextUserId: user?.id || null,
+        contextEmail: user?.email || null
       }
-    } catch (e) {
-      out = push(out, { step: 'AUTH_S1', ok: false, error: fmtErr(e) });
-    }
+    });
 
-    // AUTH_S2
-    try {
-      const { data, error } = await withTimeout(supabase.auth.getUser(), 'AUTH_S2 getUser');
-      authUserData = data;
-      if (error) {
-        out = push(out, { step: 'AUTH_S2', ok: false, error: fmtErr(error) });
-      } else {
-        out = push(out, {
-          step: 'AUTH_S2',
-          ok: Boolean(data?.user?.id),
-          data: { authUserId: data?.user?.id || null, email: data?.user?.email || null }
-        });
+    out = push(out, {
+      step: 'AUTH_S2',
+      ok: Boolean(user?.onboardingComplete),
+      data: {
+        onboardingComplete: Boolean(user?.onboardingComplete),
+        username: user?.username || null,
+        platform: user?.platform || null
       }
-    } catch (e) {
-      out = push(out, { step: 'AUTH_S2', ok: false, error: fmtErr(e) });
-    }
+    });
 
-    const uid = authUserData?.user?.id || user?.id;
+    const uid = user?.id;
     if (!uid) {
-      out = push(out, { step: 'AUTH_S3', ok: false, error: { code: 'NO_UID', message: 'No user id available for DB checks' } });
+      out = push(out, { step: 'AUTH_S3', ok: false, error: { code: 'NO_UID', message: 'No signed-in context user available for DB checks' } });
       setResults(out);
       setRunning(false);
       return;
