@@ -57,6 +57,7 @@ const Diagnostics = () => {
   const { user, isSupabaseReady } = useAuth();
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState([]);
+  const [copyStatus, setCopyStatus] = useState('');
 
   const status = useMemo(() => {
     const passCount = results.filter((r) => r.ok).length;
@@ -206,10 +207,32 @@ const Diagnostics = () => {
   const handleCopyMarkdown = async () => {
     const report = buildMarkdownReport(results);
     try {
-      await navigator.clipboard.writeText(report);
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(report);
+      } else {
+        throw new Error('Clipboard API unavailable');
+      }
+      setCopyStatus('Copied');
     } catch (e) {
-      console.warn('Clipboard write failed:', e);
+      // Fallback for browsers/contexts where Clipboard API is blocked.
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = report;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setCopyStatus(ok ? 'Copied' : 'Copy failed');
+      } catch (fallbackErr) {
+        console.warn('Clipboard write failed:', e, fallbackErr);
+        setCopyStatus('Copy failed');
+      }
     }
+
+    setTimeout(() => setCopyStatus(''), 2000);
   };
 
   const handleDownloadMarkdown = () => {
@@ -239,7 +262,7 @@ const Diagnostics = () => {
             disabled={results.length === 0}
             className="px-4 py-2 rounded-lg border border-military-gray bg-charcoal-dark text-xs font-black uppercase tracking-widest text-gray-300 disabled:opacity-40"
           >
-            Copy Report (.md)
+            {copyStatus || 'Copy Report (.md)'}
           </button>
           <button
             onClick={handleDownloadMarkdown}
