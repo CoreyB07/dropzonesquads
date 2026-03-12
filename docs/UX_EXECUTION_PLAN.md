@@ -39,3 +39,6 @@ Improve first-session momentum, reduce confusion, and make urgent actions obviou
 - [x] Phase 2 item 1 implemented (onboarding mission intent + route to /find or /post)
 - [x] Phase 2 item 2 implemented (Inbox empty states now include one-click CTA buttons)
 - [x] Phase 2 item 3 implemented (`status-pill` adopted in Diagnostics PASS/FAIL chips)
+- [x] Phase 3 item 1 implemented (Home first-run checklist UI with dismiss state)
+- [x] Phase 3 item 2 implemented (Home "What to do next" card based on squad state)
+- [x] Phase 3 item 3 implemented (local UX telemetry event tracker in `utils/uxTelemetry.js`)

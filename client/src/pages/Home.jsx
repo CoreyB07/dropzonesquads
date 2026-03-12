@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useMySquads } from '../context/MySquadsContext';
+import { trackUxEvent } from '../utils/uxTelemetry';
 import SquadCard from '../components/SquadCard';
 import ApplyModal from '../components/ApplyModal';
 import SkeletonCard from '../components/SkeletonCard';
 import FilterDrawer, { DEFAULT_FILTERS, applyFilters, countActiveFilters } from '../components/FilterDrawer';
-import { Crown, ShieldCheck, Mail, ArrowRight, KeyRound, Info } from 'lucide-react';
+import { Crown, ShieldCheck, Mail, ArrowRight, KeyRound, Info, CheckSquare, Compass } from 'lucide-react';
 import { fetchSquads as fetchSquadsFromDb } from '../utils/squadsApi';
 
 const isSquadOpen = (squad) => {
@@ -37,6 +40,8 @@ const STANDOUT_HEADING_CLASS = 'text-xs font-black uppercase tracking-widest tex
 
 const Home = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const { mySquads } = useMySquads();
     const [squads, setSquads] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedSquad, setSelectedSquad] = useState(null);
@@ -101,6 +106,65 @@ const Home = () => {
     const visibleClanAds = showMoreAds ? allClanAds : showcaseSquads;
     const hasMoreAds = allClanAds.length > showcaseSquads.length;
 
+    const [checklistDismissed, setChecklistDismissed] = useState(
+        () => localStorage.getItem('dzs_checklist_dismissed') === 'true'
+    );
+
+    const firstRunTasks = [
+        {
+            id: 'profile',
+            label: 'Complete your profile',
+            done: Boolean(user?.username && user?.platform),
+            action: () => {
+                trackUxEvent('checklist_open_profile');
+                navigate('/profile');
+            },
+            cta: 'Open Profile'
+        },
+        {
+            id: 'find',
+            label: 'Find a squad that matches you',
+            done: false,
+            action: () => {
+                trackUxEvent('checklist_open_find');
+                navigate('/find');
+            },
+            cta: 'Find Squad'
+        },
+        {
+            id: 'post',
+            label: 'Post your own squad listing',
+            done: Boolean((mySquads || []).length > 0),
+            action: () => {
+                trackUxEvent('checklist_open_post');
+                navigate('/post');
+            },
+            cta: 'Post Squad'
+        }
+    ];
+
+    const checklistCompleted = firstRunTasks.every((task) => task.done);
+
+    const nextAction = (mySquads || []).length === 0
+        ? {
+            title: 'Start with squad discovery',
+            body: 'Browse active squads and send your first join request.',
+            cta: 'Browse Squads',
+            action: () => {
+                trackUxEvent('next_action_browse_squads');
+                navigate('/find');
+            }
+        }
+        : {
+            title: 'Manage your squad momentum',
+            body: 'Review inbox and process any new join requests.',
+            cta: 'Open Inbox',
+            action: () => {
+                trackUxEvent('next_action_open_inbox');
+                navigate('/inbox');
+            }
+        };
+
     return (
         <div className="space-y-12">
             {/* Hero Section */}
@@ -146,6 +210,58 @@ const Home = () => {
 
                 {/* Overlay Gradients */}
                 <div className="absolute inset-0 bg-gradient-to-t from-charcoal-dark via-transparent to-transparent z-5" />
+            </section>
+
+            {!checklistDismissed && !checklistCompleted && (
+                <section className="card-tactical space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                            <CheckSquare className="w-5 h-5 text-tactical-yellow" />
+                            <h2 className="text-sm font-black uppercase tracking-widest text-white">First-Run Checklist</h2>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                localStorage.setItem('dzs_checklist_dismissed', 'true');
+                                setChecklistDismissed(true);
+                                trackUxEvent('checklist_dismissed');
+                            }}
+                            className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                    <div className="space-y-2">
+                        {firstRunTasks.map((task) => (
+                            <div key={task.id} className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-3 flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                    <p className={`text-sm font-bold ${task.done ? 'text-green-300' : 'text-white'}`}>{task.label}</p>
+                                    <p className="text-[10px] uppercase tracking-widest text-gray-500">{task.done ? 'Complete' : 'Recommended next step'}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={task.action}
+                                    className="btn-tactical text-[10px] py-2 px-3"
+                                >
+                                    {task.cta}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            <section className="card-tactical space-y-3">
+                <div className="flex items-center gap-2">
+                    <Compass className="w-5 h-5 text-tactical-yellow" />
+                    <h2 className="text-sm font-black uppercase tracking-widest text-white">What to Do Next</h2>
+                </div>
+                <p className="text-sm text-gray-300">{nextAction.body}</p>
+                <div>
+                    <button type="button" onClick={nextAction.action} className="btn-tactical text-xs">
+                        {nextAction.cta}
+                    </button>
+                </div>
             </section>
 
             {/* Filter Button + Active chips */}
