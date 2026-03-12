@@ -115,13 +115,6 @@ export const createSquad = async ({ creatorId, ...formData }) => {
 
     const payload = { creator_id: liveCreatorId, ...common };
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData?.session) {
-        const err = new Error('auth-check failed: no active session');
-        err.code = 'SESSION_MISSING';
-        throw err;
-    }
-
     const insertWithTimeout = async (timeoutMs = 15000) => {
         const insertPromise = supabase.from('squads').insert(payload);
         const timeoutPromise = new Promise((_, reject) =>

@@ -42,16 +42,18 @@ const Diagnostics = () => {
     setRunning(true);
     let out = [];
 
+    out = push(out, { step: 'ENV_S1', ok: Boolean(isSupabaseReady && supabase), data: { isSupabaseReady: Boolean(isSupabaseReady), hasSupabase: Boolean(supabase) } });
+
+    if (!supabase) {
+      setResults(out);
+      setRunning(false);
+      return;
+    }
+
+    let authUserData = null;
+
+    // AUTH_S1
     try {
-      out = push(out, { step: 'ENV_S1', ok: Boolean(isSupabaseReady && supabase), data: { isSupabaseReady: Boolean(isSupabaseReady), hasSupabase: Boolean(supabase) } });
-
-      if (!supabase) {
-        setResults(out);
-        setRunning(false);
-        return;
-      }
-
-      // Auth session + user
       const { data: sessionData, error: sessionErr } = await withTimeout(supabase.auth.getSession(), 'AUTH_S1 getSession');
       if (sessionErr) {
         out = push(out, { step: 'AUTH_S1', ok: false, error: fmtErr(sessionErr) });
@@ -66,110 +68,99 @@ const Diagnostics = () => {
           }
         });
       }
+    } catch (e) {
+      out = push(out, { step: 'AUTH_S1', ok: false, error: fmtErr(e) });
+    }
 
-      const { data: authUserData, error: authUserErr } = await withTimeout(supabase.auth.getUser(), 'AUTH_S2 getUser');
-      if (authUserErr) {
-        out = push(out, { step: 'AUTH_S2', ok: false, error: fmtErr(authUserErr) });
+    // AUTH_S2
+    try {
+      const { data, error } = await withTimeout(supabase.auth.getUser(), 'AUTH_S2 getUser');
+      authUserData = data;
+      if (error) {
+        out = push(out, { step: 'AUTH_S2', ok: false, error: fmtErr(error) });
       } else {
         out = push(out, {
           step: 'AUTH_S2',
-          ok: Boolean(authUserData?.user?.id),
-          data: { authUserId: authUserData?.user?.id || null, email: authUserData?.user?.email || null }
+          ok: Boolean(data?.user?.id),
+          data: { authUserId: data?.user?.id || null, email: data?.user?.email || null }
         });
       }
+    } catch (e) {
+      out = push(out, { step: 'AUTH_S2', ok: false, error: fmtErr(e) });
+    }
 
-      const uid = authUserData?.user?.id || user?.id;
-      if (!uid) {
-        out = push(out, { step: 'AUTH_S3', ok: false, error: { code: 'NO_UID', message: 'No user id available for DB checks' } });
-        setResults(out);
-        setRunning(false);
-        return;
-      }
+    const uid = authUserData?.user?.id || user?.id;
+    if (!uid) {
+      out = push(out, { step: 'AUTH_S3', ok: false, error: { code: 'NO_UID', message: 'No user id available for DB checks' } });
+      setResults(out);
+      setRunning(false);
+      return;
+    }
 
-      // Profiles lookup
+    // PROFILE_S1
+    try {
       const { data: profileRows, error: profileErr } = await withTimeout(
-        supabase
-          .from('profiles')
-          .select('id, email, username, platform')
-          .eq('id', uid)
-          .limit(1),
+        supabase.from('profiles').select('id, email, username, platform').eq('id', uid).limit(1),
         'PROFILE_S1 profiles lookup'
       );
+      if (profileErr) out = push(out, { step: 'PROFILE_S1', ok: false, error: fmtErr(profileErr) });
+      else out = push(out, { step: 'PROFILE_S1', ok: true, data: { rows: profileRows?.length || 0, profile: profileRows?.[0] || null } });
+    } catch (e) {
+      out = push(out, { step: 'PROFILE_S1', ok: false, error: fmtErr(e) });
+    }
 
-      if (profileErr) {
-        out = push(out, { step: 'PROFILE_S1', ok: false, error: fmtErr(profileErr) });
-      } else {
-        out = push(out, { step: 'PROFILE_S1', ok: true, data: { rows: profileRows?.length || 0, profile: profileRows?.[0] || null } });
-      }
-
-      // Inbox path checks
-      const { data: partRows, error: partErr } = await withTimeout(
-        supabase
-          .from('conversation_participants')
-          .select('conversation_id')
-          .eq('user_id', uid)
-          .limit(50),
+    // INBOX_S1
+    let partRows = [];
+    try {
+      const { data, error } = await withTimeout(
+        supabase.from('conversation_participants').select('conversation_id').eq('user_id', uid).limit(50),
         'INBOX_S1 participants lookup'
       );
-
-      if (partErr) {
-        out = push(out, { step: 'INBOX_S1', ok: false, error: fmtErr(partErr) });
-      } else {
-        out = push(out, { step: 'INBOX_S1', ok: true, data: { participantRows: partRows?.length || 0 } });
-      }
-
-      const convIds = (partRows || []).map((r) => r.conversation_id);
-      if (convIds.length > 0) {
-        const { data: messagesRows, error: msgErr } = await withTimeout(
-          supabase
-            .from('messages')
-            .select('conversation_id, created_at, sender_id')
-            .in('conversation_id', convIds)
-            .limit(100),
-          'INBOX_S2 messages lookup'
-        );
-
-        if (msgErr) {
-          out = push(out, { step: 'INBOX_S2', ok: false, error: fmtErr(msgErr) });
-        } else {
-          out = push(out, { step: 'INBOX_S2', ok: true, data: { messageRows: messagesRows?.length || 0 } });
-        }
-      } else {
-        out = push(out, { step: 'INBOX_S2', ok: true, data: { skipped: true, reason: 'No conversations yet' } });
-      }
-
-      const { data: notifRows, error: notifErr } = await withTimeout(
-        supabase
-          .from('notifications')
-          .select('id, recipient_id, actor_id, type, created_at, read_at')
-          .eq('recipient_id', uid)
-          .limit(25),
-        'INBOX_S3 notifications lookup'
-      );
-
-      if (notifErr) {
-        out = push(out, { step: 'INBOX_S3', ok: false, error: fmtErr(notifErr) });
-      } else {
-        out = push(out, { step: 'INBOX_S3', ok: true, data: { notifications: notifRows?.length || 0 } });
-      }
-
-      // Squad write preflight (non-destructive)
-      const { error: squadSelectErr } = await withTimeout(
-        supabase
-          .from('squads')
-          .select('id, creator_id')
-          .eq('creator_id', uid)
-          .limit(1),
-        'SQUAD_S1 squads read preflight'
-      );
-
-      if (squadSelectErr) {
-        out = push(out, { step: 'SQUAD_S1', ok: false, error: fmtErr(squadSelectErr) });
-      } else {
-        out = push(out, { step: 'SQUAD_S1', ok: true, data: { note: 'squads table readable for user context' } });
+      if (error) out = push(out, { step: 'INBOX_S1', ok: false, error: fmtErr(error) });
+      else {
+        partRows = data || [];
+        out = push(out, { step: 'INBOX_S1', ok: true, data: { participantRows: partRows.length } });
       }
     } catch (e) {
-      out = push(out, { step: 'DIAG_FATAL', ok: false, error: fmtErr(e) });
+      out = push(out, { step: 'INBOX_S1', ok: false, error: fmtErr(e) });
+    }
+
+    const convIds = partRows.map((r) => r.conversation_id);
+    if (convIds.length > 0) {
+      try {
+        const { data: messagesRows, error: msgErr } = await withTimeout(
+          supabase.from('messages').select('conversation_id, created_at, sender_id').in('conversation_id', convIds).limit(100),
+          'INBOX_S2 messages lookup'
+        );
+        if (msgErr) out = push(out, { step: 'INBOX_S2', ok: false, error: fmtErr(msgErr) });
+        else out = push(out, { step: 'INBOX_S2', ok: true, data: { messageRows: messagesRows?.length || 0 } });
+      } catch (e) {
+        out = push(out, { step: 'INBOX_S2', ok: false, error: fmtErr(e) });
+      }
+    } else {
+      out = push(out, { step: 'INBOX_S2', ok: true, data: { skipped: true, reason: 'No conversations yet' } });
+    }
+
+    try {
+      const { data: notifRows, error: notifErr } = await withTimeout(
+        supabase.from('notifications').select('id, recipient_id, actor_id, type, created_at, read_at').eq('recipient_id', uid).limit(25),
+        'INBOX_S3 notifications lookup'
+      );
+      if (notifErr) out = push(out, { step: 'INBOX_S3', ok: false, error: fmtErr(notifErr) });
+      else out = push(out, { step: 'INBOX_S3', ok: true, data: { notifications: notifRows?.length || 0 } });
+    } catch (e) {
+      out = push(out, { step: 'INBOX_S3', ok: false, error: fmtErr(e) });
+    }
+
+    try {
+      const { error: squadSelectErr } = await withTimeout(
+        supabase.from('squads').select('id, creator_id').eq('creator_id', uid).limit(1),
+        'SQUAD_S1 squads read preflight'
+      );
+      if (squadSelectErr) out = push(out, { step: 'SQUAD_S1', ok: false, error: fmtErr(squadSelectErr) });
+      else out = push(out, { step: 'SQUAD_S1', ok: true, data: { note: 'squads table readable for user context' } });
+    } catch (e) {
+      out = push(out, { step: 'SQUAD_S1', ok: false, error: fmtErr(e) });
     }
 
     setResults(out);
