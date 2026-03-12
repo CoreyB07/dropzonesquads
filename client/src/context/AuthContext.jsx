@@ -443,7 +443,9 @@ export const AuthProvider = ({ children }) => {
             assertSupabaseConfigured();
             const { data, error } = await supabase
                 .from('profiles')
-                .update({
+                .upsert({
+                    id: user.id,
+                    email: user.email || '',
                     username: nextUsername,
                     platform: nextPlatform,
                     activision_id: nextActivisionId,
@@ -452,7 +454,6 @@ export const AuthProvider = ({ children }) => {
                     marketing_opt_in: nextMarketingOptIn,
                     marketing_opt_in_at: nextMarketingOptInAt
                 })
-                .eq('id', user.id)
                 .select('*')
                 .single();
 
@@ -479,7 +480,7 @@ export const AuthProvider = ({ children }) => {
             setUser(updatedUser);
             localStorage.setItem('warzone_hub_current_user', JSON.stringify(updatedUser));
 
-            if (nextMarketingOptIn && marketingOptInAt && !user.marketingOptInAt) {
+            if (nextMarketingOptIn && nextMarketingOptInAt && !user.marketingOptInAt) {
                 // They just opted in for the first time during this update
                 await captureMarketingSubscriber({
                     userId: user.id,

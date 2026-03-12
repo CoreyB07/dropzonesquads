@@ -48,15 +48,20 @@ const Onboarding = () => {
         setSaving(true);
 
         try {
-            const result = await updateUserProfile({
-                username: formData.username,
-                activisionId: formData.activisionId,
-                platform: formData.platform,
-                marketingOptIn: formData.marketingOptIn,
-                marketingOptInAt: formData.marketingOptIn ? new Date().toISOString() : null,
-                shareActivisionIdWithFriends: false,
-                shareActivisionIdWithSquads: false
-            });
+            const result = await Promise.race([
+                updateUserProfile({
+                    username: formData.username,
+                    activisionId: formData.activisionId,
+                    platform: formData.platform,
+                    marketingOptIn: formData.marketingOptIn,
+                    marketingOptInAt: formData.marketingOptIn ? new Date().toISOString() : null,
+                    shareActivisionIdWithFriends: false,
+                    shareActivisionIdWithSquads: false
+                }),
+                new Promise((resolve) =>
+                    setTimeout(() => resolve({ success: false, message: 'Profile update timed out. Please try again.' }), 12000)
+                )
+            ]);
 
             if (result.success) {
                 success('Profile initialization complete. Welcome operator.');
