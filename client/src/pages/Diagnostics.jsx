@@ -79,7 +79,7 @@ const Diagnostics = () => {
 
     // Network sanity check against Supabase REST endpoint (no auth required)
     try {
-      const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
+      const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || 'https://imdkaqhnnmgzgiykmxnz.supabase.co').trim();
       const netResponse = await withTimeout(fetch(`${supabaseUrl}/rest/v1/`, { method: 'GET' }), 'NET_S1 supabase rest probe', 12000);
       out = push(out, {
         step: 'NET_S1',
