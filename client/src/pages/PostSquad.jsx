@@ -58,27 +58,22 @@ const PostSquad = () => {
 
         setIsSubmitting(true);
         try {
-            await Promise.race([
-                createSquad({
-                    ...formData,
-                    name: nextName,
-                    maxPlayers: formData.listingType === 'player_looking_for_squad' && !formData.maxPlayers ? 99 : formData.maxPlayers,
-                    creatorId: user.id,
-                    tags: Array.from(
-                        new Set([
-                            ...formData.tags,
-                            formData.gameMode,
-                            formData.skillLevel,
-                            formData.platform,
-                            formData.audience,
-                            formData.comms
-                        ])
-                    )
-                }),
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Request timed out while deploying listing. Please try again.')), 12000)
+            await createSquad({
+                ...formData,
+                name: nextName,
+                maxPlayers: formData.listingType === 'player_looking_for_squad' && !formData.maxPlayers ? 99 : formData.maxPlayers,
+                creatorId: user.id,
+                tags: Array.from(
+                    new Set([
+                        ...formData.tags,
+                        formData.gameMode,
+                        formData.skillLevel,
+                        formData.platform,
+                        formData.audience,
+                        formData.comms
+                    ])
                 )
-            ]);
+            });
             success('Squad listing deployed successfully.');
             navigate('/find');
         } catch (error) {
