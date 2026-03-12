@@ -64,7 +64,7 @@ const Onboarding = () => {
             ]);
 
             if (result.success) {
-                success('Profile initialization complete. Welcome operator.');
+                success('Operator profile locked in. Welcome to Drop Zone Squads.');
                 navigate('/', { replace: true });
             } else {
                 showError(result.message || 'Failed to update profile.');
@@ -89,10 +89,10 @@ const Onboarding = () => {
                         <Shield className="w-8 h-8 text-tactical-yellow" />
                     </div>
                     <h1 className="text-4xl font-black uppercase italic tracking-tighter text-white">
-                        Initial Setup
+                        Operator Setup
                     </h1>
                     <p className="text-gray-500 text-sm font-medium uppercase tracking-widest">
-                        Complete your operator profile to continue
+                        Build your profile loadout to continue
                     </p>
                 </div>
 

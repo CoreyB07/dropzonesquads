@@ -120,7 +120,7 @@ const Profile = () => {
         setIsSaving(true);
         const result = await updateUserProfile(form);
         if (result.success) {
-            success('Operator profile updated.');
+            success('Operator loadout updated.');
             setIsEditing(false);
         } else {
             showError(result.message || 'Unable to update profile.');
@@ -297,7 +297,7 @@ const Profile = () => {
             {isEditing && (
                 <div className="card-tactical border-t-2 border-t-tactical-yellow">
                     <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-sm font-black uppercase tracking-widest text-tactical-yellow">Editing Operator Profile</h2>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-tactical-yellow">Edit Operator Loadout</h2>
                         <button onClick={() => setIsEditing(false)} className="text-gray-500 hover:text-white transition-colors">
                             <X className="w-4 h-4" />
                         </button>

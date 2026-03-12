@@ -77,8 +77,8 @@ const Auth = () => {
                     </h1>
                     <p className="text-gray-500 text-sm font-medium uppercase tracking-widest">
                         {isLogin
-                            ? 'Free membership sign in with email + password'
-                            : 'Step 1: Secure your connection. Profile setup follows.'}
+                            ? 'Operator Login · Email + Password'
+                            : 'Step 1: Create your operator account. Profile setup is next.'}
                     </p>
                 </div>
 
@@ -198,7 +198,7 @@ const Auth = () => {
                             className="w-full bg-white text-charcoal-dark font-black py-4 rounded-xl uppercase italic hover:bg-[#fff5dc] transition-all flex items-center justify-center gap-2 group shadow-xl active:scale-95 disabled:opacity-50"
                         >
                             {loading ? (
-                                <span className="animate-pulse">Authenticating...</span>
+                                <span className="animate-pulse">Verifying Credentials...</span>
                             ) : (
                                 <>
                                     {isLogin ? 'Sign In' : 'Create Account'}
