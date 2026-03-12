@@ -212,6 +212,7 @@ const PostSquad = () => {
                             <input
                                 name="name"
                                 type="text"
+                                autoComplete="off"
                                 required
                                 value={formData.name}
                                 maxLength={formData.listingType === 'player_looking_for_squad' ? undefined : 5}
