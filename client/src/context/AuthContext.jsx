@@ -115,8 +115,24 @@ export const AuthProvider = ({ children }) => {
             return normalized;
         } catch (error) {
             console.error('Failed to hydrate user profile:', error);
-            // If profile hydration fails (ex: user deleted/reset), clear local auth state
-            // so the UI doesn't get stuck as a phantom signed-in user.
+
+            // Keep optimistic auth user by default so temporary profile/db issues
+            // don't force-log out a valid signed-in user.
+            let hasLiveAuthUser = true;
+            try {
+                if (supabase) {
+                    const { data } = await supabase.auth.getUser();
+                    hasLiveAuthUser = Boolean(data?.user?.id);
+                }
+            } catch {
+                hasLiveAuthUser = false;
+            }
+
+            if (hasLiveAuthUser) {
+                return optimistic;
+            }
+
+            // Only clear local state when auth user is truly gone.
             setUser(null);
             localStorage.removeItem('warzone_hub_current_user');
             try {
