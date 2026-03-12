@@ -15,7 +15,7 @@ export const fetchBadgeCatalog = async () => {
 export const fetchSquadMemberBadges = async (squadId) => {
   const { data, error } = await supabase
     .from('member_badges')
-    .select('id, user_id, badge_id, reason, expires_at, is_public, badge:badge_id(id, category, label)')
+    .select('id, user_id, badge_id, reason, expires_at, is_public, badge:badge_id(id, category, label, description)')
     .eq('squad_id', squadId);
 
   if (error) throw error;

@@ -66,6 +66,7 @@ const SquadProfile = () => {
     const [applyOpen, setApplyOpen] = useState(false);
     const [showAuthNudge, setShowAuthNudge] = useState(false);
     const [memberBadges, setMemberBadges] = useState({});
+    const [expandedBadgesFor, setExpandedBadgesFor] = useState(null);
 
     useEffect(() => {
         const load = async () => {
@@ -89,7 +90,8 @@ const SquadProfile = () => {
                     acc[uid].push({
                         id: row.badge_id,
                         label: row.badge.label,
-                        category: row.badge.category
+                        category: row.badge.category,
+                        description: row.badge.description || ''
                     });
                     return acc;
                 }, {});
@@ -293,8 +295,20 @@ const SquadProfile = () => {
                                     {(memberBadges[member.id] || []).length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 pt-1">
                                             {(memberBadges[member.id] || []).slice(0, 3).map((badge) => (
-                                                <BadgeChip key={`${member.id}-${badge.id}`} label={badge.label} category={badge.category} compact />
+                                                <BadgeChip key={`${member.id}-${badge.id}`} label={badge.label} category={badge.category} description={badge.description} compact />
                                             ))}
+                                            {(memberBadges[member.id] || []).length > 3 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        setExpandedBadgesFor(member.id);
+                                                    }}
+                                                    className="text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-white"
+                                                >
+                                                    +{(memberBadges[member.id] || []).length - 3} more
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -304,6 +318,31 @@ const SquadProfile = () => {
                     </div>
                 </div>
             </div>
+
+            <div className="rounded-xl border border-military-gray bg-charcoal-light p-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Badge Legend</p>
+                <div className="flex flex-wrap gap-2">
+                    <BadgeChip label="Serious" category="serious" compact />
+                    <BadgeChip label="Funny" category="funny" compact />
+                    <BadgeChip label="Status" category="status" compact />
+                </div>
+            </div>
+
+            {expandedBadgesFor && (
+                <div className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setExpandedBadgesFor(null)}>
+                    <div className="w-full max-w-lg rounded-xl border border-military-gray bg-charcoal-light p-5" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-black uppercase tracking-widest text-white">All Member Badges</h3>
+                            <button type="button" onClick={() => setExpandedBadgesFor(null)} className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-white">Close</button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {(memberBadges[expandedBadgesFor] || []).map((badge) => (
+                                <BadgeChip key={`${expandedBadgesFor}-${badge.id}`} label={badge.label} category={badge.category} description={badge.description} />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {applyOpen && (
                 <ApplyModal squad={squad} onClose={() => setApplyOpen(false)} />

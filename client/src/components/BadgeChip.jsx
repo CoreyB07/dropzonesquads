@@ -6,11 +6,12 @@ const categoryStyles = {
   status: 'border-amber-500/40 text-amber-300 bg-amber-500/10'
 };
 
-const BadgeChip = ({ label, category = 'serious', compact = false }) => {
+const BadgeChip = ({ label, category = 'serious', description = '', compact = false }) => {
   if (!label) return null;
 
   return (
     <span
+      title={description || label}
       className={`inline-flex items-center rounded-full border font-black uppercase tracking-widest ${categoryStyles[category] || categoryStyles.serious} ${compact ? 'px-2 py-0.5 text-[9px]' : 'px-2.5 py-1 text-[10px]'}`}
     >
       {label}
