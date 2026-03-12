@@ -106,12 +106,37 @@ export const createSquad = async ({ creatorId, ...formData }) => {
 
     const payload = { creator_id: liveCreatorId, ...common };
 
-    const insertPromise = supabase.from('squads').insert(payload);
-    const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Squad insert timed out.')), 10000)
-    );
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+        throw new Error('Your session is no longer valid. Please sign in again.');
+    }
 
-    const { error } = await Promise.race([insertPromise, timeoutPromise]);
+    const insertWithTimeout = async (timeoutMs = 15000) => {
+        const insertPromise = supabase.from('squads').insert(payload);
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Squad insert timed out.')), timeoutMs)
+        );
+        return Promise.race([insertPromise, timeoutPromise]);
+    };
+
+    let error = null;
+    try {
+        const result = await insertWithTimeout(15000);
+        error = result?.error || null;
+    } catch (firstInsertError) {
+        if (String(firstInsertError?.message || '').toLowerCase().includes('timed out')) {
+            // One automatic retry after refreshing auth session
+            try {
+                await supabase.auth.refreshSession();
+                const retryResult = await insertWithTimeout(15000);
+                error = retryResult?.error || null;
+            } catch (retryError) {
+                throw retryError;
+            }
+        } else {
+            throw firstInsertError;
+        }
+    }
 
     if (error) {
         // Fallback for older schemas that used leader_id instead of creator_id
