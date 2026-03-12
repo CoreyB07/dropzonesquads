@@ -36,3 +36,6 @@ Improve first-session momentum, reduce confusion, and make urgent actions obviou
 - [x] Phase 1 item 1 implemented (Inbox "Needs Attention" summary card)
 - [x] Phase 1 item 2 implemented (quick actions wired)
 - [x] Phase 1 item 3 implemented (action-first concise copy)
+- [x] Phase 2 item 1 implemented (onboarding mission intent + route to /find or /post)
+- [x] Phase 2 item 2 implemented (Inbox empty states now include one-click CTA buttons)
+- [x] Phase 2 item 3 implemented (`status-pill` adopted in Diagnostics PASS/FAIL chips)

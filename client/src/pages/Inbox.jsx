@@ -452,7 +452,16 @@ const Inbox = () => {
                 </div>
                 <div className="bg-charcoal-light border border-military-gray rounded-xl overflow-hidden">
                     {notifications.length === 0 ? (
-                        <div className="p-6 text-sm text-gray-500 uppercase tracking-widest font-bold">No notifications yet</div>
+                        <div className="p-6 space-y-3">
+                            <p className="text-sm text-gray-500 uppercase tracking-widest font-bold">No notifications yet</p>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/find')}
+                                className="btn-tactical text-xs"
+                            >
+                                Find a Squad
+                            </button>
+                        </div>
                     ) : (
                         <div className="divide-y divide-military-gray/50">
                             {notifications.map((n) => (
@@ -499,6 +508,13 @@ const Inbox = () => {
                             <p className="text-sm font-bold text-gray-500 max-w-sm mt-2">
                                 Message a squad leader from any squad profile page to start a secure channel.
                             </p>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/find')}
+                                className="btn-tactical text-xs mt-4"
+                            >
+                                Browse Squads
+                            </button>
                         </div>
                     ) : (
                         <div className="divide-y divide-military-gray/50">

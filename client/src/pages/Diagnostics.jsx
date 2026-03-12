@@ -288,7 +288,7 @@ const Diagnostics = () => {
           <div key={`${r.step}-${i}`} className={`rounded-xl border p-4 ${r.ok ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-black uppercase tracking-widest text-white">{r.step}</p>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${r.ok ? 'text-green-300' : 'text-red-300'}`}>{r.ok ? 'PASS' : 'FAIL'}</span>
+              <span className={`status-pill ${r.ok ? 'bg-green-500/15 text-green-300 border border-green-500/30' : 'bg-red-500/15 text-red-300 border border-red-500/30'}`}>{r.ok ? 'PASS' : 'FAIL'}</span>
             </div>
             {r.data && <pre className="mt-2 text-xs text-gray-300 whitespace-pre-wrap">{JSON.stringify(r.data, null, 2)}</pre>}
             {r.error && <pre className="mt-2 text-xs text-red-200 whitespace-pre-wrap">{JSON.stringify(r.error, null, 2)}</pre>}

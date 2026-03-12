@@ -14,7 +14,8 @@ const Onboarding = () => {
         username: '',
         activisionId: '',
         platform: '',
-        marketingOptIn: false
+        marketingOptIn: false,
+        intent: 'find'
     });
 
     useEffect(() => {
@@ -28,6 +29,7 @@ const Onboarding = () => {
                 username: isPendingUsername ? '' : user.username,
                 platform: user.platform === 'PC' || user.platform === 'Xbox' || user.platform === 'PlayStation' ? user.platform : '',
                 activisionId: user.activisionId || '',
+                intent: localStorage.getItem('dzs_onboarding_intent') || 'find',
             }));
         }
     }, [user, loading, navigate]);
@@ -64,8 +66,9 @@ const Onboarding = () => {
             ]);
 
             if (result.success) {
+                localStorage.setItem('dzs_onboarding_intent', formData.intent);
                 success('Operator profile locked in. Welcome to Drop Zone Squads.');
-                navigate('/', { replace: true });
+                navigate(formData.intent === 'recruit' ? '/post' : '/find', { replace: true });
             } else {
                 showError(result.message || 'Failed to update profile.');
             }
@@ -134,6 +137,32 @@ const Onboarding = () => {
                                 <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider ml-1 mt-1">
                                     Include the numbers after the # if you have them.
                                 </p>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Primary Mission</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, intent: 'find' })}
+                                        className={`py-3 px-3 rounded-lg border text-[10px] font-black uppercase tracking-wider transition-all ${formData.intent === 'find'
+                                            ? 'bg-tactical-yellow/10 border-tactical-yellow text-tactical-yellow'
+                                            : 'bg-charcoal-dark/50 border-military-gray text-gray-400 hover:border-tactical-yellow-hover'
+                                            }`}
+                                    >
+                                        Find a Squad
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, intent: 'recruit' })}
+                                        className={`py-3 px-3 rounded-lg border text-[10px] font-black uppercase tracking-wider transition-all ${formData.intent === 'recruit'
+                                            ? 'bg-tactical-yellow/10 border-tactical-yellow text-tactical-yellow'
+                                            : 'bg-charcoal-dark/50 border-military-gray text-gray-400 hover:border-tactical-yellow-hover'
+                                            }`}
+                                    >
+                                        Recruit Players
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="space-y-1">
