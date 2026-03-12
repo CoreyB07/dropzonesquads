@@ -579,6 +579,83 @@ const ManageSquad = () => {
                                             )}
                                         </div>
 
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                            <label className="space-y-1">
+                                                <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Serious Badge</span>
+                                                <select
+                                                    value={(draftBadges[member.id]?.serious) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), serious: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-xs text-white outline-none focus:border-tactical-yellow"
+                                                >
+                                                    <option value="">None</option>
+                                                    {seriousBadges.map((badge) => <option key={badge.id} value={badge.id}>{badge.label}</option>)}
+                                                </select>
+                                                <input
+                                                    type="text"
+                                                    maxLength={8}
+                                                    placeholder="Custom (max 8)"
+                                                    value={(draftBadges[member.id]?.seriousCustom) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), seriousCustom: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-[11px] text-white outline-none focus:border-tactical-yellow"
+                                                />
+                                            </label>
+                                            <label className="space-y-1">
+                                                <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Funny Badge</span>
+                                                <select
+                                                    value={(draftBadges[member.id]?.funny) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), funny: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-xs text-white outline-none focus:border-tactical-yellow"
+                                                >
+                                                    <option value="">None</option>
+                                                    {funnyBadges.map((badge) => <option key={badge.id} value={badge.id}>{badge.label}</option>)}
+                                                </select>
+                                                <input
+                                                    type="text"
+                                                    maxLength={8}
+                                                    placeholder="Custom (max 8)"
+                                                    value={(draftBadges[member.id]?.funnyCustom) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), funnyCustom: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-[11px] text-white outline-none focus:border-tactical-yellow"
+                                                />
+                                            </label>
+                                            <label className="space-y-1">
+                                                <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Status Badge</span>
+                                                <select
+                                                    value={(draftBadges[member.id]?.status) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), status: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-xs text-white outline-none focus:border-tactical-yellow"
+                                                >
+                                                    <option value="">None</option>
+                                                    {statusBadges.map((badge) => <option key={badge.id} value={badge.id}>{badge.label}</option>)}
+                                                </select>
+                                                <input
+                                                    type="text"
+                                                    maxLength={8}
+                                                    placeholder="Custom (max 8)"
+                                                    value={(draftBadges[member.id]?.statusCustom) || ''}
+                                                    onChange={(e) => setDraftBadges((curr) => ({
+                                                        ...curr,
+                                                        [member.id]: { ...(curr[member.id] || {}), statusCustom: e.target.value }
+                                                    }))}
+                                                    className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-[11px] text-white outline-none focus:border-tactical-yellow"
+                                                />
+                                            </label>
+                                        </div>
 
                                     </div>
                                 );
