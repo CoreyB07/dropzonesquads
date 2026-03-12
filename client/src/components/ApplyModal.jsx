@@ -20,7 +20,7 @@ const ApplyModal = ({ squad, onClose }) => {
         : false;
 
     const isOwnSquad = user?.id && squad?.creatorId && user.id === squad.creatorId;
-    const isProfileReady = (user?.activisionId || '').trim().length > 0;
+    const isProfileReady = (user?.username || '').trim().length > 0 && user?.username !== '__pending__';
 
     const [formData, setFormData] = useState({
         discord: '',
@@ -30,10 +30,6 @@ const ApplyModal = ({ squad, onClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!user) {
-            return;
-        }
-        if ((user.activisionId || '').trim().length === 0) {
-            showError('Add your Activision ID in your profile before applying.');
             return;
         }
 
@@ -100,7 +96,7 @@ const ApplyModal = ({ squad, onClose }) => {
                             <UserCheck className="w-12 h-12 text-gray-600 mx-auto" />
                             <p className="font-bold text-gray-300 uppercase tracking-widest text-sm">Complete Member Profile</p>
                             <p className="text-xs text-gray-500">
-                                Finish your member profile and add your Activision ID before sending join requests or messages.
+                                Finish your member profile before sending join requests or messages.
                             </p>
                             <button
                                 onClick={() => {
@@ -127,7 +123,7 @@ const ApplyModal = ({ squad, onClose }) => {
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="p-4 rounded-xl border border-tactical-yellow/30 bg-tactical-yellow/5 text-xs text-gray-300">
-                                No website messaging required. Clan leader sees your Activision ID only after acceptance.
+                                No website messaging required. Activision ID is optional and only shared by your profile privacy settings.
                             </div>
 
                             <div className="space-y-2">

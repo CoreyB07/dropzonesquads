@@ -116,8 +116,8 @@ const Onboarding = () => {
                             </div>
 
                             <div className="space-y-1 relative">
-                                <label className="text-[12px] font-black uppercase text-tactical-yellow ml-1 animate-pulse flex items-center gap-2">
-                                    <Target className="w-3 h-3" /> Activision ID Required for Deployment
+                                <label className="text-[12px] font-black uppercase text-tactical-yellow ml-1 flex items-center gap-2">
+                                    <Target className="w-3 h-3" /> Activision ID (Optional)
                                 </label>
                                 <div className="relative group">
                                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-tactical-yellow/70 group-focus-within:text-tactical-yellow transition-colors z-10" />

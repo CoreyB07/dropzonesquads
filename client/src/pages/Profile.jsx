@@ -116,10 +116,6 @@ const Profile = () => {
 
     const handleSave = async (e) => {
         e.preventDefault();
-        if ((form.activisionId || '').trim().length === 0) {
-            showError('Activision ID is required before you can join squads.');
-            return;
-        }
 
         setIsSaving(true);
         const result = await updateUserProfile(form);
@@ -170,21 +166,21 @@ const Profile = () => {
     const showSupporterView = isSupporter;
     const descriptor = hasActivisionId
         ? 'Tactical, squad-focused operator'
-        : 'Add your Activision ID to finish setup and unlock squad requests';
+        : 'Activision ID is optional — you can add it anytime.';
 
     return (
         <div className="max-w-5xl mx-auto pb-24 space-y-6 text-white">
-            {(isProfileSetupMode || !hasActivisionId) && !isEditing && (
+            {isProfileSetupMode && !isEditing && (
                 <div className="flex items-center justify-between gap-4 px-5 py-3 rounded-xl border border-tactical-yellow/40 bg-tactical-yellow/5">
                     <div>
                         <p className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Complete your operator profile</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">Add your Activision ID to join squads. It is only shared after a request is accepted.</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">Set your username/platform now. Activision ID is optional and can be added later.</p>
                     </div>
                     <button
                         onClick={openEditor}
                         className="shrink-0 px-4 py-2 rounded-lg bg-tactical-yellow text-charcoal-dark text-xs font-black uppercase tracking-widest hover:brightness-110 transition-all"
                     >
-                        Add ID
+                        Edit Profile
                     </button>
                 </div>
             )}
@@ -453,7 +449,7 @@ const ProfileDetailsSection = ({ user, mySquads, isSupporter, showSupporterView 
                         <p className="text-sm text-slate-300 mt-2 leading-relaxed">
                             {user?.activisionId
                                 ? `${publicVisibility}. Squad leaders only see your Activision ID after acceptance based on your friend/squad sharing toggles.`
-                                : 'Add your Activision ID to complete your account setup and unlock full squad access.'}
+                                : 'Activision ID is optional. You can still join squads, add friends, and use messaging without it.'}
                         </p>
                     </div>
                 </SummaryCard>
