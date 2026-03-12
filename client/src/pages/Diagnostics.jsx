@@ -9,6 +9,23 @@ const fmtErr = (err) => ({
   hint: err?.hint || null
 });
 
+const withTimeout = async (promise, label, ms = 12000) => {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error(`${label} timed out after ${ms}ms`);
+      err.code = 'TIMEOUT';
+      reject(err);
+    }, ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 const Diagnostics = () => {
   const { user, isSupabaseReady } = useAuth();
   const [running, setRunning] = useState(false);
@@ -35,7 +52,7 @@ const Diagnostics = () => {
       }
 
       // Auth session + user
-      const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+      const { data: sessionData, error: sessionErr } = await withTimeout(supabase.auth.getSession(), 'AUTH_S1 getSession');
       if (sessionErr) {
         out = push(out, { step: 'AUTH_S1', ok: false, error: fmtErr(sessionErr) });
       } else {
@@ -50,7 +67,7 @@ const Diagnostics = () => {
         });
       }
 
-      const { data: authUserData, error: authUserErr } = await supabase.auth.getUser();
+      const { data: authUserData, error: authUserErr } = await withTimeout(supabase.auth.getUser(), 'AUTH_S2 getUser');
       if (authUserErr) {
         out = push(out, { step: 'AUTH_S2', ok: false, error: fmtErr(authUserErr) });
       } else {
@@ -70,11 +87,14 @@ const Diagnostics = () => {
       }
 
       // Profiles lookup
-      const { data: profileRows, error: profileErr } = await supabase
-        .from('profiles')
-        .select('id, email, username, platform')
-        .eq('id', uid)
-        .limit(1);
+      const { data: profileRows, error: profileErr } = await withTimeout(
+        supabase
+          .from('profiles')
+          .select('id, email, username, platform')
+          .eq('id', uid)
+          .limit(1),
+        'PROFILE_S1 profiles lookup'
+      );
 
       if (profileErr) {
         out = push(out, { step: 'PROFILE_S1', ok: false, error: fmtErr(profileErr) });
@@ -83,11 +103,14 @@ const Diagnostics = () => {
       }
 
       // Inbox path checks
-      const { data: partRows, error: partErr } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', uid)
-        .limit(50);
+      const { data: partRows, error: partErr } = await withTimeout(
+        supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .eq('user_id', uid)
+          .limit(50),
+        'INBOX_S1 participants lookup'
+      );
 
       if (partErr) {
         out = push(out, { step: 'INBOX_S1', ok: false, error: fmtErr(partErr) });
@@ -97,11 +120,14 @@ const Diagnostics = () => {
 
       const convIds = (partRows || []).map((r) => r.conversation_id);
       if (convIds.length > 0) {
-        const { data: messagesRows, error: msgErr } = await supabase
-          .from('messages')
-          .select('conversation_id, created_at, sender_id')
-          .in('conversation_id', convIds)
-          .limit(100);
+        const { data: messagesRows, error: msgErr } = await withTimeout(
+          supabase
+            .from('messages')
+            .select('conversation_id, created_at, sender_id')
+            .in('conversation_id', convIds)
+            .limit(100),
+          'INBOX_S2 messages lookup'
+        );
 
         if (msgErr) {
           out = push(out, { step: 'INBOX_S2', ok: false, error: fmtErr(msgErr) });
@@ -112,11 +138,14 @@ const Diagnostics = () => {
         out = push(out, { step: 'INBOX_S2', ok: true, data: { skipped: true, reason: 'No conversations yet' } });
       }
 
-      const { data: notifRows, error: notifErr } = await supabase
-        .from('notifications')
-        .select('id, recipient_id, actor_id, type, created_at, read_at')
-        .eq('recipient_id', uid)
-        .limit(25);
+      const { data: notifRows, error: notifErr } = await withTimeout(
+        supabase
+          .from('notifications')
+          .select('id, recipient_id, actor_id, type, created_at, read_at')
+          .eq('recipient_id', uid)
+          .limit(25),
+        'INBOX_S3 notifications lookup'
+      );
 
       if (notifErr) {
         out = push(out, { step: 'INBOX_S3', ok: false, error: fmtErr(notifErr) });
@@ -125,11 +154,14 @@ const Diagnostics = () => {
       }
 
       // Squad write preflight (non-destructive)
-      const { error: squadSelectErr } = await supabase
-        .from('squads')
-        .select('id, creator_id')
-        .eq('creator_id', uid)
-        .limit(1);
+      const { error: squadSelectErr } = await withTimeout(
+        supabase
+          .from('squads')
+          .select('id, creator_id')
+          .eq('creator_id', uid)
+          .limit(1),
+        'SQUAD_S1 squads read preflight'
+      );
 
       if (squadSelectErr) {
         out = push(out, { step: 'SQUAD_S1', ok: false, error: fmtErr(squadSelectErr) });
