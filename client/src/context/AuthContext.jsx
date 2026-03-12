@@ -192,7 +192,13 @@ export const AuthProvider = ({ children }) => {
                     }
                     authUser = userData?.user || null;
                 } catch (userError) {
-                    console.warn('getUser init failed/timed out, falling back to getSession:', userError);
+                    const isMissingSession = userError?.name === 'AuthSessionMissingError'
+                        || /session missing/i.test(userError?.message || '');
+
+                    if (!isMissingSession) {
+                        console.warn('getUser init failed/timed out, falling back to getSession:', userError);
+                    }
+
                     const { data, error } = await withTimeout(supabase.auth.getSession(), 'auth.getSession', 15000);
                     if (error) {
                         throw error;
