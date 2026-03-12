@@ -176,21 +176,28 @@ export const AuthProvider = ({ children }) => {
             try {
                 assertSupabaseConfigured();
 
-                // Some browser contexts can hang on getSession(); fall back to getUser().
+                // Hydrate from cache first so browser auth endpoint slowness doesn't bounce the user.
+                const cachedUser = readStoredValue('warzone_hub_current_user', null);
+                if (cachedUser?.id) {
+                    setUser(cachedUser);
+                    setLoading(false);
+                }
+
+                // Some browser contexts can hang on getSession(); prefer getUser first, then fallback.
                 let authUser = null;
                 try {
-                    const { data, error } = await withTimeout(supabase.auth.getSession(), 'auth.getSession', 10000);
-                    if (error) {
-                        throw error;
-                    }
-                    authUser = data?.session?.user || null;
-                } catch (sessionError) {
-                    console.warn('getSession init failed/timed out, falling back to getUser:', sessionError);
-                    const { data: userData, error: userError } = await withTimeout(supabase.auth.getUser(), 'auth.getUser', 10000);
+                    const { data: userData, error: userError } = await withTimeout(supabase.auth.getUser(), 'auth.getUser', 15000);
                     if (userError) {
                         throw userError;
                     }
                     authUser = userData?.user || null;
+                } catch (userError) {
+                    console.warn('getUser init failed/timed out, falling back to getSession:', userError);
+                    const { data, error } = await withTimeout(supabase.auth.getSession(), 'auth.getSession', 15000);
+                    if (error) {
+                        throw error;
+                    }
+                    authUser = data?.session?.user || null;
                 }
 
                 if (!active) return;
@@ -200,7 +207,6 @@ export const AuthProvider = ({ children }) => {
                 if (!authUser) {
                     // If auth lookup is flaky in this browser context, keep cached user
                     // instead of hard-signing out immediately.
-                    const cachedUser = readStoredValue('warzone_hub_current_user', null);
                     if (cachedUser?.id) {
                         setUser(cachedUser);
                         return;
