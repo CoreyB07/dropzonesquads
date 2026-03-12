@@ -58,27 +58,42 @@ const PostSquad = () => {
 
         setIsSubmitting(true);
         try {
-            await createSquad({
-                ...formData,
-                name: nextName,
-                maxPlayers: formData.listingType === 'player_looking_for_squad' && !formData.maxPlayers ? 99 : formData.maxPlayers,
-                creatorId: user.id,
-                tags: Array.from(
-                    new Set([
-                        ...formData.tags,
-                        formData.gameMode,
-                        formData.skillLevel,
-                        formData.platform,
-                        formData.audience,
-                        formData.comms
-                    ])
+            await Promise.race([
+                createSquad({
+                    ...formData,
+                    name: nextName,
+                    maxPlayers: formData.listingType === 'player_looking_for_squad' && !formData.maxPlayers ? 99 : formData.maxPlayers,
+                    creatorId: user.id,
+                    tags: Array.from(
+                        new Set([
+                            ...formData.tags,
+                            formData.gameMode,
+                            formData.skillLevel,
+                            formData.platform,
+                            formData.audience,
+                            formData.comms
+                        ])
+                    )
+                }),
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Request timed out while deploying listing. Please try again.')), 12000)
                 )
-            });
+            ]);
             success('Squad listing deployed successfully.');
             navigate('/find');
         } catch (error) {
             console.error('Error posting squad:', error);
-            showError(error?.message || 'Unable to deploy squad listing right now.');
+
+            const message = String(error?.message || '').toLowerCase();
+            const code = error?.code;
+
+            if (code === '23503' || message.includes('foreign key') || message.includes('creator_id')) {
+                showError('Session expired or account record changed. Please sign out, refresh, and sign back in.');
+            } else if (message.includes('duplicate key') || code === '23505') {
+                showError('A conflicting record already exists. Try a different listing name or refresh and retry.');
+            } else {
+                showError(error?.message || 'Unable to deploy squad listing right now.');
+            }
         } finally {
             setIsSubmitting(false);
         }
