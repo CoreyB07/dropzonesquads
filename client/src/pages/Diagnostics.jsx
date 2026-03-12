@@ -119,6 +119,20 @@ const Diagnostics = () => {
       return;
     }
 
+    // NET_S2: authenticated lightweight ping using the same Supabase client/key
+    // to separate key/auth failures from heavier query latency.
+    try {
+      const { count, error: authPingErr } = await withTimeout(
+        supabase.from('profiles').select('id', { head: true, count: 'exact' }).eq('id', uid),
+        'NET_S2 authenticated head ping',
+        5000
+      );
+      if (authPingErr) out = push(out, { step: 'NET_S2', ok: false, error: fmtErr(authPingErr) });
+      else out = push(out, { step: 'NET_S2', ok: true, data: { authenticatedPing: true, count: typeof count === 'number' ? count : null } });
+    } catch (e) {
+      out = push(out, { step: 'NET_S2', ok: false, error: fmtErr(e) });
+    }
+
     // PROFILE_S1
     try {
       const { data: profileRows, error: profileErr } = await withTimeout(
