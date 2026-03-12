@@ -80,6 +80,10 @@ Disabled:
 - Supporter visuals use `text-premium-glow`
 - Squad name special style uses `text-squad-name`
 - Unread indicators use red dot + optional count pill
+- Reusable alert/status utility classes:
+  - `alert-error`, `alert-error-title`, `alert-error-body`
+  - `alert-success`
+  - `status-pill`
 
 ---
 

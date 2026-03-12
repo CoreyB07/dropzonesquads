@@ -306,9 +306,9 @@ const ManageSquad = () => {
                     <button onClick={() => navigate(`/squad/${id}`)} className="btn-tactical w-full">Back to Squad</button>
                 </div>
                 {debugError && (
-                    <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-                        <p className="text-xs font-black uppercase tracking-widest text-red-200">Manage Squad Debug</p>
-                        <pre className="mt-2 text-xs text-red-100 whitespace-pre-wrap">{JSON.stringify(debugError, null, 2)}</pre>
+                    <div className="alert-error">
+                        <p className="alert-error-title">Manage Squad Debug</p>
+                        <pre className="alert-error-body">{JSON.stringify(debugError, null, 2)}</pre>
                     </div>
                 )}
             </div>
