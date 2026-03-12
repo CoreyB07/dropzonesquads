@@ -343,7 +343,7 @@ const Home = () => {
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                         <div className="flex items-center gap-2">
                             <KeyRound className="w-5 h-5 text-tactical-yellow" />
-                            <h2 className="text-sm font-black uppercase tracking-widest text-gray-200">Activision ID Is Optional</h2>
+                            <h2 className="text-sm font-black uppercase tracking-widest text-gray-200">Activision ID: Optional Intel</h2>
                         </div>
                         <button
                             onClick={() => navigate('/privacy')}
@@ -355,15 +355,15 @@ const Home = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-4">
                             <p className="text-xs font-black uppercase tracking-widest text-tactical-yellow">No ID Required</p>
-                            <p className="mt-2 text-sm text-gray-300">Sign up, add friends, join squads, and use messages without adding an Activision ID.</p>
+                            <p className="mt-2 text-sm text-gray-300">Get in the game fast — sign up, add friends, join squads, and message without an Activision ID.</p>
                         </div>
                         <div className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-4">
                             <p className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Add It Anytime</p>
-                            <p className="mt-2 text-sm text-gray-300">You can add your Activision ID later in your profile whenever you want faster sharing.</p>
+                            <p className="mt-2 text-sm text-gray-300">Drop your Activision ID later from Profile when you want quicker squad coordination.</p>
                         </div>
                         <div className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-4">
                             <p className="text-xs font-black uppercase tracking-widest text-tactical-yellow">You Control Sharing</p>
-                            <p className="mt-2 text-sm text-gray-300">Use profile privacy toggles to choose when your Activision ID is visible.</p>
+                            <p className="mt-2 text-sm text-gray-300">Flip profile privacy toggles anytime to control who can see your Activision ID.</p>
                         </div>
                     </div>
                 </article>

@@ -6,17 +6,17 @@ const PrivacyInfo = () => {
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-20">
             <div className="space-y-3">
-                <p className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Privacy & Account Info</p>
+                <p className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Privacy Intel</p>
                 <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white">How Activision ID Sharing Works</h1>
-                <p className="text-gray-400">Quick summary of what is required, what is optional, and how sharing controls work.</p>
+                <p className="text-gray-400">Quick breakdown of what you need to start, what stays optional, and how your sharing controls work.</p>
             </div>
 
             <section className="card-tactical space-y-4">
                 <h2 className="text-lg font-black uppercase tracking-widest text-white flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-tactical-yellow" /> What You Need To Use Drop Zone Squads</h2>
                 <ul className="space-y-2 text-sm text-gray-300">
-                    <li className="flex items-start gap-2"><ArrowRight className="w-4 h-4 mt-0.5 text-tactical-yellow" /> You can sign up, join squads, add friends, and message without an Activision ID.</li>
-                    <li className="flex items-start gap-2"><ArrowRight className="w-4 h-4 mt-0.5 text-tactical-yellow" /> Username + platform are enough to get started.</li>
-                    <li className="flex items-start gap-2"><ArrowRight className="w-4 h-4 mt-0.5 text-tactical-yellow" /> Activision ID is optional and can be added anytime in your profile.</li>
+                    <li className="flex items-start gap-2"><ArrowRight className="w-4 h-4 mt-0.5 text-tactical-yellow" /> You can sign up, join squads, add friends, and message with no Activision ID.</li>
+                    <li className="flex items-start gap-2"><ArrowRight className="w-4 h-4 mt-0.5 text-tactical-yellow" /> Username + platform are enough to deploy.</li>
+                    <li className="flex items-start gap-2"><ArrowRight className="w-4 h-4 mt-0.5 text-tactical-yellow" /> Add Activision ID later from Profile whenever you want faster squad coordination.</li>
                 </ul>
             </section>
 
