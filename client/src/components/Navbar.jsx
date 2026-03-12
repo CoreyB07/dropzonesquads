@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Crosshair, LayoutDashboard, LogIn, UserPlus, Mail, Users } from 'lucide-react';
+import { Crosshair, LayoutDashboard, LogIn, UserPlus, Mail, Users, Info } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useMySquads } from '../context/MySquadsContext';
 import { supabase } from '../utils/supabase';
@@ -227,6 +227,16 @@ const Navbar = () => {
                                     </span>
                                 </Link>
                             )}
+                            <Link
+                                to="/privacy"
+                                className="bg-charcoal-dark hover:bg-military-gray/40 px-3 py-2 rounded-md transition-all border border-military-gray text-white"
+                                title="Privacy & Info"
+                            >
+                                <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest">
+                                    <Info className="w-3.5 h-3.5" />
+                                    Privacy
+                                </span>
+                            </Link>
                             <Link
                                 to="/my-squads"
                                 className="bg-charcoal-dark hover:bg-military-gray/40 px-3 py-2 rounded-md transition-all border border-military-gray text-white"

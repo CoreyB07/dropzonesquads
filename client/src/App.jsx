@@ -16,6 +16,7 @@ import UserProfile from './pages/UserProfile';
 import SquadChat from './pages/SquadChat';
 import MySquads from './pages/MySquads';
 import ManageSquad from './pages/ManageSquad';
+import PrivacyInfo from './pages/PrivacyInfo';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { MySquadsProvider } from './context/MySquadsContext';
@@ -65,6 +66,7 @@ function App() {
                     <Route path="/squad/:id/manage" element={<ManageSquad />} />
                     <Route path="/user/:id" element={<UserProfile />} />
                     <Route path="/admin" element={<Admin />} />
+                    <Route path="/privacy" element={<PrivacyInfo />} />
                   </Routes>
                 </RouteGuard>
               </main>
