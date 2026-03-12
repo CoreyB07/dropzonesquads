@@ -26,6 +26,33 @@ const withTimeout = async (promise, label, ms = 12000) => {
   }
 };
 
+const buildMarkdownReport = (results) => {
+  const lines = [
+    '# DropZoneSquads Diagnostics Report',
+    '',
+    `Generated: ${new Date().toISOString()}`,
+    `User Agent: ${navigator.userAgent}`,
+    ''
+  ];
+
+  results.forEach((r) => {
+    lines.push(`## ${r.step} - ${r.ok ? 'PASS' : 'FAIL'}`);
+    if (r.data) {
+      lines.push('```json');
+      lines.push(JSON.stringify(r.data, null, 2));
+      lines.push('```');
+    }
+    if (r.error) {
+      lines.push('```json');
+      lines.push(JSON.stringify(r.error, null, 2));
+      lines.push('```');
+    }
+    lines.push('');
+  });
+
+  return lines.join('\n');
+};
+
 const Diagnostics = () => {
   const { user, isSupabaseReady } = useAuth();
   const [running, setRunning] = useState(false);
@@ -48,6 +75,19 @@ const Diagnostics = () => {
       setResults(out);
       setRunning(false);
       return;
+    }
+
+    // Network sanity check against Supabase REST endpoint (no auth required)
+    try {
+      const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
+      const netResponse = await withTimeout(fetch(`${supabaseUrl}/rest/v1/`, { method: 'GET' }), 'NET_S1 supabase rest probe', 12000);
+      out = push(out, {
+        step: 'NET_S1',
+        ok: Boolean(netResponse),
+        data: { status: netResponse?.status || null, ok: Boolean(netResponse?.ok) }
+      });
+    } catch (e) {
+      out = push(out, { step: 'NET_S1', ok: false, error: fmtErr(e) });
     }
 
     // AUTH checks use app context only to avoid browser-specific Supabase auth hangs/side effects.
@@ -149,14 +189,50 @@ const Diagnostics = () => {
     setRunning(false);
   };
 
+  const handleCopyMarkdown = async () => {
+    const report = buildMarkdownReport(results);
+    try {
+      await navigator.clipboard.writeText(report);
+    } catch (e) {
+      console.warn('Clipboard write failed:', e);
+    }
+  };
+
+  const handleDownloadMarkdown = () => {
+    const report = buildMarkdownReport(results);
+    const blob = new Blob([report], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dropzonesquads-diag-${new Date().toISOString().replace(/[:.]/g, '-')}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
       <div className="card-tactical space-y-4">
         <h1 className="text-2xl font-black uppercase tracking-widest text-white">Diagnostics</h1>
         <p className="text-sm text-gray-400">Runs deterministic auth + inbox + squad preflight checks and prints exact errors.</p>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <button onClick={runChecks} disabled={running} className="btn-tactical">
             {running ? 'Running Checks...' : 'Run Checks'}
+          </button>
+          <button
+            onClick={handleCopyMarkdown}
+            disabled={results.length === 0}
+            className="px-4 py-2 rounded-lg border border-military-gray bg-charcoal-dark text-xs font-black uppercase tracking-widest text-gray-300 disabled:opacity-40"
+          >
+            Copy Report (.md)
+          </button>
+          <button
+            onClick={handleDownloadMarkdown}
+            disabled={results.length === 0}
+            className="px-4 py-2 rounded-lg border border-military-gray bg-charcoal-dark text-xs font-black uppercase tracking-widest text-gray-300 disabled:opacity-40"
+          >
+            Download Report (.md)
           </button>
           <span className="text-xs font-black uppercase tracking-widest text-gray-400">{status}</span>
         </div>
