@@ -1,0 +1,176 @@
+import React, { useMemo, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../utils/supabase';
+
+const fmtErr = (err) => ({
+  code: err?.code || 'no-code',
+  message: err?.message || 'unknown error',
+  details: err?.details || null,
+  hint: err?.hint || null
+});
+
+const Diagnostics = () => {
+  const { user, isSupabaseReady } = useAuth();
+  const [running, setRunning] = useState(false);
+  const [results, setResults] = useState([]);
+
+  const status = useMemo(() => {
+    const passCount = results.filter((r) => r.ok).length;
+    return `${passCount}/${results.length} checks passing`;
+  }, [results]);
+
+  const push = (arr, item) => [...arr, item];
+
+  const runChecks = async () => {
+    setRunning(true);
+    let out = [];
+
+    try {
+      out = push(out, { step: 'ENV_S1', ok: Boolean(isSupabaseReady && supabase), data: { isSupabaseReady: Boolean(isSupabaseReady), hasSupabase: Boolean(supabase) } });
+
+      if (!supabase) {
+        setResults(out);
+        setRunning(false);
+        return;
+      }
+
+      // Auth session + user
+      const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr) {
+        out = push(out, { step: 'AUTH_S1', ok: false, error: fmtErr(sessionErr) });
+      } else {
+        out = push(out, {
+          step: 'AUTH_S1',
+          ok: Boolean(sessionData?.session),
+          data: {
+            hasSession: Boolean(sessionData?.session),
+            sessionUserId: sessionData?.session?.user?.id || null,
+            contextUserId: user?.id || null
+          }
+        });
+      }
+
+      const { data: authUserData, error: authUserErr } = await supabase.auth.getUser();
+      if (authUserErr) {
+        out = push(out, { step: 'AUTH_S2', ok: false, error: fmtErr(authUserErr) });
+      } else {
+        out = push(out, {
+          step: 'AUTH_S2',
+          ok: Boolean(authUserData?.user?.id),
+          data: { authUserId: authUserData?.user?.id || null, email: authUserData?.user?.email || null }
+        });
+      }
+
+      const uid = authUserData?.user?.id || user?.id;
+      if (!uid) {
+        out = push(out, { step: 'AUTH_S3', ok: false, error: { code: 'NO_UID', message: 'No user id available for DB checks' } });
+        setResults(out);
+        setRunning(false);
+        return;
+      }
+
+      // Profiles lookup
+      const { data: profileRows, error: profileErr } = await supabase
+        .from('profiles')
+        .select('id, email, username, platform')
+        .eq('id', uid)
+        .limit(1);
+
+      if (profileErr) {
+        out = push(out, { step: 'PROFILE_S1', ok: false, error: fmtErr(profileErr) });
+      } else {
+        out = push(out, { step: 'PROFILE_S1', ok: true, data: { rows: profileRows?.length || 0, profile: profileRows?.[0] || null } });
+      }
+
+      // Inbox path checks
+      const { data: partRows, error: partErr } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', uid)
+        .limit(50);
+
+      if (partErr) {
+        out = push(out, { step: 'INBOX_S1', ok: false, error: fmtErr(partErr) });
+      } else {
+        out = push(out, { step: 'INBOX_S1', ok: true, data: { participantRows: partRows?.length || 0 } });
+      }
+
+      const convIds = (partRows || []).map((r) => r.conversation_id);
+      if (convIds.length > 0) {
+        const { data: messagesRows, error: msgErr } = await supabase
+          .from('messages')
+          .select('conversation_id, created_at, sender_id')
+          .in('conversation_id', convIds)
+          .limit(100);
+
+        if (msgErr) {
+          out = push(out, { step: 'INBOX_S2', ok: false, error: fmtErr(msgErr) });
+        } else {
+          out = push(out, { step: 'INBOX_S2', ok: true, data: { messageRows: messagesRows?.length || 0 } });
+        }
+      } else {
+        out = push(out, { step: 'INBOX_S2', ok: true, data: { skipped: true, reason: 'No conversations yet' } });
+      }
+
+      const { data: notifRows, error: notifErr } = await supabase
+        .from('notifications')
+        .select('id, recipient_id, actor_id, type, created_at, read_at')
+        .eq('recipient_id', uid)
+        .limit(25);
+
+      if (notifErr) {
+        out = push(out, { step: 'INBOX_S3', ok: false, error: fmtErr(notifErr) });
+      } else {
+        out = push(out, { step: 'INBOX_S3', ok: true, data: { notifications: notifRows?.length || 0 } });
+      }
+
+      // Squad write preflight (non-destructive)
+      const { error: squadSelectErr } = await supabase
+        .from('squads')
+        .select('id, creator_id')
+        .eq('creator_id', uid)
+        .limit(1);
+
+      if (squadSelectErr) {
+        out = push(out, { step: 'SQUAD_S1', ok: false, error: fmtErr(squadSelectErr) });
+      } else {
+        out = push(out, { step: 'SQUAD_S1', ok: true, data: { note: 'squads table readable for user context' } });
+      }
+    } catch (e) {
+      out = push(out, { step: 'DIAG_FATAL', ok: false, error: fmtErr(e) });
+    }
+
+    setResults(out);
+    setRunning(false);
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-6 pb-20">
+      <div className="card-tactical space-y-4">
+        <h1 className="text-2xl font-black uppercase tracking-widest text-white">Diagnostics</h1>
+        <p className="text-sm text-gray-400">Runs deterministic auth + inbox + squad preflight checks and prints exact errors.</p>
+        <div className="flex items-center gap-3">
+          <button onClick={runChecks} disabled={running} className="btn-tactical">
+            {running ? 'Running Checks...' : 'Run Checks'}
+          </button>
+          <span className="text-xs font-black uppercase tracking-widest text-gray-400">{status}</span>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {results.map((r, i) => (
+          <div key={`${r.step}-${i}`} className={`rounded-xl border p-4 ${r.ok ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-black uppercase tracking-widest text-white">{r.step}</p>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${r.ok ? 'text-green-300' : 'text-red-300'}`}>{r.ok ? 'PASS' : 'FAIL'}</span>
+            </div>
+            {r.data && <pre className="mt-2 text-xs text-gray-300 whitespace-pre-wrap">{JSON.stringify(r.data, null, 2)}</pre>}
+            {r.error && <pre className="mt-2 text-xs text-red-200 whitespace-pre-wrap">{JSON.stringify(r.error, null, 2)}</pre>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Diagnostics;

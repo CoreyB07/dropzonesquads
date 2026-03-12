@@ -17,6 +17,7 @@ import SquadChat from './pages/SquadChat';
 import MySquads from './pages/MySquads';
 import ManageSquad from './pages/ManageSquad';
 import PrivacyInfo from './pages/PrivacyInfo';
+import Diagnostics from './pages/Diagnostics';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { MySquadsProvider } from './context/MySquadsContext';
@@ -67,6 +68,7 @@ function App() {
                     <Route path="/user/:id" element={<UserProfile />} />
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/privacy" element={<PrivacyInfo />} />
+                    <Route path="/diag" element={<Diagnostics />} />
                   </Routes>
                 </RouteGuard>
               </main>
