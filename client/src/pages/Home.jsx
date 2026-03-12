@@ -6,7 +6,6 @@ import SkeletonCard from '../components/SkeletonCard';
 import FilterDrawer, { DEFAULT_FILTERS, applyFilters, countActiveFilters } from '../components/FilterDrawer';
 import { Crown, ShieldCheck, Mail, ArrowRight } from 'lucide-react';
 import { fetchSquads as fetchSquadsFromDb } from '../utils/squadsApi';
-import { MOCK_SQUADS } from '../utils/mockData';
 
 const isSquadOpen = (squad) => {
     const current = Number(squad?.playerCount || 0);
@@ -49,10 +48,10 @@ const Home = () => {
         const loadSquads = async () => {
             try {
                 const data = await fetchSquadsFromDb();
-                setSquads(data && data.length > 0 ? data : MOCK_SQUADS);
+                setSquads(data || []);
             } catch (error) {
-                console.error('Error fetching squads, using mock data:', error);
-                setSquads(MOCK_SQUADS);
+                console.error('Error fetching squads:', error);
+                setSquads([]);
             } finally {
                 setLoading(false);
             }

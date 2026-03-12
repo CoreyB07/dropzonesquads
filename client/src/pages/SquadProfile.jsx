@@ -4,7 +4,6 @@ import { supabase } from '../utils/supabase';
 import { fetchSquadMembers, getMyRoleInSquad } from '../utils/squadMembersApi';
 import { normalizeSquad } from '../utils/squadsApi';
 import { useAuth } from '../context/AuthContext';
-import { MOCK_SQUADS } from '../utils/mockData';
 import ApplyModal from '../components/ApplyModal';
 import SupporterBadge from '../components/SupporterBadge';
 import SquadNameText from '../components/SquadNameText';
@@ -14,19 +13,6 @@ import {
     Send, ChevronRight, Target, Medal
 } from 'lucide-react';
 
-const MOCK_MEMBERS = [
-    { id: 'demo-ghost-001', username: 'Ghost_Actual', role: 'leader', platform: 'PC' },
-    { id: 'demo-nova-002', username: 'Nova_Rise', role: 'co-leader', platform: 'PlayStation', is_supporter: true },
-    { id: 'demo-reaper-003', username: 'Reap3r_X', role: 'veteran', platform: 'Xbox' },
-    { id: 'demo-atlas-006', username: 'ATLS_Viper', role: 'member', platform: 'PC', is_supporter: true },
-    { id: 'demo-noob-007', username: 'Fresh_Drop', role: 'recruit', platform: 'Crossplay' },
-];
-
-const MOCK_COMMENTS = [
-    { id: 'c1', username: 'xSniper_Wolf', content: 'Been in this squad for a month — super organized. Highly recommend applying.', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(), is_supporter: true },
-    { id: 'c2', username: 'DesertEagle99', content: 'Love the vibes here. Everyone uses comms and actually helps each other.', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() },
-    { id: 'c3', username: 'QuickScope_Jo', content: 'Any chance of a Resurgence night this week?', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), is_supporter: true },
-];
 
 const RoleBadge = ({ role }) => {
     if (role === 'leader') return (
@@ -70,9 +56,6 @@ const SquadProfile = () => {
     const { id } = useParams();
     const { user } = useAuth();
     const navigate = useNavigate();
-    const isDemo = Boolean(user?.isDemo);
-    // Guests (no account) and demo users both use mock data
-    const useMock = isDemo || !user;
 
     const [squad, setSquad] = useState(null);
     const [members, setMembers] = useState([]);
@@ -85,28 +68,19 @@ const SquadProfile = () => {
         const load = async () => {
             setLoading(true);
             try {
-                if (useMock) {
-                    const found = MOCK_SQUADS.find(s => String(s.id) === String(id));
-                    setSquad(found || MOCK_SQUADS[0]);
-                    setMembers(MOCK_MEMBERS);
-                } else {
-                    // Fetch squad
-                    const { data: squadData } = await supabase
-                        .from('squads')
-                        .select('*')
-                        .eq('id', id)
-                        .single();
-                    if (squadData) setSquad(normalizeSquad(squadData));
+                const { data: squadData } = await supabase
+                    .from('squads')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                if (squadData) setSquad(normalizeSquad(squadData));
 
-                    // Fetch members
-                    const memberData = await fetchSquadMembers(id);
-                    setMembers(memberData);
+                const memberData = await fetchSquadMembers(id);
+                setMembers(memberData);
 
-                    // Check my role
-                    if (user?.id) {
-                        const role = await getMyRoleInSquad(id, user.id);
-                        setMyRole(role);
-                    }
+                if (user?.id) {
+                    const role = await getMyRoleInSquad(id, user.id);
+                    setMyRole(role);
                 }
             } catch (err) {
                 console.error('Error loading squad profile:', err);
@@ -115,7 +89,7 @@ const SquadProfile = () => {
             }
         };
         load();
-    }, [id, user, isDemo]);
+    }, [id, user]);
 
     const leaders = members.filter(m => m.role === 'leader' || m.role === 'co-leader');
     const handleMessageLeader = () => {

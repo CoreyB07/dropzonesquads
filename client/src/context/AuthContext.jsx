@@ -1,7 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { assertSupabaseConfigured, supabase } from '../utils/supabase';
-import { DEMO_USER, MOCK_APPLICATIONS } from '../utils/mockData';
 
 const AuthContext = createContext();
 const MARKETING_CONSENT_TEXT = 'I agree to receive updates and special offers from Drop Zone Squads.';
@@ -250,21 +249,6 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const startDemoSession = useCallback(async (provider = 'email') => {
-        const providerSlug = String(provider || 'email').trim().toLowerCase();
-        const isEmailDemo = providerSlug === 'email';
-        const mockUser = {
-            ...DEMO_USER,
-            id: `demo-${providerSlug}-001`,
-            email: `ghost_${providerSlug}@demo.com`,
-            username: `Ghost_${isEmailDemo ? 'WZ' : 'OAuth'}`,
-            isDemo: true,
-        };
-        setUser(mockUser);
-        setApplications(MOCK_APPLICATIONS);
-        localStorage.setItem('warzone_hub_current_user', JSON.stringify(mockUser));
-        return { success: true };
-    }, []);
 
     const captureMarketingSubscriber = useCallback(async ({ userId, email, username }) => {
         if (!isSupabaseReady) {
@@ -359,7 +343,7 @@ export const AuthProvider = ({ children }) => {
 
 
     const logout = async () => {
-        if (!isSupabaseReady || user?.isDemo) {
+        if (!isSupabaseReady) {
             setUser(null);
             localStorage.removeItem('warzone_hub_current_user');
             return;
@@ -404,7 +388,7 @@ export const AuthProvider = ({ children }) => {
             return { success: false, message: 'Username is required.' };
         }
 
-        if (!isSupabaseReady || user.isDemo) {
+        if (!isSupabaseReady) {
             const updatedUser = {
                 ...user,
                 username: nextUsername,
@@ -562,7 +546,6 @@ export const AuthProvider = ({ children }) => {
             applications,
             applyToSquad,
             updateApplicationStatus,
-            startDemoSession,
             isSupabaseReady
         }}>
             {children}

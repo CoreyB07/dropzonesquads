@@ -2,23 +2,19 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
-import { Shield, Mail, User, Lock, Monitor, Smartphone, Layout } from 'lucide-react';
+import { Shield, Mail, Lock, MessageSquare } from 'lucide-react';
 
 const Auth = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login, register } = useAuth();
+    const { login, register, signInWithOAuth } = useAuth();
     const { success, error: showError } = useToast();
     const isLogin = new URLSearchParams(location.search).get('mode') !== 'signup';
     const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState({
         email: '',
-        password: '',
-        username: '',
-        activisionId: '',
-        platform: 'Crossplay',
-        marketingOptIn: false
+        password: ''
     });
 
     const setAuthMode = (nextIsLogin) => {
@@ -41,6 +37,7 @@ const Auth = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         setLoading(true);
 
         const result = isLogin
@@ -53,7 +50,7 @@ const Auth = () => {
                 setAuthMode(true);
             } else {
                 success(isLogin ? 'Signed in successfully.' : 'Account created. You are now signed in.');
-                setTimeout(() => navigate('/'), 900);
+                setTimeout(() => navigate(isLogin ? '/' : '/onboarding'), 900);
             }
         } else {
             showError(result.message || 'Authentication failed');
@@ -75,11 +72,55 @@ const Auth = () => {
                     <p className="text-gray-500 text-sm font-medium uppercase tracking-widest">
                         {isLogin
                             ? 'Free membership sign in with email + password'
-                            : 'Free account setup. Activision ID is optional now and can be added later.'}
+                            : 'Step 1: Secure your connection. Profile setup follows.'}
                     </p>
                 </div>
 
                 <div className="card-tactical border-t-4 border-t-tactical-yellow p-8">
+                    <div className="space-y-3 mb-6">
+                        <button
+                            type="button"
+                            onClick={() => signInWithOAuth('discord')}
+                            disabled={loading}
+                            className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-black uppercase tracking-wide py-3 px-4 rounded-lg flex items-center justify-center gap-3 transition-colors shadow-lg"
+                        >
+                            <MessageSquare className="w-5 h-5" />
+                            Continue with Discord
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => signInWithOAuth('google')}
+                            disabled={loading}
+                            className="w-full bg-white hover:bg-gray-100 text-charcoal-dark font-black uppercase tracking-wide py-3 px-4 rounded-lg flex items-center justify-center gap-3 transition-colors shadow-lg"
+                        >
+                            <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                <path
+                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                    fill="#4285F4"
+                                />
+                                <path
+                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                    fill="#34A853"
+                                />
+                                <path
+                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                    fill="#FBBC05"
+                                />
+                                <path
+                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                    fill="#EA4335"
+                                />
+                            </svg>
+                            Continue with Google
+                        </button>
+                    </div>
+
+                    <div className="relative flex items-center py-2 mb-6">
+                        <div className="flex-grow border-t border-military-gray"></div>
+                        <span className="flex-shrink-0 mx-4 text-gray-500 text-[10px] font-black uppercase tracking-widest">Or continue with email</span>
+                        <div className="flex-grow border-t border-military-gray"></div>
+                    </div>
+
                     <form onSubmit={handleSubmit} className="space-y-6">
 
                         <div className="space-y-4">
@@ -113,84 +154,12 @@ const Auth = () => {
                                 </div>
                             </div>
 
-                            {!isLogin && (
-                                <>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Username</label>
-                                        <div className="relative">
-                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                            <input
-                                                required
-                                                type="text"
-                                                placeholder="GhostOperator"
-                                                className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-3 pl-10 pr-4 text-sm focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-700"
-                                                value={formData.username}
-                                                onChange={e => setFormData({ ...formData, username: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Activision ID (Optional at Sign Up)</label>
-                                        <div className="relative">
-                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                            <input
-                                                type="text"
-                                                placeholder="Ghost#1234567"
-                                                className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-3 pl-10 pr-4 text-sm focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-700"
-                                                value={formData.activisionId}
-                                                onChange={e => setFormData({ ...formData, activisionId: e.target.value })}
-                                            />
-                                        </div>
-                                        <p className="text-[10px] text-gray-600 uppercase tracking-wide">
-                                            You can sign up without this. Required before submitting join requests.
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Combat Platform</label>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {[
-                                                { id: 'PC', icon: Monitor },
-                                                { id: 'PlayStation', icon: Layout },
-                                                { id: 'Xbox', icon: Smartphone },
-                                                { id: 'Crossplay', icon: Shield }
-                                            ].map(p => (
-                                                <button
-                                                    key={p.id}
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, platform: p.id })}
-                                                    className={`py-2 px-3 rounded border flex flex-col items-center gap-1 transition-all ${formData.platform === p.id
-                                                        ? 'bg-tactical-yellow/10 border-tactical-yellow text-tactical-yellow'
-                                                        : 'bg-charcoal-dark border-military-gray text-gray-500 hover:border-gray-400'
-                                                        }`}
-                                                >
-                                                    <p.icon className="w-4 h-4" />
-                                                    <span className="text-[10px] font-black uppercase">{p.id === 'PlayStation' ? 'PS' : p.id === 'Crossplay' ? 'Any' : p.id}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <label className="flex items-start gap-3 rounded-lg border border-military-gray bg-charcoal-dark/60 px-3 py-3">
-                                        <input
-                                            type="checkbox"
-                                            checked={Boolean(formData.marketingOptIn)}
-                                            onChange={(e) => setFormData({ ...formData, marketingOptIn: e.target.checked })}
-                                            className="mt-0.5 h-4 w-4 accent-tactical-yellow"
-                                        />
-                                        <span className="text-[10px] text-gray-400 uppercase tracking-wide leading-relaxed">
-                                            I agree to receive updates and special offers from Drop Zone Squads.
-                                        </span>
-                                    </label>
-                                </>
-                            )}
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-white text-charcoal-dark font-black py-4 rounded-xl uppercase italic hover:bg-tactical-yellow transition-all flex items-center justify-center gap-2 group shadow-xl active:scale-95 disabled:opacity-50"
+                            className="w-full bg-white text-charcoal-dark font-black py-4 rounded-xl uppercase italic hover:bg-[#fff5dc] transition-all flex items-center justify-center gap-2 group shadow-xl active:scale-95 disabled:opacity-50"
                         >
                             {loading ? (
                                 <span className="animate-pulse">Authenticating...</span>
@@ -208,11 +177,13 @@ const Auth = () => {
                             onClick={() => {
                                 setAuthMode(!isLogin);
                             }}
-                            className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-tactical-yellow transition-colors"
+                            className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-tactical-yellow-hover transition-colors"
                         >
                             {isLogin ? 'Need an account? Register' : 'Already have an account? Sign in'}
                         </button>
                     </div>
+
+
                 </div>
             </div>
         </div >
