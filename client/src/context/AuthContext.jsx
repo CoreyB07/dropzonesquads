@@ -263,7 +263,7 @@ export const AuthProvider = ({ children }) => {
                     .select(`
                         id, squad_id, applicant_id, role, discord, status, created_at,
                         squad:squad_id(name, creator_id),
-                        applicant:profiles!squad_applications_applicant_id_fkey(username, platform)
+                        applicant:profiles(username, platform)
                     `)
                     .order('created_at', { ascending: false });
 
