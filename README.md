@@ -69,6 +69,11 @@ In Supabase -> Authentication -> URL Configuration:
   - `https://www.dropzonesquads.com`
   - `https://dropzonesquads.com`
 
+## Project Planning Docs (Read First)
+
+- `PROJECT_VISION_AND_REQUIREMENTS.md` → Canonical product behavior and privacy rules.
+- `IMPLEMENTATION_CHECKLIST.md` → Execution checklist for schema/frontend migration.
+
 ## Notes
 
 - The app no longer depends on `localhost:5000` for squads.
