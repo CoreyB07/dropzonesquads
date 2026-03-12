@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Shield, Target, MessageSquare, Lock, UserCheck } from 'lucide-react';
+import { X, Shield, Target, MessageSquare, Lock, UserCheck, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
+import SquadNameText from './SquadNameText';
 
 const ApplyModal = ({ squad, onClose }) => {
     const navigate = useNavigate();
@@ -70,26 +71,26 @@ const ApplyModal = ({ squad, onClose }) => {
                         <div className="flex items-center gap-2 text-tactical-yellow font-black text-xs uppercase tracking-widest">
                             <Shield className="w-3 h-3" /> Recruitment Intake
                         </div>
-                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">Join {squad.name}</h2>
-                        <p className="text-gray-400 text-sm">Applications require a free signed-in account and profile setup.</p>
+                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">Join <SquadNameText name={squad.name} restClassName="text-white" /></h2>
+                        <p className="text-gray-400 text-sm">Browsing is open to everyone. Join requests and messages require a free member profile.</p>
                     </div>
 
                     {!user ? (
                         <div className="p-6 bg-military-gray/10 rounded-xl border border-dashed border-military-gray text-center space-y-4">
                             <Lock className="w-12 h-12 text-gray-600 mx-auto" />
-                            <p className="font-bold text-gray-300 uppercase tracking-widest text-sm">Free Sign In Required</p>
+                            <p className="font-bold text-gray-300 uppercase tracking-widest text-sm">Free Membership Required</p>
                             {loading ? (
                                 <p className="text-xs text-gray-500">Checking your account...</p>
                             ) : (
                                 <>
                                     <p className="text-xs text-gray-500">
-                                        Browsing is free for everyone. Join requests require a free account with email.
+                                        You can browse squads, profiles, and the full site without signing up. Sending join requests or direct messages requires a free membership.
                                     </p>
                                     <button
                                         onClick={() => navigate('/auth?mode=signup')}
                                         className="btn-tactical w-full"
                                     >
-                                        Sign Up with Email
+                                        Create Free Membership
                                     </button>
                                 </>
                             )}
@@ -97,9 +98,9 @@ const ApplyModal = ({ squad, onClose }) => {
                     ) : !isProfileReady ? (
                         <div className="p-6 bg-military-gray/10 rounded-xl border border-dashed border-military-gray text-center space-y-4">
                             <UserCheck className="w-12 h-12 text-gray-600 mx-auto" />
-                            <p className="font-bold text-gray-300 uppercase tracking-widest text-sm">Complete Profile Required</p>
+                            <p className="font-bold text-gray-300 uppercase tracking-widest text-sm">Complete Member Profile</p>
                             <p className="text-xs text-gray-500">
-                                Add your Activision ID before sending a join request so leaders can contact you after acceptance.
+                                Finish your member profile and add your Activision ID before sending join requests or messages.
                             </p>
                             <button
                                 onClick={() => {
@@ -108,7 +109,7 @@ const ApplyModal = ({ squad, onClose }) => {
                                 }}
                                 className="btn-tactical w-full"
                             >
-                                Complete Profile
+                                Complete Member Profile
                             </button>
                         </div>
                     ) : isOwnSquad ? (
@@ -152,28 +153,43 @@ const ApplyModal = ({ squad, onClose }) => {
                                 <label className="text-[10px] uppercase font-black text-gray-500">Discord (Optional)</label>
                                 <input
                                     placeholder="ghost.ops"
-                                    className="w-full bg-charcoal-dark border border-military-gray rounded p-3 text-sm focus:border-tactical-yellow outline-none"
+                                    className="w-full bg-charcoal-dark border border-military-gray rounded p-3 text-sm text-white caret-white focus:border-tactical-yellow outline-none"
                                     value={formData.discord}
                                     onChange={e => setFormData({ ...formData, discord: e.target.value })}
                                 />
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className={`w-full font-black uppercase italic py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl ${isSubmitting
-                                    ? 'bg-military-gray text-gray-500 cursor-not-allowed'
-                                    : 'bg-white text-charcoal-dark hover:bg-tactical-yellow active:scale-95'
-                                    }`}
-                            >
-                                {isSubmitting ? (
-                                    <>Processing Intake...</>
-                                ) : (
-                                    <>
-                                        Submit Deployment Request <MessageSquare className="w-4 h-4" />
-                                    </>
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className={`w-full font-black uppercase italic py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl ${isSubmitting
+                                        ? 'bg-military-gray text-gray-500 cursor-not-allowed'
+                                        : 'bg-white text-charcoal-dark hover:bg-[#fff5dc] active:scale-95'
+                                        }`}
+                                >
+                                    {isSubmitting ? (
+                                        <>Processing Intake...</>
+                                    ) : (
+                                        <>
+                                            Submit Deployment Request <MessageSquare className="w-4 h-4" />
+                                        </>
+                                    )}
+                                </button>
+
+                                {squad.creatorId && squad.creatorId !== user.id && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onClose();
+                                            navigate(`/dm/${squad.creatorId}`);
+                                        }}
+                                        className="w-full font-black uppercase text-xs tracking-widest py-3 rounded-xl flex items-center justify-center gap-2 border border-military-gray bg-charcoal-dark text-gray-400 hover:text-tactical-yellow-hover hover:border-tactical-yellow-hover transition-all"
+                                    >
+                                        Direct Message Leader <Mail className="w-4 h-4" />
+                                    </button>
                                 )}
-                            </button>
+                            </div>
                         </form>
                     )}
                 </div>

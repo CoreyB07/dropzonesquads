@@ -34,6 +34,23 @@
     -moz-appearance: textfield;
   }
 
+  input,
+  textarea,
+  select {
+    color: #ffffff;
+    caret-color: #ffffff;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #6b7280;
+  }
+
+  select option {
+    color: #ffffff;
+    background-color: #141414;
+  }
+
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
