@@ -7,6 +7,7 @@ import { useToast } from '../context/useToast';
 import { MessageCircle, Monitor, Shield, Crown, ArrowLeft, ChevronRight, User, Target, Medal } from 'lucide-react';
 import SquadNameText from '../components/SquadNameText';
 import SupporterBadge from '../components/SupporterBadge';
+import BadgeChip from '../components/BadgeChip';
 
 
 const platformColors = {
@@ -29,6 +30,7 @@ const UserProfile = () => {
     const [friendshipLoading, setFriendshipLoading] = useState(true);
     const [friendBusy, setFriendBusy] = useState(false);
     const [sharedActivisionId, setSharedActivisionId] = useState(null);
+    const [badgesBySquad, setBadgesBySquad] = useState({});
     const { success, error: showError } = useToast();
 
     useEffect(() => {
@@ -45,6 +47,23 @@ const UserProfile = () => {
 
                 const userSquads = await fetchUserSquads(id);
                 setSquads(userSquads);
+
+                const { data: badgeRows, error: badgeErr } = await supabase
+                    .from('member_badges')
+                    .select('squad_id, badge_id, badge:badge_id(label, category), expires_at, is_public')
+                    .eq('user_id', id)
+                    .is('expires_at', null)
+                    .eq('is_public', true);
+
+                if (!badgeErr && badgeRows) {
+                    const grouped = badgeRows.reduce((acc, row) => {
+                        if (!row?.badge?.label) return acc;
+                        acc[row.squad_id] = acc[row.squad_id] || [];
+                        acc[row.squad_id].push({ id: row.badge_id, label: row.badge.label, category: row.badge.category });
+                        return acc;
+                    }, {});
+                    setBadgesBySquad(grouped);
+                }
 
                 const { data: sharedId } = await supabase
                     .rpc('get_shared_activision_id', { target_user_id: id });
@@ -336,6 +355,13 @@ const UserProfile = () => {
                                     <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
                                         {sq.gameMode} · {sq.platform}
                                     </p>
+                                    {(badgesBySquad[sq.id] || []).length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 pt-1">
+                                            {(badgesBySquad[sq.id] || []).slice(0, 3).map((badge) => (
+                                                <BadgeChip key={`${sq.id}-${badge.id}`} label={badge.label} category={badge.category} compact />
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-tactical-yellow-hover transition-colors" />
                             </Link>

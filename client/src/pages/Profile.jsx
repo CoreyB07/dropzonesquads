@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, Monitor, Target, Pencil, X, Check, LogOut, ShieldCheck, Users, Trophy, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../utils/supabase';
 import { useToast } from '../context/useToast';
 import { useMySquads } from '../context/MySquadsContext';
 import SquadNameText from '../components/SquadNameText';
+import BadgeChip from '../components/BadgeChip';
 
 const PlatformBadge = ({ platform }) => {
     const map = {
@@ -100,8 +102,32 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [badgesBySquad, setBadgesBySquad] = useState({});
     const [form, setForm] = useState({ username: '', activisionId: '', shareActivisionIdWithFriends: false, shareActivisionIdWithSquads: false, platform: 'PC' });
     const isProfileSetupMode = new URLSearchParams(location.search).get('setup') === '1';
+
+    useEffect(() => {
+        const loadMyBadges = async () => {
+            if (!user?.id) return;
+            const { data, error } = await supabase
+                .from('member_badges')
+                .select('squad_id, badge_id, badge:badge_id(label, category), expires_at')
+                .eq('user_id', user.id)
+                .is('expires_at', null);
+
+            if (!error && data) {
+                const grouped = data.reduce((acc, row) => {
+                    if (!row?.badge?.label) return acc;
+                    acc[row.squad_id] = acc[row.squad_id] || [];
+                    acc[row.squad_id].push({ id: row.badge_id, label: row.badge.label, category: row.badge.category });
+                    return acc;
+                }, {});
+                setBadgesBySquad(grouped);
+            }
+        };
+
+        loadMyBadges();
+    }, [user?.id, mySquads.length]);
 
     const openEditor = () => {
         setForm({
@@ -391,6 +417,7 @@ const Profile = () => {
             <ProfileDetailsSection
                 user={user}
                 mySquads={mySquads}
+                badgesBySquad={badgesBySquad}
                 isSupporter={isSupporter}
                 showSupporterView={showSupporterView}
             />
@@ -398,7 +425,7 @@ const Profile = () => {
     );
 };
 
-const ProfileDetailsSection = ({ user, mySquads, isSupporter, showSupporterView }) => {
+const ProfileDetailsSection = ({ user, mySquads, badgesBySquad, isSupporter, showSupporterView }) => {
     if (!user) return null;
 
     const joinedSquadsCount = mySquads.length;
@@ -426,6 +453,13 @@ const ProfileDetailsSection = ({ user, mySquads, isSupporter, showSupporterView 
                                             <SquadNameText name={squad.name} restClassName="text-white" />
                                         </p>
                                         <p className="text-[10px] text-gray-500">{squad.gameMode || 'Squad Listing'} · {squad.platform || 'Platform Unset'}</p>
+                                        {(badgesBySquad?.[squad.id] || []).length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5 mt-1">
+                                                {(badgesBySquad[squad.id] || []).slice(0, 3).map((badge) => (
+                                                    <BadgeChip key={`${squad.id}-${badge.id}`} label={badge.label} category={badge.category} compact />
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                     <SquadRoleBadge role={squad.role} />
                                 </div>

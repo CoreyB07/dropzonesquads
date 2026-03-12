@@ -7,6 +7,8 @@ import { useAuth } from '../context/AuthContext';
 import ApplyModal from '../components/ApplyModal';
 import SupporterBadge from '../components/SupporterBadge';
 import SquadNameText from '../components/SquadNameText';
+import BadgeChip from '../components/BadgeChip';
+import { fetchSquadMemberBadges } from '../utils/badgeApi';
 import {
     Crown, Star, Users, User, Gamepad2, Monitor, Mic, MicOff,
     MessageCircle, UserPlus, ArrowLeft, Calendar, Tag,
@@ -63,6 +65,7 @@ const SquadProfile = () => {
     const [loading, setLoading] = useState(true);
     const [applyOpen, setApplyOpen] = useState(false);
     const [showAuthNudge, setShowAuthNudge] = useState(false);
+    const [memberBadges, setMemberBadges] = useState({});
 
     useEffect(() => {
         const load = async () => {
@@ -77,6 +80,20 @@ const SquadProfile = () => {
 
                 const memberData = await fetchSquadMembers(id);
                 setMembers(memberData);
+
+                const badgeRows = await fetchSquadMemberBadges(id);
+                const grouped = (badgeRows || []).reduce((acc, row) => {
+                    const uid = row.user_id;
+                    if (!uid || !row?.badge?.label) return acc;
+                    acc[uid] = acc[uid] || [];
+                    acc[uid].push({
+                        id: row.badge_id,
+                        label: row.badge.label,
+                        category: row.badge.category
+                    });
+                    return acc;
+                }, {});
+                setMemberBadges(grouped);
 
                 if (user?.id) {
                     const role = await getMyRoleInSquad(id, user.id);
@@ -272,6 +289,13 @@ const SquadProfile = () => {
                                     </div>
                                     {member.platform && (
                                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{member.platform}</p>
+                                    )}
+                                    {(memberBadges[member.id] || []).length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 pt-1">
+                                            {(memberBadges[member.id] || []).slice(0, 3).map((badge) => (
+                                                <BadgeChip key={`${member.id}-${badge.id}`} label={badge.label} category={badge.category} compact />
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
                                 <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-tactical-yellow-hover transition-colors" />
