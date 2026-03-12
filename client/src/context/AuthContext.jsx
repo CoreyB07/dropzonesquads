@@ -288,10 +288,14 @@ export const AuthProvider = ({ children }) => {
 
         try {
             assertSupabaseConfigured();
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: normalizedEmail,
-                password
-            });
+            const { data, error } = await withTimeout(
+                supabase.auth.signInWithPassword({
+                    email: normalizedEmail,
+                    password
+                }),
+                'auth.signInWithPassword',
+                12000
+            );
 
             if (error) {
                 return { success: false, message: error.message || 'Invalid credentials.' };
@@ -301,6 +305,9 @@ export const AuthProvider = ({ children }) => {
             return { success: true, onboardingComplete: Boolean(hydrated?.onboardingComplete) };
         } catch (error) {
             console.error('Login failed:', error);
+            if (error?.code === 'TIMEOUT') {
+                return { success: false, message: 'Sign-in timed out in this browser context. Please retry or use Firefox while we finish the Chrome fix.' };
+            }
             return { success: false, message: 'Unable to sign in right now.' };
         }
     };
