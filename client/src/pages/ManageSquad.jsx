@@ -604,6 +604,7 @@ const ManageSquad = () => {
                                                     }))}
                                                     className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-[11px] text-white outline-none focus:border-tactical-yellow"
                                                 />
+                                                <span className="text-[10px] uppercase tracking-widest text-gray-500">Max 8 chars</span>
                                             </label>
                                             <label className="space-y-1">
                                                 <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Funny Badge</span>
@@ -629,6 +630,7 @@ const ManageSquad = () => {
                                                     }))}
                                                     className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-[11px] text-white outline-none focus:border-tactical-yellow"
                                                 />
+                                                <span className="text-[10px] uppercase tracking-widest text-gray-500">Max 8 chars</span>
                                             </label>
                                             <label className="space-y-1">
                                                 <span className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Status Badge</span>
@@ -654,6 +656,7 @@ const ManageSquad = () => {
                                                     }))}
                                                     className="w-full bg-charcoal-dark border border-military-gray rounded-lg py-2 px-3 text-[11px] text-white outline-none focus:border-tactical-yellow"
                                                 />
+                                                <span className="text-[10px] uppercase tracking-widest text-gray-500">Max 8 chars</span>
                                             </label>
                                         </div>
 
