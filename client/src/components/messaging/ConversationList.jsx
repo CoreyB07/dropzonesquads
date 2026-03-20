@@ -11,7 +11,8 @@ const ConversationList = ({
   search,
   onSearchChange,
   showUnreadOnly,
-  onToggleUnreadOnly
+  onToggleUnreadOnly,
+  onItemKeyDown
 }) => {
   return (
     <aside className="w-full lg:w-[340px] xl:w-[380px] border border-military-gray rounded-xl overflow-hidden bg-charcoal-light">
@@ -40,7 +41,11 @@ const ConversationList = ({
         </label>
       </div>
 
-      <div className={`${compact ? 'max-h-[72vh]' : 'max-h-[62vh]'} overflow-y-auto scrollbar-tactical`}>
+      <div
+        className={`${compact ? 'max-h-[72vh]' : 'max-h-[62vh]'} overflow-y-auto scrollbar-tactical`}
+        role="listbox"
+        aria-label="Conversation list"
+      >
         {loading ? (
           <div className="p-4 space-y-2">
             {Array.from({ length: 4 }).map((_, idx) => (
@@ -58,6 +63,7 @@ const ConversationList = ({
               conversation={conversation}
               active={conversation.id === activeConversationId}
               onClick={onSelectConversation}
+              onKeyDown={onItemKeyDown}
             />
           ))
         )}

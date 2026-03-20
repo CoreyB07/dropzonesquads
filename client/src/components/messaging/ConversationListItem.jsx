@@ -8,9 +8,12 @@ const ConversationListItem = ({ conversation, active, onClick }) => {
     <button
       type="button"
       onClick={() => onClick(conversation.id)}
-      className={`w-full text-left px-3 py-3 border-b border-military-gray/40 transition-colors ${
+      onKeyDown={(event) => onKeyDown?.(event, conversation.id)}
+      className={`w-full text-left px-3 py-3 border-b border-military-gray/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tactical-yellow/80 ${
         active ? 'bg-white/10' : 'hover:bg-white/5'
       }`}
+      aria-pressed={active}
+      aria-label={`Open conversation with ${conversation.username}`}
     >
       <div className="flex items-start gap-3">
         <div className="h-10 w-10 rounded-xl border border-military-gray bg-charcoal-dark flex items-center justify-center text-sm font-black text-white">

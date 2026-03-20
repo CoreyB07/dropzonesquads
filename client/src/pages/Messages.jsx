@@ -371,6 +371,30 @@ const Messages = () => {
     [conversations, activeConversationId]
   );
 
+  const handleConversationKeyDown = (event, conversationId) => {
+    if (!filteredConversations.length) return;
+
+    const currentIndex = filteredConversations.findIndex((item) => item.id === conversationId);
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      setActiveConversationId(conversationId);
+      return;
+    }
+
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+
+    event.preventDefault();
+    const direction = event.key === 'ArrowDown' ? 1 : -1;
+    const nextIndex = Math.min(
+      filteredConversations.length - 1,
+      Math.max(0, currentIndex + direction)
+    );
+    const nextConversationId = filteredConversations[nextIndex]?.id;
+    if (nextConversationId) {
+      setActiveConversationId(nextConversationId);
+    }
+  };
+
   const activeMessages = messagesByConversation[activeConversationId] || [];
   const hasMore = Boolean(hasMoreByConversation[activeConversationId]);
 
@@ -429,6 +453,7 @@ const Messages = () => {
               setActiveConversationId(conversationId);
               setMobileView('thread');
             }}
+            onItemKeyDown={handleConversationKeyDown}
             loading={loadingConversations}
             error={conversationsError}
             compact

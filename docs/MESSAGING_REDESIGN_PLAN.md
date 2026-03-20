@@ -23,7 +23,7 @@
 - [x] Add two-pane shell (list + thread)
 - [x] Add mock data render path for rapid iteration
 - [x] Add local send interaction for shell validation
-- [ ] Hook route into main nav
+- [x] Hook route into main nav
 
 ## 3) Core Messaging Behavior (In Progress)
 - [x] Wire conversations from Supabase
@@ -49,8 +49,8 @@
 - [x] Keep attachment limits conservative in MVP (2MB + limited file types)
 
 ## 6) Accessibility + QA
-- [ ] Keyboard navigation and focus order
-- [ ] Contrast + readable status text
+- [x] Keyboard navigation and focus order (conversation list arrow/enter support)
+- [x] Contrast + readable status text
 - [x] Empty/loading/error state pass
 - [x] Mobile pass baseline (list/thread toggle)
 

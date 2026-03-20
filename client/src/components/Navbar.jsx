@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Crosshair, LayoutDashboard, LogIn, UserPlus, Mail, Users, Info, Menu, X } from 'lucide-react';
+import { Crosshair, LayoutDashboard, LogIn, UserPlus, Mail, MessageSquare, Users, Info, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useMySquads } from '../context/MySquadsContext';
 import { supabase } from '../utils/supabase';
@@ -263,6 +263,16 @@ const Navbar = () => {
                                     </span>
                                 </Link>
                                 <Link
+                                    to="/messages"
+                                    className={utilityLinkClass}
+                                    title="Open redesigned messages"
+                                >
+                                    <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest">
+                                        <MessageSquare className="w-3.5 h-3.5" />
+                                        Messages
+                                    </span>
+                                </Link>
+                                <Link
                                     to="/inbox"
                                     className={inboxLinkClass}
                                     title="Open inbox"
@@ -335,6 +345,17 @@ const Navbar = () => {
                                 </div>
                             ) : user ? (
                                 <div className="space-y-3">
+                                    <Link
+                                        to="/messages"
+                                        className={`${utilityLinkClass} w-full justify-between rounded-2xl px-4 py-3`}
+                                    >
+                                        <span className="inline-flex items-center gap-2">
+                                            <MessageSquare className="w-4 h-4" />
+                                            <span className="text-[11px] font-black uppercase tracking-[0.18em]">Messages</span>
+                                        </span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-500">New UI</span>
+                                    </Link>
+
                                     <Link
                                         to="/inbox"
                                         className={`${inboxLinkClass} w-full justify-between rounded-2xl px-4 py-3`}
