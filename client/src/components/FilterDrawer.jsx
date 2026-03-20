@@ -164,7 +164,7 @@ const FilterDrawer = ({ filters, onChange }) => {
                 </div>
 
                 {/* Filter Categories */}
-                <div className="overflow-y-auto px-6 py-4 space-y-6" style={{ maxHeight: 'calc(80vh - 180px)' }}>
+                <div className="overflow-y-auto px-4 py-3 space-y-4" style={{ maxHeight: 'calc(72vh - 170px)' }}>
                     {visibleCategories.map((cat) => (
                         <div key={cat.key}>
                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">

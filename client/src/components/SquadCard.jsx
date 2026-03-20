@@ -31,6 +31,8 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
     const isOpen = acceptingPlayers !== false && (isLfg || Number(playerCount || 0) < Number(maxPlayers || 0));
     const canJoin = Boolean(onJoin) && isOpen;
     const memberCount = Math.max(Number(playerCount || (isLfg ? 1 : 0)), 0);
+    const memberLabel = memberCount === 1 ? 'member' : 'members';
+    const opennessLabel = isOpen ? (normalize(audience) === 'open to all' ? 'Open' : 'Invite only') : 'Closed';
     const handleCardOpen = () => navigate(`/squad/${squad.id}`);
 
     const getPlatformIcon = (plt) => {
@@ -117,7 +119,7 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
                     ) : canJoin ? (
                         <button
                             onClick={(e) => { e.stopPropagation(); onJoin(squad); }}
-                            className="px-3 py-2.5 text-[12px] font-semibold rounded-md bg-tactical-yellow text-charcoal-dark"
+                            className="px-3 py-2.5 text-[12px] font-semibold rounded-md border border-military-gray bg-charcoal-dark text-gray-200"
                         >
                             Join
                         </button>

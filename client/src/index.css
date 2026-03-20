@@ -103,13 +103,10 @@
   }
 
   .featured-badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 mb-2 rounded-md text-[10px] font-black uppercase tracking-widest;
-    color: #f3d89a;
-    border: 1px solid rgba(212, 161, 74, 0.58);
-    background: linear-gradient(135deg, rgba(68, 44, 14, 0.82), rgba(126, 84, 24, 0.64));
-    box-shadow:
-      inset 0 0 0 1px rgba(0, 0, 0, 0.22),
-      0 0 16px rgba(180, 120, 20, 0.22);
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 mb-2 rounded-md text-[10px] font-semibold uppercase tracking-wide;
+    color: #e7c98a;
+    border: 1px solid rgba(212, 161, 74, 0.4);
+    background: rgba(78, 55, 24, 0.45);
   }
 
   .alert-error {
