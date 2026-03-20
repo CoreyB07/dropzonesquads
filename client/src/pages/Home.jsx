@@ -26,7 +26,8 @@ const getEngagementScore = (squad) => {
 const SUPPORT_CONFIG = {
     cashAppUrl: 'https://cash.app/$coreywayne79',
     paypalUrl: 'https://paypal.me/Buchanan117',
-    email: 'coreybuchanan79@gmail.com'
+    email: 'coreybuchanan79@gmail.com',
+    bugReportEmail: 'coreybuchanan79@gmail.com'
 };
 
 const STANDOUT_HEADING_CLASS = 'text-xl sm:text-2xl font-black tracking-tight text-gray-100';
@@ -444,6 +445,7 @@ const Home = () => {
                         <a href={SUPPORT_CONFIG.paypalUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-military-gray px-3 py-1.5 hover:text-white transition-colors">Support the Site</a>
                         <a href={SUPPORT_CONFIG.cashAppUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-military-gray px-3 py-1.5 hover:text-white transition-colors">Donate</a>
                         <a href={`mailto:${SUPPORT_CONFIG.email}`} className="inline-flex rounded-full border border-military-gray px-3 py-1.5 hover:text-white transition-colors">Contact</a>
+                        <a href={`mailto:${SUPPORT_CONFIG.bugReportEmail}?subject=Drop%20Zone%20Squads%20Bug%20Report`} className="inline-flex rounded-full border border-military-gray px-3 py-1.5 hover:text-white transition-colors">Report Bug</a>
                         <button onClick={() => navigate('/privacy')} className="inline-flex rounded-full border border-military-gray px-3 py-1.5 hover:text-white transition-colors">Privacy</button>
                     </div>
                 </div>
