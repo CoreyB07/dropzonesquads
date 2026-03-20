@@ -7,7 +7,7 @@ import SquadCard from '../components/SquadCard';
 import ApplyModal from '../components/ApplyModal';
 import SkeletonCard from '../components/SkeletonCard';
 import FilterDrawer, { DEFAULT_FILTERS, applyFilters, countActiveFilters } from '../components/FilterDrawer';
-import { ShieldCheck, CheckSquare, Compass } from 'lucide-react';
+import { ShieldCheck, CheckSquare } from 'lucide-react';
 import { fetchSquads as fetchSquadsFromDb } from '../utils/squadsApi';
 
 const isSquadOpen = (squad) => {
@@ -138,71 +138,52 @@ const Home = () => {
 
     const checklistCompleted = firstRunTasks.every((task) => task.done);
 
-    const nextAction = (mySquads || []).length === 0
-        ? {
-            title: 'Start with squad discovery',
-            body: 'Browse active squads and send your first join request.',
-            cta: 'Browse Squads',
-            action: () => {
-                trackUxEvent('next_action_browse_squads');
-                navigate('/find');
-            }
-        }
-        : {
-            title: 'Manage your squad momentum',
-            body: 'Review inbox and process any new join requests.',
-            cta: 'Open Inbox',
-            action: () => {
-                trackUxEvent('next_action_open_inbox');
-                navigate('/inbox');
-            }
-        };
 
     return (
         <div className="space-y-12">
             {/* Hero Section */}
-            <section className="relative h-[600px] flex items-center justify-center overflow-hidden rounded-3xl border border-military-gray">
+            <section className="relative min-h-[560px] flex items-center justify-center overflow-hidden rounded-3xl border border-military-gray/70">
                 <div
                     className="absolute inset-0 bg-cover bg-center z-0"
                     style={{
                         backgroundImage: 'url("/warzonehero.png")',
-                        filter: 'brightness(0.4) grayscale(0.5)'
+                        filter: 'brightness(0.42) grayscale(0.45)'
                     }}
                 />
-                <div className="relative z-10 text-center space-y-6 px-4">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-premium-gold/25 bg-black/40 backdrop-blur-sm text-[10px] md:text-xs font-black uppercase tracking-[0.22em] text-premium-gold-soft">
+                <div className="relative z-10 text-center space-y-5 px-4 max-w-3xl">
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-premium-gold/25 bg-black/45 backdrop-blur-sm text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-premium-gold-soft">
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        100% Free Core Matchmaking
+                        Free Core Matchmaking
                     </span>
-                    <div className="space-y-4 pt-2">
-                        <h2 className="text-sm md:text-lg font-black uppercase tracking-[0.2em] text-white/90">
-                            Why Drop With Randoms?
-                        </h2>
-                        <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter text-white drop-shadow-2xl">
-                            Find Your <span className="text-premium-glow inline-block" data-text="Warzone">Warzone</span> Squad
-                        </h1>
-                    </div>
-                    <p className="text-xl md:text-2xl text-gray-300 max-w-xl mx-auto font-medium">
-                        Stop dropping with randoms. Build a Warzone squad that matches your playstyle.
+                    <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tight text-white drop-shadow-2xl">
+                        Find Your <span className="text-premium-glow inline-block" data-text="Warzone">Warzone</span> Squad
+                    </h1>
+                    <p className="text-lg md:text-2xl text-gray-300 max-w-2xl mx-auto font-medium leading-relaxed">
+                        Stop dropping with randoms. Find Warzone teammates that match your mode, vibe, and playstyle.
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
                         <button
                             onClick={() => navigate('/find')}
-                            className="bg-tactical-yellow text-charcoal-dark font-black py-4 px-10 rounded-md hover:bg-tactical-yellow-hover transition-colors uppercase tracking-wider text-lg"
+                            className="bg-tactical-yellow text-charcoal-dark font-black py-3.5 px-9 rounded-md hover:bg-tactical-yellow-hover transition-colors uppercase tracking-wider text-base"
                         >
                             Find a Squad
                         </button>
                         <button
                             onClick={() => navigate('/post')}
-                            className="bg-tactical-yellow/10 hover:bg-tactical-yellow/20 text-tactical-yellow font-black py-4 px-10 rounded-md transition-all backdrop-blur-md border border-tactical-yellow/35 hover:border-tactical-yellow-hover uppercase tracking-wider text-lg"
+                            className="bg-tactical-yellow/10 hover:bg-tactical-yellow/20 text-tactical-yellow font-black py-3.5 px-9 rounded-md transition-all backdrop-blur-md border border-tactical-yellow/35 hover:border-tactical-yellow-hover uppercase tracking-wider text-base"
                         >
                             Post a Squad
                         </button>
                     </div>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/find')}
+                        className="text-sm text-gray-300 hover:text-white underline underline-offset-4"
+                    >
+                        How it works
+                    </button>
                 </div>
-
-                {/* Overlay Gradients */}
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-dark via-transparent to-transparent z-5" />
+                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-dark via-black/10 to-transparent z-5" />
             </section>
 
             {!checklistDismissed && !checklistCompleted && (
@@ -210,63 +191,51 @@ const Home = () => {
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                             <CheckSquare className="w-5 h-5 text-tactical-yellow" />
-                            <h2 className="text-sm font-black uppercase tracking-widest text-white">First-Run Checklist</h2>
+                            <h2 className="text-base font-bold text-white">Quick start</h2>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                localStorage.setItem('dzs_checklist_dismissed', 'true');
-                                setChecklistDismissed(true);
-                                trackUxEvent('checklist_dismissed');
-                            }}
-                            className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white"
-                        >
-                            Dismiss
-                        </button>
+                        <p className="text-xs text-gray-400">Getting started: {firstRunTasks.filter(t => t.done).length} of {firstRunTasks.length} complete</p>
                     </div>
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {firstRunTasks.map((task) => (
-                            <div key={task.id} className="rounded-lg border border-military-gray bg-charcoal-dark/70 p-3 flex items-center justify-between gap-3">
-                                <div className="min-w-0">
-                                    <p className={`text-sm font-bold ${task.done ? 'text-green-300' : 'text-white'}`}>{task.label}</p>
-                                    <p className="text-[10px] uppercase tracking-widest text-gray-500">{task.done ? 'Complete' : 'Recommended next step'}</p>
-                                </div>
+                            <div key={task.id} className="rounded-lg border border-military-gray/70 bg-charcoal-dark/60 p-4 space-y-3">
+                                <p className={`text-sm font-semibold ${task.done ? 'text-green-300' : 'text-white'}`}>{task.label}</p>
+                                <p className="text-xs text-gray-500">{task.done ? 'Complete' : 'Recommended next step'}</p>
                                 <button
                                     type="button"
                                     onClick={task.action}
-                                    className="btn-tactical text-[10px] py-2 px-3"
+                                    className="btn-tactical text-[11px] py-2 px-3"
                                 >
                                     {task.cta}
                                 </button>
                             </div>
                         ))}
                     </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            localStorage.setItem('dzs_checklist_dismissed', 'true');
+                            setChecklistDismissed(true);
+                            trackUxEvent('checklist_dismissed');
+                        }}
+                        className="text-xs text-gray-500 hover:text-white"
+                    >
+                        Dismiss quick start
+                    </button>
                 </section>
             )}
 
             <section className="card-tactical space-y-3">
-                <div className="flex items-center gap-2">
-                    <Compass className="w-5 h-5 text-tactical-yellow" />
-                    <h2 className="text-sm font-black uppercase tracking-widest text-white">What to Do Next</h2>
+                <div className="flex flex-wrap items-center gap-3 justify-between">
+                    <h2 className="text-sm font-bold text-white">Filters</h2>
+                    <FilterDrawer filters={filters} onChange={setFilters} />
                 </div>
-                <p className="text-sm text-gray-300">{nextAction.body}</p>
-                <div>
-                    <button type="button" onClick={nextAction.action} className="btn-tactical text-xs">
-                        {nextAction.cta}
-                    </button>
-                </div>
-            </section>
-
-            {/* Filter Button + Active chips */}
-            <div className="flex flex-wrap items-center gap-3">
-                <FilterDrawer filters={filters} onChange={setFilters} />
                 {activeCount > 0 && (
-                    <>
+                    <div className="flex flex-wrap items-center gap-2">
                         {Object.entries(filters).flatMap(([key, values]) =>
                             values.map(v => (
                                 <span
                                     key={`${key}-${v}`}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-charcoal-dark border border-military-gray text-gray-300 text-xs font-black uppercase tracking-wider"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-charcoal-dark border border-military-gray text-gray-300 text-xs font-semibold"
                                 >
                                     {v}
                                     <button
@@ -283,13 +252,13 @@ const Home = () => {
                         )}
                         <button
                             onClick={() => setFilters(DEFAULT_FILTERS)}
-                            className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-red-400 transition-colors"
+                            className="text-xs text-gray-400 hover:text-red-400 transition-colors"
                         >
                             Clear all
                         </button>
-                    </>
+                    </div>
                 )}
-            </div>
+            </section>
 
             {loading ? (
                 <div className="space-y-8">

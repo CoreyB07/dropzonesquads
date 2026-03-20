@@ -51,11 +51,11 @@
 ---
 
 ## Phase 3 — Hero polish (keep what works, tighten copy/layout)
-- [ ] Keep dramatic hero image + dark overlay + 2 CTAs
-- [ ] Primary CTAs: **Find a Squad** / **Post a Squad**
-- [ ] Optional small text link: **How it works**
-- [ ] Tighten headline/subheadline for clarity and confidence
-- [ ] Reduce visual noise around hero text block
+- [x] Keep dramatic hero image + dark overlay + 2 CTAs
+- [x] Primary CTAs: **Find a Squad** / **Post a Squad**
+- [x] Optional small text link: **How it works**
+- [x] Tighten headline/subheadline for clarity and confidence
+- [x] Reduce visual noise around hero text block
 
 **Copy direction candidate:**
 - Headline: **Find Your Warzone Squad**
@@ -67,13 +67,13 @@
 ---
 
 ## Phase 4 — Onboarding redesign (lighter first-run experience)
-- [ ] Replace bulky checklist block with compact quick-start UI
-- [ ] Use either 3 mini cards or horizontal progress strip
-- [ ] Keep tasks:
+- [x] Replace bulky checklist block with compact quick-start UI
+- [x] Use either 3 mini cards or horizontal progress strip
+- [x] Keep tasks:
   - Complete profile
   - Find a squad
   - Post your squad
-- [ ] Optional progress text: “Getting started: X of 3 complete”
+- [x] Optional progress text: “Getting started: X of 3 complete”
 
 **Done when:**
 - Onboarding is helpful but no longer dominates the page.
@@ -81,9 +81,9 @@
 ---
 
 ## Phase 5 — Filters toolbar refinement
-- [ ] Move filters into a clean toolbar above squad browsing
-- [ ] Ensure compact desktop layout + clean mobile collapse
-- [ ] Validate key filters:
+- [x] Move filters into a clean toolbar above squad browsing
+- [x] Ensure compact desktop layout + clean mobile collapse
+- [x] Validate key filters:
   - Mode
   - Playstyle
   - Platform
@@ -91,7 +91,7 @@
   - Privacy/open status
   - Open spots
   - Sort
-- [ ] Improve scanability + reduce heavy container style
+- [x] Improve scanability + reduce heavy container style
 
 **Done when:**
 - Filters feel integrated into browsing, not like a separate admin block.
