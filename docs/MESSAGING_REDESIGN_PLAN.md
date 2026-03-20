@@ -41,16 +41,16 @@
 - [x] Show "Last seen Xm ago" when offline
 
 ## 5) Performance / Free Tier Guardrails
-- [ ] Cursor pagination for conversations/messages
-- [ ] Restrict realtime to active thread events only
-- [ ] Avoid global message subscriptions
+- [x] Cursor-style pagination for messages (load older)
+- [x] Restrict realtime to active thread events only
+- [x] Avoid global message subscriptions
 - [ ] Keep attachment limits conservative in MVP
 
 ## 6) Accessibility + QA
 - [ ] Keyboard navigation and focus order
 - [ ] Contrast + readable status text
-- [ ] Empty/loading/error state pass
-- [ ] Mobile pass + browser sanity check
+- [x] Empty/loading/error state pass
+- [x] Mobile pass baseline (list/thread toggle)
 
 ## 7) Release
 - [ ] Staging validation

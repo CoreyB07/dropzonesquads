@@ -7,6 +7,8 @@ import { supabase } from '../utils/supabase';
 import { formatLastSeenLabel, isUserOnline, startPresenceHeartbeat } from '../utils/presence';
 import { getConversationReadAt, isUnreadAfterReadAt, markConversationRead } from '../utils/mailState';
 
+const PAGE_SIZE = 30;
+
 const formatMessageTime = (isoString) => {
   if (!isoString) return '';
   const date = new Date(isoString);
@@ -21,16 +23,30 @@ const formatMessageTime = (isoString) => {
     : date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
+const normalizeMessage = (msg, userId) => ({
+  id: msg.id,
+  body: msg.body,
+  time: formatMessageTime(msg.created_at),
+  isMe: msg.sender_id === userId,
+  createdAt: msg.created_at
+});
+
 const Messages = () => {
   const { user, isSupabaseReady } = useAuth();
   const { error: showError } = useToast();
 
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [conversationsError, setConversationsError] = useState('');
+  const [messagesError, setMessagesError] = useState('');
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [messagesByConversation, setMessagesByConversation] = useState({});
+  const [threadCursorByConversation, setThreadCursorByConversation] = useState({});
+  const [hasMoreByConversation, setHasMoreByConversation] = useState({});
   const [draft, setDraft] = useState('');
+  const [mobileView, setMobileView] = useState('list');
 
   const refreshConversations = useCallback(async () => {
     if (!user || !isSupabaseReady || !supabase) {
@@ -41,6 +57,7 @@ const Messages = () => {
 
     try {
       setLoadingConversations(true);
+      setConversationsError('');
 
       const { data: myRows, error: myRowsError } = await supabase
         .from('conversation_participants')
@@ -135,52 +152,82 @@ const Messages = () => {
       setActiveConversationId((prev) => (prev && next.some((c) => c.id === prev) ? prev : next[0]?.id || null));
     } catch (error) {
       console.error('Failed to refresh conversations:', error);
+      setConversationsError('Could not load conversations');
       showError(`Could not load messages [${error?.code || 'no-code'}] ${error?.message || 'Unknown error'}`);
     } finally {
       setLoadingConversations(false);
     }
   }, [user, isSupabaseReady, showError]);
 
-  const loadMessages = useCallback(async (conversationId) => {
+  const loadMessages = useCallback(async (conversationId, { older = false } = {}) => {
     if (!conversationId || !user || !isSupabaseReady || !supabase) return;
 
+    const previousCursor = threadCursorByConversation[conversationId] || null;
+
     try {
-      setLoadingMessages(true);
-      const { data, error } = await supabase
+      if (older) {
+        setLoadingOlder(true);
+      } else {
+        setLoadingMessages(true);
+        setMessagesError('');
+      }
+
+      let query = supabase
         .from('messages')
         .select('id, body, created_at, sender_id')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(PAGE_SIZE);
 
+      if (older && previousCursor) {
+        query = query.lt('created_at', previousCursor);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
 
-      const mapped = (data || [])
-        .slice()
-        .reverse()
-        .map((msg) => ({
-          id: msg.id,
-          body: msg.body,
-          time: formatMessageTime(msg.created_at),
-          isMe: msg.sender_id === user.id,
-          createdAt: msg.created_at
-        }));
+      const page = (data || []).slice().reverse().map((msg) => normalizeMessage(msg, user.id));
+      const earliest = data?.length ? data[data.length - 1].created_at : previousCursor;
 
-      setMessagesByConversation((prev) => ({ ...prev, [conversationId]: mapped }));
-      markConversationRead(user.id, conversationId, new Date().toISOString());
+      if (older) {
+        setMessagesByConversation((prev) => {
+          const existing = prev[conversationId] || [];
+          return {
+            ...prev,
+            [conversationId]: [...page, ...existing]
+          };
+        });
+      } else {
+        setMessagesByConversation((prev) => ({ ...prev, [conversationId]: page }));
+      }
 
-      setConversations((prev) =>
-        prev.map((conversation) =>
-          conversation.id === conversationId ? { ...conversation, unreadCount: 0 } : conversation
-        )
-      );
+      setThreadCursorByConversation((prev) => ({
+        ...prev,
+        [conversationId]: earliest || prev[conversationId] || null
+      }));
+
+      setHasMoreByConversation((prev) => ({
+        ...prev,
+        [conversationId]: (data || []).length === PAGE_SIZE
+      }));
+
+      if (!older) {
+        markConversationRead(user.id, conversationId, new Date().toISOString());
+        setConversations((prev) =>
+          prev.map((conversation) =>
+            conversation.id === conversationId ? { ...conversation, unreadCount: 0 } : conversation
+          )
+        );
+      }
     } catch (error) {
       console.error('Failed to load messages:', error);
+      setMessagesError('Could not load this thread');
       showError(`Could not load thread [${error?.code || 'no-code'}] ${error?.message || 'Unknown error'}`);
     } finally {
       setLoadingMessages(false);
+      setLoadingOlder(false);
     }
-  }, [user, isSupabaseReady, showError]);
+  }, [isSupabaseReady, showError, threadCursorByConversation, user]);
 
   useEffect(() => {
     void refreshConversations();
@@ -188,7 +235,8 @@ const Messages = () => {
 
   useEffect(() => {
     if (!activeConversationId) return;
-    void loadMessages(activeConversationId);
+    void loadMessages(activeConversationId, { older: false });
+    setMobileView('thread');
   }, [activeConversationId, loadMessages]);
 
   useEffect(() => {
@@ -227,7 +275,7 @@ const Messages = () => {
           filter: `conversation_id=eq.${activeConversationId}`
         },
         () => {
-          void loadMessages(activeConversationId);
+          void loadMessages(activeConversationId, { older: false });
           void refreshConversations();
         }
       )
@@ -239,6 +287,8 @@ const Messages = () => {
   }, [activeConversationId, isSupabaseReady, loadMessages, refreshConversations]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
     const intervalId = window.setInterval(() => {
       setConversations((prev) => {
         const nowMs = Date.now();
@@ -282,6 +332,7 @@ const Messages = () => {
   );
 
   const activeMessages = messagesByConversation[activeConversationId] || [];
+  const hasMore = Boolean(hasMoreByConversation[activeConversationId]);
 
   if (!user) {
     return (
@@ -300,25 +351,58 @@ const Messages = () => {
         </p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="hidden lg:flex flex-row gap-4">
         <ConversationList
-          conversations={loadingConversations ? [] : conversations}
+          conversations={conversations}
           activeConversationId={activeConversationId}
           onSelectConversation={setActiveConversationId}
+          loading={loadingConversations}
+          error={conversationsError}
         />
 
         <ThreadView
           conversation={activeConversation}
-          messages={loadingMessages ? [] : activeMessages}
+          messages={activeMessages}
           draft={draft}
           onDraftChange={setDraft}
           onSend={handleSend}
+          loading={loadingMessages}
+          error={messagesError}
+          hasMore={hasMore}
+          loadingMore={loadingOlder}
+          onLoadMore={() => loadMessages(activeConversationId, { older: true })}
         />
       </div>
 
-      {(loadingConversations || loadingMessages) && (
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Syncing messages...</p>
-      )}
+      <div className="lg:hidden">
+        {mobileView === 'list' || !activeConversation ? (
+          <ConversationList
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            onSelectConversation={(conversationId) => {
+              setActiveConversationId(conversationId);
+              setMobileView('thread');
+            }}
+            loading={loadingConversations}
+            error={conversationsError}
+            compact
+          />
+        ) : (
+          <ThreadView
+            conversation={activeConversation}
+            messages={activeMessages}
+            draft={draft}
+            onDraftChange={setDraft}
+            onSend={handleSend}
+            loading={loadingMessages}
+            error={messagesError}
+            hasMore={hasMore}
+            loadingMore={loadingOlder}
+            onLoadMore={() => loadMessages(activeConversationId, { older: true })}
+            onBackMobile={() => setMobileView('list')}
+          />
+        )}
+      </div>
     </div>
   );
 };
