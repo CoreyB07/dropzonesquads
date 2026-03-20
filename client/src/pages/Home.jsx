@@ -186,11 +186,11 @@ const Home = () => {
                             Why Drop With Randoms?
                         </h2>
                         <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter text-white drop-shadow-2xl">
-                            Find Your <span className="text-premium-glow inline-block" data-text="Black Ops Royale">Black Ops Royale</span> Squad
+                            Find Your <span className="text-premium-glow inline-block" data-text="Warzone">Warzone</span> Squad
                         </h1>
                     </div>
                     <p className="text-xl md:text-2xl text-gray-300 max-w-xl mx-auto font-medium">
-                        Stop dropping with randoms. Build a Black Ops Royale squad that matches your playstyle.
+                        Stop dropping with randoms. Build a Warzone squad that matches your playstyle.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                         <button
