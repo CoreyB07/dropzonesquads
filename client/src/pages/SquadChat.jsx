@@ -220,10 +220,11 @@ const SquadChat = () => {
                 <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     <button
                         onClick={() => navigate(location.state?.from || `/squad/${squadId}`)}
-                        className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white"
+                        className="inline-flex items-center gap-2 rounded-lg border border-military-gray bg-charcoal-light px-3 py-2 text-xs font-black uppercase tracking-widest text-gray-300 transition-colors hover:border-white/20 hover:bg-white/5 hover:text-white"
                         title="Back to Squad Profile"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Back</span>
                     </button>
                     <div className="w-10 h-10 rounded-lg bg-tactical-yellow/10 border border-tactical-yellow/20 flex items-center justify-center">
                         <Users className="w-5 h-5 text-tactical-yellow" />
@@ -306,9 +307,10 @@ const SquadChat = () => {
                     <button
                         type="submit"
                         disabled={!newMessage.trim() || !conversationId}
-                        className="bg-tactical-yellow text-charcoal-dark p-3 rounded-lg hover:bg-tactical-yellow-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed group flex-shrink-0"
+                        className="inline-flex items-center gap-2 rounded-lg bg-tactical-yellow px-3.5 py-3 text-xs font-black uppercase tracking-widest text-charcoal-dark transition-colors disabled:cursor-not-allowed disabled:opacity-50 group flex-shrink-0 hover:bg-tactical-yellow-hover"
                     >
                         <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                        <span>Send</span>
                     </button>
                 </form>
             </div>

@@ -207,6 +207,10 @@ const Navbar = () => {
     const utilityLinkClass = 'inline-flex items-center justify-center gap-2 rounded-xl border border-military-gray bg-charcoal-dark/80 px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-gray-200 transition-all hover:border-white/25 hover:bg-military-gray/40 hover:text-white';
     const primaryActionClass = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-charcoal-dark transition-all hover:bg-[#fff1c8]';
     const profileActionClass = 'inline-flex items-center gap-2 rounded-xl border border-military-gray bg-military-gray/30 px-4 py-2 transition-all hover:bg-military-gray/50';
+    const inboxLinkClass = `relative inline-flex items-center gap-2 rounded-xl border px-3 py-2 transition-all ${hasUnread && location.pathname !== '/inbox'
+        ? 'bg-white/10 border-white/30 text-white shadow-[0_0_16px_rgba(255,255,255,0.1)]'
+        : 'border-military-gray bg-charcoal-dark/80 text-white hover:border-white/25 hover:bg-military-gray/40'
+        }`;
 
     return (
         <nav className="bg-charcoal-light border-b border-military-gray sticky top-0 z-50">
@@ -260,15 +264,13 @@ const Navbar = () => {
                                 </Link>
                                 <Link
                                     to="/inbox"
-                                    className={`relative inline-flex items-center gap-2 rounded-xl border px-3 py-2 transition-all ${hasUnread && location.pathname !== '/inbox'
-                                        ? 'bg-white/10 border-white/30 text-white shadow-[0_0_16px_rgba(255,255,255,0.1)]'
-                                        : 'border-military-gray bg-charcoal-dark/80 text-white hover:border-white/25 hover:bg-military-gray/40'
-                                        }`}
-                                    title="Direct Messages"
+                                    className={inboxLinkClass}
+                                    title="Open inbox"
                                 >
                                     <Mail className="w-4 h-4" />
+                                    <span className="text-[11px] font-black uppercase tracking-[0.18em]">Inbox</span>
                                     {hasUnread && location.pathname !== '/inbox' && (
-                                        <span className="absolute -top-2 -right-2 min-w-[1.15rem] h-[1.15rem] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black leading-none ring-2 ring-charcoal-light">
+                                        <span className="inline-flex min-w-[1.2rem] h-[1.2rem] px-1 items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black leading-none">
                                             {displayUnreadCount}
                                         </span>
                                     )}
@@ -307,31 +309,19 @@ const Navbar = () => {
                     </div>
 
                     <div className="flex items-center gap-2 md:hidden">
-                        {user && !loading && (
-                            <Link
-                                to="/inbox"
-                                className={`relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${hasUnread && location.pathname !== '/inbox'
-                                    ? 'bg-white/10 border-white/30 text-white shadow-[0_0_16px_rgba(255,255,255,0.12)]'
-                                    : 'border-military-gray bg-charcoal-dark/80 text-white'
-                                    }`}
-                                aria-label="Open inbox"
-                            >
-                                <Mail className="w-4 h-4" />
-                                {hasUnread && location.pathname !== '/inbox' && (
-                                    <span className="absolute -top-1 -right-1 min-w-[1.15rem] h-[1.15rem] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black leading-none ring-2 ring-charcoal-light">
-                                        {displayUnreadCount}
-                                    </span>
-                                )}
-                            </Link>
-                        )}
                         <button
                             type="button"
                             onClick={() => setIsMobileMenuOpen((open) => !open)}
-                            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-military-gray bg-charcoal-dark/80 text-white transition-all hover:border-white/25 hover:bg-military-gray/40"
+                            className="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-military-gray bg-charcoal-dark/80 text-white transition-all hover:border-white/25 hover:bg-military-gray/40"
                             aria-expanded={isMobileMenuOpen}
                             aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
                         >
                             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                            {user && hasUnread && location.pathname !== '/inbox' && (
+                                <span className="absolute -top-1 -right-1 min-w-[1.15rem] h-[1.15rem] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black leading-none ring-2 ring-charcoal-light">
+                                    {displayUnreadCount}
+                                </span>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -345,6 +335,23 @@ const Navbar = () => {
                                 </div>
                             ) : user ? (
                                 <div className="space-y-3">
+                                    <Link
+                                        to="/inbox"
+                                        className={`${inboxLinkClass} w-full justify-between rounded-2xl px-4 py-3`}
+                                    >
+                                        <span className="inline-flex items-center gap-2">
+                                            <Mail className="w-4 h-4" />
+                                            <span className="text-[11px] font-black uppercase tracking-[0.18em]">Open Inbox</span>
+                                        </span>
+                                        {hasUnread ? (
+                                            <span className="inline-flex min-w-[1.4rem] h-[1.4rem] px-1.5 items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black leading-none">
+                                                {displayUnreadCount}
+                                            </span>
+                                        ) : (
+                                            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-500">Messages</span>
+                                        )}
+                                    </Link>
+
                                     <Link to="/profile" className={`${profileActionClass} w-full justify-between`}>
                                         <span className="font-bold text-xs uppercase flex items-center gap-1.5 transition-colors text-gray-300">
                                             {user?.isSupporter && <SupporterBadge />}
@@ -371,11 +378,7 @@ const Navbar = () => {
                                         </Link>
                                         <Link to="/my-squads" className={utilityLinkClass}>
                                             <Users className="w-3.5 h-3.5" />
-                                            <span>Squads</span>
-                                        </Link>
-                                        <Link to="/inbox" className={utilityLinkClass}>
-                                            <Mail className="w-3.5 h-3.5" />
-                                            <span>Inbox</span>
+                                            <span>My Squads</span>
                                         </Link>
                                     </div>
                                 </div>

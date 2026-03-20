@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useMySquads } from '../context/MySquadsContext';
 import SupporterBadge from '../components/SupporterBadge';
 import SquadNameText from '../components/SquadNameText';
-import { Mail, MessageSquare, Shield, ShieldAlert, UserRound, Users, ChevronRight, Bell } from 'lucide-react';
+import { Mail, MessageSquare, Shield, ShieldAlert, UserRound, Users, ChevronRight, Bell, CheckCircle2, UserPlus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../context/useToast';
 import { getConversationReadAt, getSquadReadAt, isUnreadAfterReadAt, subscribeToMailReadState } from '../utils/mailState';
@@ -305,6 +305,30 @@ const Inbox = () => {
         return n.type;
     };
 
+    const notificationMeta = (notification) => {
+        if (notification.type === 'direct_message') {
+            return { icon: Mail, actionLabel: 'Open chat' };
+        }
+
+        if (notification.type === 'squad_message') {
+            return { icon: MessageSquare, actionLabel: 'Open chat' };
+        }
+
+        if (notification.type === 'squad_join_request') {
+            return { icon: ShieldAlert, actionLabel: 'Review' };
+        }
+
+        if (notification.type === 'squad_join_request_accepted' || notification.type === 'squad_join_request_rejected') {
+            return { icon: CheckCircle2, actionLabel: 'View squad' };
+        }
+
+        if (notification.type === 'friend_request' || notification.type === 'friend_request_accepted') {
+            return { icon: UserPlus, actionLabel: 'View profile' };
+        }
+
+        return { icon: Bell, actionLabel: 'Open' };
+    };
+
     const formatTime = (isoString) => {
         if (!isoString) return '';
         const date = new Date(isoString);
@@ -321,6 +345,40 @@ const Inbox = () => {
     const pendingJoinRequestCount = (applications || []).filter(
         (app) => app.status === 'pending' && app.squadCreatorUserId === user?.id
     ).length;
+    const attentionCards = [
+        {
+            key: 'join-requests',
+            label: 'Join Requests',
+            count: pendingJoinRequestCount,
+            hint: 'Review squad applicants',
+            icon: ShieldAlert,
+            onClick: () => navigate('/my-squads'),
+        },
+        {
+            key: 'notifications',
+            label: 'Notifications',
+            count: unreadNotificationCount,
+            hint: 'Check recent alerts',
+            icon: Bell,
+            onClick: () => navigate('/inbox'),
+        },
+        {
+            key: 'direct-messages',
+            label: 'Direct Messages',
+            count: unreadDirectCount,
+            hint: 'Open private chats',
+            icon: Mail,
+            onClick: () => navigate('/inbox'),
+        },
+        {
+            key: 'squad-chats',
+            label: 'Squad Chats',
+            count: unreadSquadCount,
+            hint: 'Jump into team comms',
+            icon: Users,
+            onClick: () => navigate('/inbox'),
+        },
+    ];
 
     if (!user) {
         return (
@@ -349,38 +407,31 @@ const Inbox = () => {
             <div className="card-tactical space-y-3">
                 <h2 className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Needs Attention</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/my-squads')}
-                        className="rounded-lg border border-military-gray bg-charcoal-dark px-4 py-3 text-left hover:border-tactical-yellow-hover"
-                    >
-                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Join Requests</p>
-                        <p className="text-lg font-black text-white">{pendingJoinRequestCount}</p>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => navigate('/inbox')}
-                        className="rounded-lg border border-military-gray bg-charcoal-dark px-4 py-3 text-left hover:border-tactical-yellow-hover"
-                    >
-                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Unread Notifications</p>
-                        <p className="text-lg font-black text-white">{unreadNotificationCount}</p>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => navigate('/inbox')}
-                        className="rounded-lg border border-military-gray bg-charcoal-dark px-4 py-3 text-left hover:border-tactical-yellow-hover"
-                    >
-                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Unread Direct Messages</p>
-                        <p className="text-lg font-black text-white">{unreadDirectCount}</p>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => navigate('/inbox')}
-                        className="rounded-lg border border-military-gray bg-charcoal-dark px-4 py-3 text-left hover:border-tactical-yellow-hover"
-                    >
-                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Unread Squad Chats</p>
-                        <p className="text-lg font-black text-white">{unreadSquadCount}</p>
-                    </button>
+                    {attentionCards.map((card) => {
+                        const Icon = card.icon;
+                        return (
+                            <button
+                                key={card.key}
+                                type="button"
+                                onClick={card.onClick}
+                                className="rounded-xl border border-military-gray bg-charcoal-dark px-4 py-3 text-left transition-all hover:border-tactical-yellow-hover hover:bg-white/5"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-start gap-3 min-w-0">
+                                        <div className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-tactical-yellow/20 bg-tactical-yellow/10 text-tactical-yellow">
+                                            <Icon className="w-4 h-4" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-black">{card.label}</p>
+                                            <p className="mt-1 text-lg font-black text-white">{card.count}</p>
+                                            <p className="mt-1 text-xs font-bold text-gray-400">{card.hint}</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-gray-500" />
+                                </div>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -427,11 +478,16 @@ const Inbox = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="relative">
-                                        <ChevronRight className={`w-4 h-4 transition-colors ${isUnreadSquad ? 'text-red-300' : 'text-gray-500 group-hover:text-tactical-yellow-hover'}`} />
-                                        {isUnreadSquad && (
-                                            <span className="absolute -top-1.5 -right-2.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500"></span>
-                                        )}
+                                    <div className="text-right shrink-0">
+                                        <p className={`text-[10px] font-black uppercase tracking-widest ${isUnreadSquad ? 'text-red-300' : 'text-gray-500 group-hover:text-tactical-yellow-hover'}`}>
+                                            {isUnreadSquad ? 'New activity' : 'Open chat'}
+                                        </p>
+                                        <div className="mt-1 flex items-center justify-end gap-1.5">
+                                            {isUnreadSquad && (
+                                                <span className="flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500"></span>
+                                            )}
+                                            <ChevronRight className={`w-4 h-4 transition-colors ${isUnreadSquad ? 'text-red-300' : 'text-gray-500 group-hover:text-tactical-yellow-hover'}`} />
+                                        </div>
                                     </div>
                                 </Link>
                             );
@@ -465,22 +521,36 @@ const Inbox = () => {
                     ) : (
                         <div className="divide-y divide-military-gray/50">
                             {notifications.map((n) => (
-                                <button
-                                    key={n.id}
-                                    onClick={() => handleNotificationClick(n)}
-                                    className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors ${!n.read_at ? 'bg-charcoal-dark/50' : ''}`}
-                                >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex items-start gap-2">
-                                            <Bell className="w-4 h-4 mt-0.5 text-gray-400" />
-                                            <div>
-                                                <p className={`text-sm ${!n.read_at ? 'text-white font-bold' : 'text-gray-300'}`}>{notificationLabel(n)}</p>
-                                                <p className="text-[10px] uppercase tracking-widest text-gray-500">{formatTime(n.created_at)}</p>
+                                (() => {
+                                    const meta = notificationMeta(n);
+                                    const Icon = meta.icon;
+
+                                    return (
+                                        <button
+                                            key={n.id}
+                                            onClick={() => handleNotificationClick(n)}
+                                            className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors ${!n.read_at ? 'bg-charcoal-dark/50' : ''}`}
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex items-start gap-3 min-w-0">
+                                                    <div className={`mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${!n.read_at ? 'border-white/20 bg-white/5 text-white' : 'border-military-gray bg-charcoal-dark text-gray-400'}`}>
+                                                        <Icon className="w-4 h-4" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className={`text-sm ${!n.read_at ? 'text-white font-bold' : 'text-gray-300'}`}>{notificationLabel(n)}</p>
+                                                        <p className="text-[10px] uppercase tracking-widest text-gray-500">{formatTime(n.created_at)}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex shrink-0 items-center gap-2">
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${!n.read_at ? 'text-red-300' : 'text-gray-500'}`}>
+                                                        {meta.actionLabel}
+                                                    </span>
+                                                    {!n.read_at && <span className="h-2 w-2 rounded-full bg-red-500"></span>}
+                                                </div>
                                             </div>
-                                        </div>
-                                        {!n.read_at && <span className="h-2 w-2 rounded-full bg-red-500 mt-1"></span>}
-                                    </div>
-                                </button>
+                                        </button>
+                                    );
+                                })()
                             ))}
                         </div>
                     )}
@@ -564,6 +634,12 @@ const Inbox = () => {
                                                     <span className="ml-1 inline-flex h-2.5 w-2.5 rounded-full bg-red-500 flex-shrink-0" title="Unread message"></span>
                                                 )}
                                             </div>
+                                        </div>
+                                        <div className="shrink-0 text-right">
+                                            <p className={`text-[10px] font-black uppercase tracking-widest ${isUnreadConversation ? 'text-red-300' : 'text-gray-500 group-hover:text-tactical-yellow-hover'}`}>
+                                                {isUnreadConversation ? 'New' : 'Open chat'}
+                                            </p>
+                                            <ChevronRight className={`ml-auto mt-1 h-4 w-4 ${isUnreadConversation ? 'text-red-300' : 'text-gray-500 group-hover:text-tactical-yellow-hover'}`} />
                                         </div>
                                     </Link>
                                 );

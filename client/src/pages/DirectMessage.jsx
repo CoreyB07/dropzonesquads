@@ -193,8 +193,12 @@ const DirectMessage = () => {
             {/* Header */}
             <div className="bg-charcoal-dark border border-military-gray rounded-t-xl p-3 sm:p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-lg z-10">
                 <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <button onClick={() => navigate('/inbox')} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white">
-                        <ArrowLeft className="w-5 h-5" />
+                    <button
+                        onClick={() => navigate('/inbox')}
+                        className="inline-flex items-center gap-2 rounded-lg border border-military-gray bg-charcoal-light px-3 py-2 text-xs font-black uppercase tracking-widest text-gray-300 transition-colors hover:border-white/20 hover:bg-white/5 hover:text-white"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Back</span>
                     </button>
                     <div className="w-10 h-10 rounded-full bg-military-gray border border-gray-600 flex items-center justify-center">
                         <User className="w-5 h-5 text-gray-400" />
@@ -282,8 +286,13 @@ const DirectMessage = () => {
                             className="w-full bg-charcoal-light border border-military-gray rounded-lg py-3 pl-4 pr-12 text-white text-sm focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-600"
                         />
                     </div>
-                    <button type="submit" disabled={!newMessage.trim()} className="bg-tactical-yellow text-charcoal-dark p-3 rounded-lg hover:bg-tactical-yellow-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed group flex-shrink-0">
+                    <button
+                        type="submit"
+                        disabled={!newMessage.trim()}
+                        className="inline-flex items-center gap-2 rounded-lg bg-tactical-yellow px-3.5 py-3 text-xs font-black uppercase tracking-widest text-charcoal-dark transition-colors disabled:cursor-not-allowed disabled:opacity-50 group flex-shrink-0 hover:bg-tactical-yellow-hover"
+                    >
                         <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                        <span>Send</span>
                     </button>
                 </form>
             </div>
