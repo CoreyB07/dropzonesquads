@@ -25,19 +25,20 @@
 - [x] Add local send interaction for shell validation
 - [ ] Hook route into main nav
 
-## 3) Core Messaging Behavior (Next)
-- [ ] Wire conversations from Supabase
-- [ ] Wire messages by active conversation with pagination
-- [ ] Implement optimistic send + retry path
-- [ ] Add read/unread updates
-- [ ] Add message timestamps and grouped bubbles
+## 3) Core Messaging Behavior (In Progress)
+- [x] Wire conversations from Supabase
+- [x] Wire messages by active conversation (latest 50)
+- [ ] Add cursor pagination for older messages
+- [x] Implement send flow + draft recovery on error
+- [x] Add read/unread updates (local read state integration)
+- [x] Add message timestamps and bubble structure
 
 ## 4) Online Status (Supabase Free Tier)
 - [x] Backend SQL prepared/applied (`profiles.last_seen_at`, RPC `touch_last_seen`)
-- [ ] Build client heartbeat utility (every 2 minutes + on tab focus)
-- [ ] Fetch `last_seen_at` with conversation participants
-- [ ] Frontend rule: online if `now - last_seen_at <= 3 minutes`
-- [ ] Show "Last seen Xm ago" when offline
+- [x] Build client heartbeat utility (every 2 minutes + on tab focus)
+- [x] Fetch `last_seen_at` with conversation participants
+- [x] Frontend rule: online if `now - last_seen_at <= 3 minutes`
+- [x] Show "Last seen Xm ago" when offline
 
 ## 5) Performance / Free Tier Guardrails
 - [ ] Cursor pagination for conversations/messages

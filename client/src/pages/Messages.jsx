@@ -1,45 +1,280 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ConversationList from '../components/messaging/ConversationList';
 import ThreadView from '../components/messaging/ThreadView';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/useToast';
+import { supabase } from '../utils/supabase';
+import { formatLastSeenLabel, isUserOnline, startPresenceHeartbeat } from '../utils/presence';
+import { getConversationReadAt, isUnreadAfterReadAt, markConversationRead } from '../utils/mailState';
 
-const seedConversations = [
-  {
-    id: 'conv-1',
-    username: 'GhostRogue',
-    preview: 'You still running ranked tonight?',
-    time: '1:22 PM',
-    unreadCount: 2,
-    online: true,
-    lastSeenLabel: 'Last seen just now'
-  },
-  {
-    id: 'conv-2',
-    username: 'AlphaSnipez',
-    preview: 'GG last match. Let’s queue again later.',
-    time: '11:05 AM',
-    unreadCount: 0,
-    online: false,
-    lastSeenLabel: 'Last seen 8m ago'
-  }
-];
+const formatMessageTime = (isoString) => {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const now = new Date();
+  const sameDay =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
 
-const seedMessages = {
-  'conv-1': [
-    { id: 'm1', body: 'Yo, we running tonight?', time: '1:16 PM', isMe: false },
-    { id: 'm2', body: 'Yeah I’m down after 8.', time: '1:18 PM', isMe: true },
-    { id: 'm3', body: 'Perfect. I’ll send invite.', time: '1:22 PM', isMe: false }
-  ],
-  'conv-2': [
-    { id: 'm4', body: 'GG yesterday.', time: '11:02 AM', isMe: false },
-    { id: 'm5', body: 'Facts, that was clean.', time: '11:05 AM', isMe: true }
-  ]
+  return sameDay
+    ? date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+    : date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
 const Messages = () => {
-  const [conversations, setConversations] = useState(seedConversations);
-  const [activeConversationId, setActiveConversationId] = useState(seedConversations[0]?.id || null);
-  const [messagesByConversation, setMessagesByConversation] = useState(seedMessages);
+  const { user, isSupabaseReady } = useAuth();
+  const { error: showError } = useToast();
+
+  const [loadingConversations, setLoadingConversations] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [conversations, setConversations] = useState([]);
+  const [activeConversationId, setActiveConversationId] = useState(null);
+  const [messagesByConversation, setMessagesByConversation] = useState({});
   const [draft, setDraft] = useState('');
+
+  const refreshConversations = useCallback(async () => {
+    if (!user || !isSupabaseReady || !supabase) {
+      setConversations([]);
+      setLoadingConversations(false);
+      return;
+    }
+
+    try {
+      setLoadingConversations(true);
+
+      const { data: myRows, error: myRowsError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+
+      if (myRowsError) throw myRowsError;
+
+      const conversationIds = (myRows || []).map((row) => row.conversation_id).filter(Boolean);
+      if (conversationIds.length === 0) {
+        setConversations([]);
+        setActiveConversationId(null);
+        return;
+      }
+
+      const { data: participantRows, error: participantError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id, user_id')
+        .in('conversation_id', conversationIds)
+        .neq('user_id', user.id);
+
+      if (participantError) throw participantError;
+
+      const otherUserIds = [...new Set((participantRows || []).map((row) => row.user_id).filter(Boolean))];
+
+      let profilesMap = new Map();
+      if (otherUserIds.length > 0) {
+        const { data: profileRows, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, username, supporter, is_supporter, last_seen_at')
+          .in('id', otherUserIds);
+
+        if (profileError) throw profileError;
+        profilesMap = new Map((profileRows || []).map((row) => [row.id, row]));
+      }
+
+      const { data: latestMessages, error: latestMessagesError } = await supabase
+        .from('messages')
+        .select('conversation_id, body, created_at, sender_id')
+        .in('conversation_id', conversationIds)
+        .order('created_at', { ascending: false });
+
+      if (latestMessagesError) throw latestMessagesError;
+
+      const convMap = new Map();
+      (participantRows || []).forEach((row) => {
+        const profile = profilesMap.get(row.user_id) || {
+          id: row.user_id,
+          username: 'Unknown',
+          last_seen_at: null
+        };
+
+        convMap.set(row.conversation_id, {
+          id: row.conversation_id,
+          otherUserId: row.user_id,
+          username: profile.username || 'Unknown',
+          supporter: Boolean(profile.supporter || profile.is_supporter),
+          lastSeenAt: profile.last_seen_at || null,
+          preview: 'No messages yet',
+          time: '',
+          unreadCount: 0,
+          lastMessageAt: null,
+          iAmSender: false
+        });
+      });
+
+      (latestMessages || []).forEach((msg) => {
+        const existing = convMap.get(msg.conversation_id);
+        if (!existing || existing.lastMessageAt) return;
+
+        existing.preview = msg.body || 'Attachment';
+        existing.time = formatMessageTime(msg.created_at);
+        existing.lastMessageAt = msg.created_at;
+        existing.iAmSender = msg.sender_id === user.id;
+        existing.unreadCount =
+          !existing.iAmSender &&
+          isUnreadAfterReadAt(msg.created_at, getConversationReadAt(user.id, existing.id))
+            ? 1
+            : 0;
+      });
+
+      const nowMs = Date.now();
+      const next = Array.from(convMap.values())
+        .map((conversation) => ({
+          ...conversation,
+          online: isUserOnline(conversation.lastSeenAt, nowMs),
+          lastSeenLabel: formatLastSeenLabel(conversation.lastSeenAt, nowMs)
+        }))
+        .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
+
+      setConversations(next);
+      setActiveConversationId((prev) => (prev && next.some((c) => c.id === prev) ? prev : next[0]?.id || null));
+    } catch (error) {
+      console.error('Failed to refresh conversations:', error);
+      showError(`Could not load messages [${error?.code || 'no-code'}] ${error?.message || 'Unknown error'}`);
+    } finally {
+      setLoadingConversations(false);
+    }
+  }, [user, isSupabaseReady, showError]);
+
+  const loadMessages = useCallback(async (conversationId) => {
+    if (!conversationId || !user || !isSupabaseReady || !supabase) return;
+
+    try {
+      setLoadingMessages(true);
+      const { data, error } = await supabase
+        .from('messages')
+        .select('id, body, created_at, sender_id')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const mapped = (data || [])
+        .slice()
+        .reverse()
+        .map((msg) => ({
+          id: msg.id,
+          body: msg.body,
+          time: formatMessageTime(msg.created_at),
+          isMe: msg.sender_id === user.id,
+          createdAt: msg.created_at
+        }));
+
+      setMessagesByConversation((prev) => ({ ...prev, [conversationId]: mapped }));
+      markConversationRead(user.id, conversationId, new Date().toISOString());
+
+      setConversations((prev) =>
+        prev.map((conversation) =>
+          conversation.id === conversationId ? { ...conversation, unreadCount: 0 } : conversation
+        )
+      );
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+      showError(`Could not load thread [${error?.code || 'no-code'}] ${error?.message || 'Unknown error'}`);
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, [user, isSupabaseReady, showError]);
+
+  useEffect(() => {
+    void refreshConversations();
+  }, [refreshConversations]);
+
+  useEffect(() => {
+    if (!activeConversationId) return;
+    void loadMessages(activeConversationId);
+  }, [activeConversationId, loadMessages]);
+
+  useEffect(() => {
+    if (!user || !isSupabaseReady || !supabase) return undefined;
+
+    const stopHeartbeat = startPresenceHeartbeat(supabase);
+
+    const participantsChannel = supabase
+      .channel(`messages-participants-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'conversation_participants', filter: `user_id=eq.${user.id}` },
+        () => {
+          void refreshConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      stopHeartbeat?.();
+      supabase.removeChannel(participantsChannel);
+    };
+  }, [user, isSupabaseReady, refreshConversations]);
+
+  useEffect(() => {
+    if (!activeConversationId || !isSupabaseReady || !supabase) return undefined;
+
+    const activeThreadChannel = supabase
+      .channel(`messages-thread-${activeConversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${activeConversationId}`
+        },
+        () => {
+          void loadMessages(activeConversationId);
+          void refreshConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(activeThreadChannel);
+    };
+  }, [activeConversationId, isSupabaseReady, loadMessages, refreshConversations]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setConversations((prev) => {
+        const nowMs = Date.now();
+        return prev.map((conversation) => ({
+          ...conversation,
+          online: isUserOnline(conversation.lastSeenAt, nowMs),
+          lastSeenLabel: formatLastSeenLabel(conversation.lastSeenAt, nowMs)
+        }));
+      });
+    }, 60_000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  const handleSend = async (event) => {
+    event.preventDefault();
+    const trimmed = draft.trim();
+
+    if (!trimmed || !activeConversationId || !user || !isSupabaseReady || !supabase) {
+      return;
+    }
+
+    setDraft('');
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .insert({ conversation_id: activeConversationId, sender_id: user.id, body: trimmed });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      showError(`Message failed [${error?.code || 'no-code'}] ${error?.message || 'Unknown error'}`);
+      setDraft(trimmed);
+    }
+  };
 
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeConversationId) || null,
@@ -48,63 +283,42 @@ const Messages = () => {
 
   const activeMessages = messagesByConversation[activeConversationId] || [];
 
-  const handleSend = (event) => {
-    event.preventDefault();
-    const trimmed = draft.trim();
-    if (!trimmed || !activeConversationId) return;
-
-    const now = new Date();
-    const message = {
-      id: `local-${now.getTime()}`,
-      body: trimmed,
-      time: now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
-      isMe: true
-    };
-
-    setMessagesByConversation((previous) => ({
-      ...previous,
-      [activeConversationId]: [...(previous[activeConversationId] || []), message]
-    }));
-
-    setConversations((previous) =>
-      previous.map((conversation) =>
-        conversation.id === activeConversationId
-          ? {
-              ...conversation,
-              preview: trimmed,
-              time: message.time
-            }
-          : conversation
-      )
+  if (!user) {
+    return (
+      <div className="rounded-xl border border-military-gray bg-charcoal-light p-6 text-sm font-bold uppercase tracking-widest text-gray-400">
+        Sign in to access messages.
+      </div>
     );
-
-    setDraft('');
-  };
+  }
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="border-b border-military-gray pb-3">
-        <h1 className="text-2xl sm:text-3xl font-black uppercase italic tracking-wider text-white">Messages Redesign (Step 1)</h1>
+        <h1 className="text-2xl sm:text-3xl font-black uppercase italic tracking-wider text-white">Messages</h1>
         <p className="mt-1 text-[11px] sm:text-sm font-bold tracking-widest text-gray-400 uppercase">
-          New two-pane scaffold with online status + composer shell
+          Redesigned inbox with Supabase-backed threads
         </p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-4">
         <ConversationList
-          conversations={conversations}
+          conversations={loadingConversations ? [] : conversations}
           activeConversationId={activeConversationId}
           onSelectConversation={setActiveConversationId}
         />
 
         <ThreadView
           conversation={activeConversation}
-          messages={activeMessages}
+          messages={loadingMessages ? [] : activeMessages}
           draft={draft}
           onDraftChange={setDraft}
           onSend={handleSend}
         />
       </div>
+
+      {(loadingConversations || loadingMessages) && (
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Syncing messages...</p>
+      )}
     </div>
   );
 };
