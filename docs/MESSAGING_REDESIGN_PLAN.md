@@ -55,6 +55,8 @@
 - [x] Mobile pass baseline (list/thread toggle)
 
 ## 7) Release
-- [ ] Staging validation
+- [x] Staging validation checklist/runbook created (`docs/MESSAGING_RELEASE_RUNBOOK.md`)
+- [x] Post-launch smoke-test script created (`docs/MESSAGING_SMOKE_TEST_SCRIPT.md`)
+- [ ] Staging validation executed
 - [ ] Production deploy
-- [ ] Post-launch bug sweep
+- [ ] Post-launch bug sweep executed
