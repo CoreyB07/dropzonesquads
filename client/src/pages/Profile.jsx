@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
 import { useToast } from '../context/useToast';
 import { useMySquads } from '../context/MySquadsContext';
-import { PRESET_PROFILE_PICTURES } from '../constants/presetProfilePictures';
 import { ALLOWED_PROFILE_PICTURE_TYPES, isAllowedProfilePictureFile } from '../utils/profilePictures';
 import SquadNameText from '../components/SquadNameText';
 import BadgeChip from '../components/BadgeChip';
@@ -108,7 +107,6 @@ const Profile = () => {
     const [form, setForm] = useState({ username: '', activisionId: '', shareActivisionIdWithFriends: false, shareActivisionIdWithSquads: false, platform: 'PC' });
     const [pictureSubmission, setPictureSubmission] = useState(null);
     const [isUploadingPicture, setIsUploadingPicture] = useState(false);
-    const [isSavingPresetPicture, setIsSavingPresetPicture] = useState(false);
     const isProfileSetupMode = new URLSearchParams(location.search).get('setup') === '1';
 
     useEffect(() => {
@@ -148,26 +146,6 @@ const Profile = () => {
         };
         loadSubmission();
     }, [user?.id]);
-
-    const handleSelectPresetPicture = async (preset) => {
-        if (!user?.id || !preset?.src) return;
-        setIsSavingPresetPicture(true);
-        const { error } = await supabase
-            .from('profiles')
-            .update({
-                selected_preset_avatar: preset.id,
-                avatar_url: (user?.avatarCustomStatus === 'approved' && user?.avatar_url) ? user.avatar_url : preset.src
-            })
-            .eq('id', user.id);
-
-        if (error) {
-            showError(error.message || 'Could not set preset profile picture.');
-        } else {
-            success('Preset profile picture selected.');
-            window.location.reload();
-        }
-        setIsSavingPresetPicture(false);
-    };
 
     const handleUploadCustomPicture = async (file) => {
         if (!user?.id || !file) return;
@@ -276,6 +254,7 @@ const Profile = () => {
         : 'Activision ID is optional — you can add it anytime.';
 
     const effectiveAvatarStatus = pictureSubmission?.status || user?.avatarCustomStatus || 'none';
+    const hasApprovedAvatar = effectiveAvatarStatus === 'approved' && Boolean(user?.avatar_url);
 
     return (
         <div className="max-w-5xl mx-auto pb-24 space-y-6 text-white">
@@ -371,37 +350,19 @@ const Profile = () => {
                 <div className="flex items-center justify-between gap-3">
                     <div>
                         <h2 className="text-sm font-black uppercase tracking-widest text-tactical-yellow flex items-center gap-2"><ImagePlus className="w-4 h-4" /> Profile Picture</h2>
-                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mt-1">Preset picks are instant. Custom uploads require admin approval.</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mt-1">No default pictures. Upload one and wait for admin approval.</p>
                     </div>
                     <div className="w-16 h-16 rounded-xl overflow-hidden border border-military-gray bg-charcoal-dark">
-                        {user?.avatar_url ? (
+                        {hasApprovedAvatar ? (
                             <img src={user.avatar_url} alt="Current profile picture" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 font-black">N/A</div>
+                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 font-black">NONE</div>
                         )}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-                    {PRESET_PROFILE_PICTURES.map((preset) => {
-                        const isActive = user?.selectedPresetAvatar === preset.id || user?.avatar_url === preset.src;
-                        return (
-                            <button
-                                key={preset.id}
-                                type="button"
-                                onClick={() => handleSelectPresetPicture(preset)}
-                                disabled={isSavingPresetPicture}
-                                className={`rounded-lg border p-1.5 text-left transition-colors ${isActive ? 'border-tactical-yellow bg-tactical-yellow/10' : 'border-military-gray bg-charcoal-dark hover:border-gray-400'}`}
-                            >
-                                <img src={preset.src} alt={preset.label} className="w-full aspect-square rounded-md object-cover" />
-                                <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-gray-300 truncate">{preset.label}</p>
-                            </button>
-                        );
-                    })}
-                </div>
-
                 <div className="rounded-lg border border-military-gray bg-charcoal-dark p-3 space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Upload custom image (approval required)</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Submit profile image (admin approval required)</label>
                     <input
                         type="file"
                         accept={ALLOWED_PROFILE_PICTURE_TYPES.join(',')}
@@ -409,7 +370,7 @@ const Profile = () => {
                         className="block w-full text-xs text-gray-300 file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border file:border-military-gray file:bg-charcoal-light file:text-gray-200"
                         disabled={isUploadingPicture}
                     />
-                    <p className="text-[10px] text-gray-500">Max 2MB. Image files only. Preset picture stays public until approval.</p>
+                    <p className="text-[10px] text-gray-500">Max 2MB. Image files only. Picture stays hidden until approved.</p>
                     {effectiveAvatarStatus === 'pending' && (
                         <p className="text-xs text-amber-300 font-bold uppercase tracking-widest">Custom picture pending review</p>
                     )}
@@ -420,7 +381,7 @@ const Profile = () => {
                         <p className="text-xs text-green-300 font-bold uppercase tracking-widest">Custom picture approved and active</p>
                     )}
                     {effectiveAvatarStatus === 'none' && (
-                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Using preset profile picture</p>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">No public profile picture set</p>
                     )}
                 </div>
             </div>

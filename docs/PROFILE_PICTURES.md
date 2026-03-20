@@ -1,28 +1,13 @@
 # Profile Picture System
 
-## Preset profile pictures (repo-managed)
+## Public profile pictures (moderated-only)
 
-Store preset images in:
+Preset/default profile pictures are disabled.
 
-- Base preset set: `client/public/profile-pictures/presets/`
-  - `nature/`
-  - `operators/`
-  - `gear/`
-  - `emblems/`
-  - `abstract/`
-  - `rank/`
-- Your custom preset upload folder: `client/public/profile-pictures/presets-custom/`
-  - `operators/`, `masks/`, `emblems/`, `abstract/`, `nature/`, `gear/`, `rank/`
-  - includes guide file: `client/public/profile-pictures/presets-custom/README.md`
-
-Manifest lives at:
-
-- `client/src/constants/presetProfilePictures.js`
-
-To add new preset images:
-1. Drop image file into appropriate category folder.
-2. Add a manifest entry with `id`, `label`, `category`, and `src`.
-3. Rebuild/deploy frontend.
+New rule:
+- No profile picture is shown by default.
+- Users must upload a custom image.
+- Upload remains hidden until approved by admin.
 
 ## Custom uploads (Supabase Storage)
 
@@ -36,9 +21,9 @@ Paths:
 ## Approval model
 
 User flow:
-- User picks preset picture instantly (no moderation).
-- User custom upload creates `profile_picture_submissions` row with `status=pending`.
-- Preset stays active while pending.
+- User uploads custom image.
+- Upload creates `profile_picture_submissions` row with `status=pending`.
+- No picture is shown publicly while pending.
 
 Admin flow:
 - Admin reviews queue in `/admin`.
@@ -54,4 +39,4 @@ Admin flow:
 ## Display logic
 
 1. If approved custom exists (`avatar_custom_status='approved'` and `avatar_url` points to approved path), show it.
-2. Otherwise show selected preset picture (`selected_preset_avatar` + preset `src`).
+2. Otherwise show no profile picture.

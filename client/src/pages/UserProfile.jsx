@@ -39,7 +39,7 @@ const UserProfile = () => {
             try {
                 const { data: profileData } = await supabase
                     .from('profiles')
-                    .select('id, username, platform, avatar_url, bio, created_at, supporter, is_supporter')
+                    .select('id, username, platform, avatar_url, avatar_custom_status, bio, created_at, supporter, is_supporter')
                     .eq('id', id)
                     .single();
                 setProfile(profileData);
@@ -202,7 +202,7 @@ const UserProfile = () => {
             <section className="relative rounded-2xl border border-military-gray bg-charcoal-light overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-military-gray/30 via-transparent to-transparent pointer-events-none" />
                 <div className="p-6 md:p-8 flex flex-col sm:flex-row items-start gap-6">
-                    {profile.avatar_url && (
+                    {profile.avatar_custom_status === 'approved' && profile.avatar_url && (
                         <div className="w-20 h-20 rounded-2xl bg-charcoal-dark border border-military-gray flex items-center justify-center shrink-0 overflow-hidden">
                             <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover rounded-2xl" />
                         </div>
