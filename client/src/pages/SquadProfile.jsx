@@ -121,8 +121,8 @@ const SquadProfile = () => {
     if (loading) return (
         <div className="space-y-6 pb-20 animate-pulse">
             <div className="h-48 bg-charcoal-light rounded-2xl" />
-            <div className="grid grid-cols-3 gap-4">
-                <div className="h-24 bg-charcoal-light rounded-xl col-span-2" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="h-24 bg-charcoal-light rounded-xl sm:col-span-2" />
                 <div className="h-24 bg-charcoal-light rounded-xl" />
             </div>
         </div>
@@ -148,11 +148,11 @@ const SquadProfile = () => {
             {/* Squad Hero Header */}
             <section className="relative rounded-2xl border border-military-gray bg-charcoal-light overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-tactical-yellow/5 via-transparent to-transparent pointer-events-none" />
-                <div className="p-6 md:p-8">
+                <div className="p-4 sm:p-6 md:p-8">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                         <div className="space-y-3">
                             {/* Squad name */}
-                            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight">
+                            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight">
                                 <SquadNameText name={squad.name} restClassName="text-white" />
                             </h1>
                             {/* Meta badges */}
@@ -185,7 +185,7 @@ const SquadProfile = () => {
                         </div>
 
                         {/* Action buttons */}
-                        <div className="flex flex-col gap-3 min-w-[160px]">
+                        <div className="flex w-full flex-col gap-3 md:w-auto md:min-w-[160px]">
                             {squad.acceptingPlayers && !isLeaderOrCoLeader && !isCreator && (
                                 <button
                                     onClick={() => user ? setApplyOpen(true) : setShowAuthNudge(true)}
@@ -275,14 +275,14 @@ const SquadProfile = () => {
                             <Link
                                 key={member.id}
                                 to={`/user/${member.id}`}
-                                className="flex items-center justify-between px-4 py-3 hover:bg-charcoal-dark/50 transition-colors group"
+                                className="flex items-start justify-between gap-3 px-4 py-3 hover:bg-charcoal-dark/50 transition-colors group"
                             >
-                                <div className="space-y-1">
+                                <div className="space-y-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <p className={`flex items-center gap-1.5 text-sm font-black transition-colors ${(member.is_supporter || member.supporter || member.isSupporter) ? 'text-white' : 'text-gray-500'}`}>
+                                        <p className={`min-w-0 flex items-center gap-1.5 text-sm font-black transition-colors ${(member.is_supporter || member.supporter || member.isSupporter) ? 'text-white' : 'text-gray-500'}`}>
                                             {(member.is_supporter || member.supporter || member.isSupporter) && <SupporterBadge />}
                                             <span
-                                                className={(member.is_supporter || member.supporter || member.isSupporter) ? 'text-premium-glow inline-block' : ''}
+                                                className={`${(member.is_supporter || member.supporter || member.isSupporter) ? 'text-premium-glow inline-block' : ''} truncate`}
                                                 data-text={(member.is_supporter || member.supporter || member.isSupporter) ? (member.username || 'Unknown') : undefined}
                                             >
                                                 {member.username || 'Unknown'}

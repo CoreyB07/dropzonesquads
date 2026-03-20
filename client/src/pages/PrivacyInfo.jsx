@@ -7,8 +7,8 @@ const PrivacyInfo = () => {
         <div className="max-w-4xl mx-auto space-y-8 pb-20">
             <div className="space-y-3">
                 <p className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Privacy Intel</p>
-                <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white">How Activision ID Sharing Works</h1>
-                <p className="text-gray-400">Quick breakdown of what you need to start, what stays optional, and how your sharing controls work.</p>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter text-white">How Activision ID Sharing Works</h1>
+                <p className="text-sm sm:text-base text-gray-400">Quick breakdown of what you need to start, what stays optional, and how your sharing controls work.</p>
             </div>
 
             <section className="card-tactical space-y-4">

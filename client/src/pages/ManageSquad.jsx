@@ -391,7 +391,7 @@ const ManageSquad = () => {
     }
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6 pb-20">
+        <div className="max-w-5xl mx-auto space-y-5 sm:space-y-6 pb-20">
             <button onClick={() => navigate(`/squad/${id}`)} className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors font-black uppercase tracking-widest">
                 <ArrowLeft className="w-4 h-4" /> Back to Squad
             </button>
@@ -400,7 +400,7 @@ const ManageSquad = () => {
                 <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                     <div className="space-y-2">
                         <p className="text-xs font-black uppercase tracking-widest text-gray-500">Squad Control</p>
-                        <h1 className="text-3xl font-black uppercase tracking-tight text-white">Manage Squad</h1>
+                        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">Manage Squad</h1>
                         <p className="text-sm text-gray-400">Edit squad details, update member roles, then confirm before anything is saved.</p>
                     </div>
                     <div className="text-xs font-black uppercase tracking-widest text-tactical-yellow">
@@ -509,17 +509,17 @@ const ManageSquad = () => {
                             ) : (
                                 <div className="space-y-2">
                                     {incomingApplications.map((app) => (
-                                        <div key={app.id} className="rounded-lg border border-military-gray bg-charcoal-dark p-3 flex items-center justify-between gap-3">
+                                        <div key={app.id} className="rounded-lg border border-military-gray bg-charcoal-dark p-3 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
                                             <div>
                                                 <p className="text-sm font-black uppercase tracking-wide text-white">{app.applicantUsername || 'Unknown'}</p>
                                                 <p className="text-[11px] uppercase tracking-widest text-gray-500">{app.applicantPlatform || 'PC'} / {app.role || 'Operator'}</p>
                                             </div>
-                                            <div className="flex gap-2">
+                                            <div className="flex w-full gap-2 sm:w-auto">
                                                 <button
                                                     type="button"
                                                     onClick={() => handleApplicationDecision(app.id, 'rejected')}
                                                     disabled={actingApplicationId === app.id}
-                                                    className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-red-300 disabled:opacity-50"
+                                                    className="flex-1 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-red-300 disabled:opacity-50 sm:flex-none"
                                                 >
                                                     Reject
                                                 </button>
@@ -527,7 +527,7 @@ const ManageSquad = () => {
                                                     type="button"
                                                     onClick={() => handleApplicationDecision(app.id, 'accepted')}
                                                     disabled={actingApplicationId === app.id}
-                                                    className="rounded-lg bg-tactical-yellow px-3 py-2 text-[10px] font-black uppercase tracking-widest text-charcoal-dark disabled:opacity-50"
+                                                    className="flex-1 rounded-lg bg-tactical-yellow px-3 py-2 text-[10px] font-black uppercase tracking-widest text-charcoal-dark disabled:opacity-50 sm:flex-none"
                                                 >
                                                     Accept
                                                 </button>
@@ -712,7 +712,7 @@ const ManageSquad = () => {
                     <div className="card-tactical max-w-2xl w-full space-y-5">
                         <div className="space-y-2">
                             <p className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Confirm Squad Changes</p>
-                            <h2 className="text-2xl font-black uppercase tracking-tight text-white">Review before saving</h2>
+                            <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">Review before saving</h2>
                             <p className="text-sm text-gray-400">This step helps prevent accidental edits. Nothing updates until you confirm below.</p>
                         </div>
 

@@ -197,7 +197,7 @@ const Profile = () => {
     return (
         <div className="max-w-5xl mx-auto pb-24 space-y-6 text-white">
             {isProfileSetupMode && !isEditing && (
-                <div className="flex items-center justify-between gap-4 px-5 py-3 rounded-xl border border-tactical-yellow/40 bg-tactical-yellow/5">
+                <div className="flex flex-col items-start gap-3 px-4 py-3 rounded-xl border border-tactical-yellow/40 bg-tactical-yellow/5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                     <div>
                         <p className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Complete your operator profile</p>
                         <p className="text-[11px] text-gray-400 mt-0.5">Set your username/platform now. Activision ID is optional and can be added later.</p>
@@ -211,7 +211,7 @@ const Profile = () => {
                 </div>
             )}
 
-            <div className="relative overflow-hidden rounded-[1.75rem] border border-military-gray bg-charcoal-light shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
+            <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[1.75rem] border border-military-gray bg-charcoal-light shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
                 <div
                     className="absolute inset-0 opacity-[0.03]"
                     style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 1px,transparent 40px)' }}
@@ -219,14 +219,14 @@ const Profile = () => {
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.025),transparent_38%)]" />
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-                <div className="relative z-10 p-7 lg:p-8">
+                <div className="relative z-10 p-5 sm:p-7 lg:p-8">
                     <div className="min-w-0">
                         <div className="flex items-start justify-between gap-5 flex-wrap">
                             <div className="space-y-3">
                                 <div className="space-y-2">
                                     <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">Operator Identity</p>
-                                    <h1 className="flex items-center gap-2.5 text-4xl md:text-5xl font-black uppercase tracking-[-0.04em] leading-none text-white">
-                                        {showSupporterView && <Trophy className="w-8 h-8 text-premium-gold-soft shrink-0" />}
+                                    <h1 className="flex items-center gap-2.5 text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-[-0.04em] leading-none text-white">
+                                        {showSupporterView && <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-premium-gold-soft shrink-0" />}
                                         <span
                                             className={showSupporterView ? 'text-premium-glow inline-block' : ''}
                                             data-text={showSupporterView ? (user?.username || 'OPERATOR') : undefined}
@@ -255,7 +255,7 @@ const Profile = () => {
                             </div>
 
                             {!isEditing && (
-                                <div className="flex flex-col items-stretch sm:items-end gap-2.5 ml-auto">
+                                <div className="flex w-full flex-col items-stretch gap-2.5 sm:ml-auto sm:w-auto sm:items-end">
                                     <button
                                         onClick={openEditor}
                                         className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-military-gray bg-charcoal-dark text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white hover:border-gray-400 transition-all"
@@ -357,7 +357,7 @@ const Profile = () => {
 
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Platform</label>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                     {['PC', 'PlayStation', 'Xbox'].map((p) => (
                                         <button
                                             key={p}
@@ -402,11 +402,11 @@ const Profile = () => {
                             </div>
                         </div>
 
-                        <div className="flex gap-3 pt-2">
-                            <button type="submit" disabled={isSaving} className="btn-tactical px-8 flex items-center gap-2 disabled:opacity-60">
+                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                            <button type="submit" disabled={isSaving} className="btn-tactical w-full sm:w-auto px-8 flex items-center gap-2 disabled:opacity-60">
                                 <Check className="w-4 h-4" /> {isSaving ? 'Saving...' : 'Save Changes'}
                             </button>
-                            <button type="button" onClick={() => setIsEditing(false)} className="px-6 py-2 rounded-md border border-military-gray text-xs font-black uppercase text-gray-400 hover:text-white transition-all">
+                            <button type="button" onClick={() => setIsEditing(false)} className="w-full sm:w-auto px-6 py-2.5 rounded-md border border-military-gray text-xs font-black uppercase text-gray-400 hover:text-white transition-all">
                                 Cancel
                             </button>
                         </div>

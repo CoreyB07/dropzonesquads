@@ -153,15 +153,15 @@ const PostSquad = () => {
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 pb-20">
-            <div className="space-y-3 mb-8 text-center md:text-left">
-                <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white">Post a Squad</h1>
-                <p className="text-gray-400 font-medium">Build your team for the next drop. Set your mode, vibe, and requirements.</p>
+        <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 pb-16 sm:pb-20">
+            <div className="space-y-3 mb-6 sm:mb-8 text-center md:text-left">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter text-white">Post a Squad</h1>
+                <p className="text-sm sm:text-base text-gray-400 font-medium">Build your team for the next drop. Set your mode, vibe, and requirements.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
                 {/* Segmented Choice */}
-                <div className="card-tactical p-6">
+                <div className="card-tactical space-y-4">
                     <h3 className="text-sm font-black uppercase tracking-widest text-white border-b border-military-gray/50 pb-3 mb-5">Listing Type</h3>
                     <div className="flex bg-charcoal-dark border border-military-gray p-1.5 rounded-lg shadow-inner">
                         <button
@@ -192,7 +192,7 @@ const PostSquad = () => {
                 </div>
 
                 {/* Section 1 - Basic Info */}
-                <div className="card-tactical p-6 space-y-6">
+                <div className="card-tactical space-y-5 sm:space-y-6">
                     <h3 className="text-sm font-black uppercase tracking-widest text-white border-b border-military-gray/50 pb-3">Squad Setup</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Squad Name */}
@@ -277,9 +277,9 @@ const PostSquad = () => {
                 </div>
 
                 {/* Section 2 - Preferences */}
-                <div className="card-tactical p-6 space-y-6">
+                <div className="card-tactical space-y-5 sm:space-y-6">
                     <h3 className="text-sm font-black uppercase tracking-widest text-white border-b border-military-gray/50 pb-3">Team Preferences</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
                         <div className="space-y-2">
                             <label className="text-xs font-black uppercase text-gray-400">Playstyle / Skill <span className="text-red-500">*</span></label>
                             <select
@@ -326,7 +326,7 @@ const PostSquad = () => {
                 </div>
 
                 {/* Section 3 - Tags */}
-                <div className="card-tactical p-6 space-y-6">
+                <div className="card-tactical space-y-5 sm:space-y-6">
                     <div className="flex items-center justify-between border-b border-military-gray/50 pb-3">
                         <h3 className="text-sm font-black uppercase tracking-widest text-white">Squad Vibe</h3>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-tactical-yellow bg-tactical-yellow/10 px-2 py-1 rounded">
@@ -334,7 +334,7 @@ const PostSquad = () => {
                         </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8">
                         {TAG_GROUPS.map((group) => (
                             <div key={group.name} className="space-y-3">
                                 <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-500">{group.name}</h4>
@@ -364,7 +364,7 @@ const PostSquad = () => {
                 </div>
 
                 {/* Section 4 - Description */}
-                <div className="card-tactical p-6 space-y-6">
+                <div className="card-tactical space-y-5 sm:space-y-6">
                     <h3 className="text-sm font-black uppercase tracking-widest text-white border-b border-military-gray/50 pb-3">Additional Details</h3>
                     <div className="space-y-2">
                         <label className="text-xs font-black uppercase text-gray-400">
@@ -383,7 +383,7 @@ const PostSquad = () => {
 
                 {/* Footer Actions */}
                 <div className="space-y-6">
-                    <div className="bg-charcoal-dark border border-military-gray p-4 rounded-md flex gap-3 text-gray-400 shadow-sm">
+                    <div className="bg-charcoal-dark border border-military-gray p-4 rounded-lg flex gap-3 text-gray-400 shadow-sm">
                         <Info className="w-5 h-5 shrink-0 text-gray-500" />
                         <p className="text-xs leading-relaxed">
                             Your squad listing will remain active until you delete it or it fills up. Activision IDs are only exchanged securely after acceptance.
@@ -394,14 +394,14 @@ const PostSquad = () => {
                         <button
                             type="button"
                             onClick={() => navigate('/find')}
-                            className="flex-1 py-4 text-sm font-black uppercase tracking-widest rounded transition-colors bg-charcoal-dark border border-military-gray text-gray-400 hover:text-white hover:border-gray-500"
+                            className="flex-1 min-h-12 py-3.5 text-sm font-black uppercase tracking-widest rounded-lg transition-colors bg-charcoal-dark border border-military-gray text-gray-400 hover:text-white hover:border-gray-500"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-[2] py-4 text-lg font-black rounded-xl bg-white text-charcoal-dark border border-white flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:bg-[#fff5dc] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="flex-[2] min-h-12 py-3.5 px-5 text-sm sm:text-lg font-black rounded-xl bg-white text-charcoal-dark border border-white flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:bg-[#fff5dc] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             <Send className="w-5 h-5" />
                             {isSubmitting ? 'Deploying Listing...' : 'Deploy Squad Listing'}

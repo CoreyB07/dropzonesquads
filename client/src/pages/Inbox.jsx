@@ -336,13 +336,13 @@ const Inbox = () => {
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex justify-between items-end border-b border-military-gray pb-4">
+        <div className="max-w-4xl mx-auto space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex flex-col gap-2 border-b border-military-gray pb-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-black uppercase italic tracking-wider text-white flex items-center gap-3">
-                        <Mail className="w-8 h-8 text-tactical-yellow" /> Secure Inbox
+                    <h1 className="text-2xl sm:text-3xl font-black uppercase italic tracking-wider text-white flex items-center gap-3">
+                        <Mail className="w-7 h-7 sm:w-8 sm:h-8 text-tactical-yellow" /> Secure Inbox
                     </h1>
-                    <p className="text-sm font-bold tracking-widest text-gray-400 uppercase mt-1">Encrypted Direct Messages & Squad Comms</p>
+                    <p className="mt-1 text-[11px] sm:text-sm font-bold tracking-widest text-gray-400 uppercase">Encrypted Direct Messages & Squad Comms</p>
                 </div>
             </div>
 
@@ -385,7 +385,7 @@ const Inbox = () => {
             </div>
 
             {mySquads && mySquads.length > 0 && (
-                <div className="space-y-3 mb-8">
+                <div className="space-y-3 mb-6 sm:mb-8">
                     <div className="flex items-center gap-2 pl-1">
                         <h2 className="text-xs font-black uppercase tracking-widest text-tactical-yellow">Squad Comms</h2>
                         {unreadSquadCount > 0 && (
@@ -402,20 +402,20 @@ const Inbox = () => {
                                     key={squad.id}
                                     to={`/squad/${squad.id}/chat`}
                                     state={{ from: '/inbox' }}
-                                    className={`rounded-xl p-4 flex items-center justify-between transition-all group ${isUnreadSquad
+                                    className={`rounded-xl p-3.5 sm:p-4 flex items-center justify-between transition-all group ${isUnreadSquad
                                         ? 'bg-charcoal-dark border border-red-500/20'
                                         : 'bg-charcoal-light border border-military-gray hover:border-tactical-yellow-hover hover:bg-white/5'
                                         }`}
                                 >
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                                         <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 transition-all ${isUnreadSquad
                                             ? 'bg-white/10 border-white/30 text-white'
                                             : 'bg-charcoal-dark border-military-gray text-gray-400'
                                             }`}>
                                             <Users className="w-5 h-5" />
                                         </div>
-                                        <div>
-                                            <h3 className="text-sm font-black uppercase transition-colors">
+                                        <div className="min-w-0">
+                                            <h3 className="text-sm font-black uppercase transition-colors truncate">
                                                 <SquadNameText
                                                     name={squad.name}
                                                     accentClassName={isUnreadSquad ? 'text-red-100' : 'text-squad-name'}
@@ -502,7 +502,7 @@ const Inbox = () => {
                             <Shield className="w-8 h-8 text-tactical-yellow animate-spin-slow opacity-50" />
                         </div>
                     ) : conversations.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center p-16 text-center border-dashed border-2 border-military-gray m-8 rounded-xl opacity-60">
+                        <div className="flex flex-col items-center justify-center p-8 sm:p-16 text-center border-dashed border-2 border-military-gray m-4 sm:m-8 rounded-xl opacity-60">
                             <MessageSquare className="w-12 h-12 text-gray-500 mb-4" />
                             <h3 className="text-lg font-black tracking-widest uppercase text-gray-300">No Direct Messages</h3>
                             <p className="text-sm font-bold text-gray-500 max-w-sm mt-2">
@@ -526,12 +526,12 @@ const Inbox = () => {
                                     <Link
                                         to={`/dm/${conversation.other_user.id}`}
                                         key={conversation.conversationId || idx}
-                                        className={`flex items-center gap-4 p-5 transition-colors group cursor-pointer ${isUnreadConversation
+                                        className={`flex items-center gap-3 sm:gap-4 p-3.5 sm:p-5 transition-colors group cursor-pointer ${isUnreadConversation
                                             ? 'bg-charcoal-dark/50 border-l-2 border-l-red-500/40'
                                             : 'hover:bg-white/5'
                                             }`}
                                     >
-                                        <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 relative ${isUnreadConversation
+                                        <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl border flex items-center justify-center shrink-0 relative ${isUnreadConversation
                                             ? 'bg-white/10 border-white/30 text-white'
                                             : 'bg-military-gray/40 border-gray-600 text-gray-200'
                                             }`}>
@@ -539,7 +539,7 @@ const Inbox = () => {
                                             <UserRound className="absolute -bottom-1 -right-1 w-3.5 h-3.5 text-gray-400 bg-charcoal-light rounded-full p-[1px]" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-baseline mb-1">
+                                            <div className="flex items-baseline justify-between gap-3 mb-1">
                                                 <h3 className={`font-black uppercase tracking-wider truncate transition-colors flex items-center gap-1.5 ${isUnreadConversation ? 'text-red-100' : 'text-gray-500'}`}>
                                                     {(conversation.other_user.is_supporter || conversation.other_user.supporter) && <SupporterBadge />}
                                                     <span

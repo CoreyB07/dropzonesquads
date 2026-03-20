@@ -214,10 +214,10 @@ const SquadChat = () => {
     }
 
     return (
-        <div className="max-w-5xl mx-auto flex flex-col h-[85vh] animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="max-w-5xl mx-auto flex flex-col h-[82vh] sm:h-[85vh] animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
-            <div className="bg-charcoal-dark border border-military-gray rounded-t-xl p-4 flex items-center justify-between shadow-lg z-10">
-                <div className="flex items-center gap-4">
+            <div className="bg-charcoal-dark border border-military-gray rounded-t-xl p-3 sm:p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-lg z-10">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     <button
                         onClick={() => navigate(location.state?.from || `/squad/${squadId}`)}
                         className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white"
@@ -228,8 +228,8 @@ const SquadChat = () => {
                     <div className="w-10 h-10 rounded-lg bg-tactical-yellow/10 border border-tactical-yellow/20 flex items-center justify-center">
                         <Users className="w-5 h-5 text-tactical-yellow" />
                     </div>
-                    <div className="space-y-1">
-                        <h1 className="text-xl font-black uppercase italic tracking-wider text-white flex items-center gap-2">
+                    <div className="space-y-1 min-w-0">
+                        <h1 className="text-lg sm:text-xl font-black uppercase italic tracking-wider text-white flex items-center gap-2 min-w-0">
                             <SquadNameText name={squadDetail?.name || 'Squad'} restClassName="text-white" />
                             <span className="text-gray-500 font-normal">|</span>
                             <span>Comms</span>
@@ -241,7 +241,7 @@ const SquadChat = () => {
                 </div>
                 <Link
                     to={`/squad/${squadId}`}
-                    className="inline-flex items-center justify-center rounded-lg border border-tactical-yellow/50 bg-tactical-yellow/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-tactical-yellow transition-colors hover:bg-tactical-yellow-hover hover:text-charcoal-dark"
+                    className="inline-flex w-full sm:w-auto items-center justify-center rounded-lg border border-tactical-yellow/50 bg-tactical-yellow/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-tactical-yellow transition-colors hover:bg-tactical-yellow-hover hover:text-charcoal-dark"
                 >
                     View Squad Profile
                 </Link>
@@ -287,8 +287,8 @@ const SquadChat = () => {
             </div>
 
             {/* Input */}
-            <div className="bg-charcoal-dark border border-military-gray rounded-b-xl p-4 shadow-lg z-10">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+            <div className="bg-charcoal-dark border border-military-gray rounded-b-xl p-3 sm:p-4 shadow-lg z-10">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-3">
                     <div className="flex-1 relative">
                         <input
                             type="text"
@@ -297,9 +297,9 @@ const SquadChat = () => {
                             placeholder="Type a secure message..."
                             maxLength={280}
                             disabled={!conversationId}
-                            className="w-full bg-charcoal-light border border-military-gray rounded-lg py-3 pl-4 pr-12 text-white text-sm focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-charcoal-light border border-military-gray rounded-lg py-3 pl-4 pr-11 sm:pr-12 text-white text-sm focus:border-tactical-yellow outline-none transition-all placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-600">
+                        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs font-bold text-gray-600">
                             {newMessage.length}/280
                         </div>
                     </div>

@@ -49,7 +49,7 @@ function App() {
           <Router>
             <div className="min-h-screen bg-[#0e0f11] text-charcoal-dark font-tactical">
               <Navbar />
-              <main className="container mx-auto px-4 py-8">
+              <main className="container mx-auto px-3 py-5 sm:px-4 sm:py-8">
                 <RouteGuard>
                   <Routes>
                     <Route path="/" element={<Home />} />

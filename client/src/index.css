@@ -74,11 +74,11 @@
 
 @layer components {
   .btn-tactical {
-    @apply bg-tactical-yellow text-white font-bold py-2 px-6 rounded-md hover:bg-tactical-yellow-hover transition-colors uppercase tracking-wider;
+    @apply inline-flex items-center justify-center bg-tactical-yellow text-white font-bold py-2.5 px-5 sm:px-6 rounded-lg hover:bg-tactical-yellow-hover transition-colors uppercase tracking-wider;
   }
 
   .card-tactical {
-    @apply bg-charcoal-light border border-military-gray rounded-lg p-6 hover:border-tactical-yellow-hover transition-all;
+    @apply bg-charcoal-light border border-military-gray rounded-xl p-4 sm:p-6 hover:border-tactical-yellow-hover transition-all;
   }
 
   .standard-squad-card {

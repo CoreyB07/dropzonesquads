@@ -189,21 +189,21 @@ const DirectMessage = () => {
     }
 
     return (
-        <div className="max-w-4xl mx-auto flex flex-col h-[85vh] animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="max-w-4xl mx-auto flex flex-col h-[82vh] sm:h-[85vh] animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
-            <div className="bg-charcoal-dark border border-military-gray rounded-t-xl p-4 flex items-center justify-between shadow-lg z-10">
-                <div className="flex items-center gap-4">
+            <div className="bg-charcoal-dark border border-military-gray rounded-t-xl p-3 sm:p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-lg z-10">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     <button onClick={() => navigate('/inbox')} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white">
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div className="w-10 h-10 rounded-full bg-military-gray border border-gray-600 flex items-center justify-center">
                         <User className="w-5 h-5 text-gray-400" />
                     </div>
-                    <div>
-                        <h1 className="text-lg font-black tracking-widest flex items-center gap-1.5 text-white">
+                    <div className="min-w-0">
+                        <h1 className="text-base sm:text-lg font-black tracking-widest flex items-center gap-1.5 text-white min-w-0">
                             {(otherProfile?.supporter || otherProfile?.is_supporter) && <SupporterBadge />}
                             <span
-                                className={(otherProfile?.supporter || otherProfile?.is_supporter) ? 'text-premium-glow inline-block' : ''}
+                                className={`${(otherProfile?.supporter || otherProfile?.is_supporter) ? 'text-premium-glow inline-block' : ''} truncate`}
                                 data-text={(otherProfile?.supporter || otherProfile?.is_supporter) ? (otherProfile?.username || 'Loading...') : undefined}
                             >
                                 {otherProfile?.username || 'Loading...'}
@@ -216,7 +216,7 @@ const DirectMessage = () => {
                 </div>
                 <Link
                     to={`/user/${otherUserId}`}
-                    className="inline-flex items-center justify-center rounded-lg border border-gray-400/70 bg-gray-300 px-4 py-2 text-xs font-black uppercase tracking-widest text-charcoal-dark transition-colors hover:bg-gray-200"
+                    className="inline-flex w-full sm:w-auto items-center justify-center rounded-lg border border-gray-400/70 bg-gray-300 px-4 py-2 text-xs font-black uppercase tracking-widest text-charcoal-dark transition-colors hover:bg-gray-200"
                 >
                     View Profile
                 </Link>
@@ -270,8 +270,8 @@ const DirectMessage = () => {
             </div>
 
             {/* Input */}
-            <div className="bg-charcoal-dark border border-military-gray rounded-b-xl p-4 shadow-lg z-10">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+            <div className="bg-charcoal-dark border border-military-gray rounded-b-xl p-3 sm:p-4 shadow-lg z-10">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-3">
                     <div className="flex-1 relative">
                         <input
                             type="text"

@@ -100,9 +100,9 @@ const Admin = () => {
 
     return (
         <div className="max-w-6xl mx-auto space-y-6 pb-16">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-4xl font-black uppercase tracking-tighter text-white">Admin Dashboard</h1>
+                    <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white">Admin Dashboard</h1>
                     <p className="text-xs font-black uppercase tracking-widest text-gray-400 mt-2">
                         Site metrics (Cloudflare handles visitor analytics)
                     </p>
@@ -111,7 +111,7 @@ const Admin = () => {
                     type="button"
                     onClick={loadAdminData}
                     disabled={isFetching}
-                    className="px-4 py-2 rounded-md border border-military-gray text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white hover:border-gray-400 disabled:opacity-50"
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-md border border-military-gray text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white hover:border-gray-400 disabled:opacity-50"
                 >
                     <span className="inline-flex items-center gap-2">
                         <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
@@ -146,7 +146,7 @@ const Admin = () => {
             <section className="card-tactical space-y-4">
                 <h2 className="text-lg font-black uppercase tracking-widest text-white">Recent Signups</h2>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full min-w-[40rem] text-sm">
                         <thead>
                             <tr className="text-left text-[10px] uppercase tracking-widest text-gray-500 border-b border-military-gray">
                                 <th className="py-2 pr-4">Username</th>

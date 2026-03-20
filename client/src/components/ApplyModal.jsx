@@ -67,7 +67,7 @@ const ApplyModal = ({ squad, onClose }) => {
                         <div className="flex items-center gap-2 text-tactical-yellow font-black text-xs uppercase tracking-widest">
                             <Shield className="w-3 h-3" /> Recruitment Intake
                         </div>
-                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">Join <SquadNameText name={squad.name} restClassName="text-white" /></h2>
+                        <h2 className="text-2xl sm:text-3xl font-black uppercase italic tracking-tighter text-white">Join <SquadNameText name={squad.name} restClassName="text-white" /></h2>
                         <p className="text-gray-400 text-sm">Browsing is open to everyone. Join requests and messages require a free member profile.</p>
                     </div>
 
@@ -128,7 +128,7 @@ const ApplyModal = ({ squad, onClose }) => {
 
                             <div className="space-y-2">
                                 <label className="text-[10px] uppercase font-black text-gray-500">Primary Combat Role</label>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                     {['Slayer', 'Cap', 'Support'].map(role => (
                                         <button
                                             key={role}
