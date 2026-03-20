@@ -16,7 +16,7 @@ const ROLE_OPTIONS = [
     { value: 'co-leader', label: 'Co-Leader' },
 ];
 
-const GAME_MODE_OPTIONS = ['Battle Royale', 'Resurgence', 'Plunder'];
+const GAME_MODE_OPTIONS = WARZONE_GAME_MODES;
 const PLATFORM_OPTIONS = ['PlayStation', 'Xbox', 'Console', 'PC', 'Crossplay'];
 const SKILL_OPTIONS = ['Casual', 'Competitive', 'Ranked'];
 const AUDIENCE_OPTIONS = ['Open to All', 'Women Only', 'Men Only'];

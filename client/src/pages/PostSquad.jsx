@@ -232,8 +232,9 @@ const PostSquad = () => {
                                 onChange={handleChange}
                                 required
                             >
-                                <option value="Battle Royale">Battle Royale</option>
-                                <option value="Resurgence">Resurgence</option>
+                                {WARZONE_GAME_MODES.map((mode) => (
+                                    <option key={mode} value={mode}>{mode}</option>
+                                ))}
                             </select>
                         </div>
 

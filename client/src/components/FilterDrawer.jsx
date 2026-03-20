@@ -6,7 +6,7 @@ export const FILTER_CATEGORIES = [
     {
         key: 'gameMode',
         label: 'Game Mode',
-        options: ['Battle Royale', 'Resurgence', 'Plunder'],
+        options: WARZONE_GAME_MODES,
     },
     {
         key: 'platform',
