@@ -47,6 +47,9 @@ const Messages = () => {
   const [hasMoreByConversation, setHasMoreByConversation] = useState({});
   const [draft, setDraft] = useState('');
   const [mobileView, setMobileView] = useState('list');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [attachment, setAttachment] = useState(null);
 
   const refreshConversations = useCallback(async () => {
     if (!user || !isSupabaseReady || !supabase) {
@@ -303,28 +306,65 @@ const Messages = () => {
     return () => window.clearInterval(intervalId);
   }, []);
 
+  const handleAttachFile = (file) => {
+    if (!file) {
+      setAttachment(null);
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'text/plain'];
+    const maxSizeBytes = 2 * 1024 * 1024;
+
+    if (!allowedTypes.includes(file.type)) {
+      showError('Unsupported file type. Use JPG, PNG, WEBP, PDF, or TXT.');
+      return;
+    }
+
+    if (file.size > maxSizeBytes) {
+      showError('Attachment must be 2MB or smaller on current plan.');
+      return;
+    }
+
+    setAttachment(file);
+  };
+
   const handleSend = async (event) => {
     event.preventDefault();
     const trimmed = draft.trim();
 
-    if (!trimmed || !activeConversationId || !user || !isSupabaseReady || !supabase) {
+    if ((!trimmed && !attachment) || !activeConversationId || !user || !isSupabaseReady || !supabase) {
       return;
     }
 
     setDraft('');
 
     try {
+      const body = attachment ? `${trimmed}${trimmed ? ' ' : ''}[Attachment: ${attachment.name}]` : trimmed;
+
       const { error } = await supabase
         .from('messages')
-        .insert({ conversation_id: activeConversationId, sender_id: user.id, body: trimmed });
+        .insert({ conversation_id: activeConversationId, sender_id: user.id, body });
 
       if (error) throw error;
+      setAttachment(null);
     } catch (error) {
       console.error('Failed to send message:', error);
       showError(`Message failed [${error?.code || 'no-code'}] ${error?.message || 'Unknown error'}`);
       setDraft(trimmed);
     }
   };
+
+  const filteredConversations = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return conversations.filter((conversation) => {
+      if (showUnreadOnly && conversation.unreadCount <= 0) return false;
+      if (!query) return true;
+      return (
+        conversation.username?.toLowerCase().includes(query) ||
+        conversation.preview?.toLowerCase().includes(query)
+      );
+    });
+  }, [conversations, searchTerm, showUnreadOnly]);
 
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeConversationId) || null,
@@ -353,11 +393,15 @@ const Messages = () => {
 
       <div className="hidden lg:flex flex-row gap-4">
         <ConversationList
-          conversations={conversations}
+          conversations={filteredConversations}
           activeConversationId={activeConversationId}
           onSelectConversation={setActiveConversationId}
           loading={loadingConversations}
           error={conversationsError}
+          search={searchTerm}
+          onSearchChange={setSearchTerm}
+          showUnreadOnly={showUnreadOnly}
+          onToggleUnreadOnly={setShowUnreadOnly}
         />
 
         <ThreadView
@@ -371,13 +415,15 @@ const Messages = () => {
           hasMore={hasMore}
           loadingMore={loadingOlder}
           onLoadMore={() => loadMessages(activeConversationId, { older: true })}
+          onAttachFile={handleAttachFile}
+          attachmentLabel={attachment?.name || ''}
         />
       </div>
 
       <div className="lg:hidden">
         {mobileView === 'list' || !activeConversation ? (
           <ConversationList
-            conversations={conversations}
+            conversations={filteredConversations}
             activeConversationId={activeConversationId}
             onSelectConversation={(conversationId) => {
               setActiveConversationId(conversationId);
@@ -386,6 +432,10 @@ const Messages = () => {
             loading={loadingConversations}
             error={conversationsError}
             compact
+            search={searchTerm}
+            onSearchChange={setSearchTerm}
+            showUnreadOnly={showUnreadOnly}
+            onToggleUnreadOnly={setShowUnreadOnly}
           />
         ) : (
           <ThreadView
@@ -400,6 +450,8 @@ const Messages = () => {
             loadingMore={loadingOlder}
             onLoadMore={() => loadMessages(activeConversationId, { older: true })}
             onBackMobile={() => setMobileView('list')}
+            onAttachFile={handleAttachFile}
+            attachmentLabel={attachment?.name || ''}
           />
         )}
       </div>

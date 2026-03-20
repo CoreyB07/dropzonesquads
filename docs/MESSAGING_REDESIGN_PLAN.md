@@ -28,10 +28,12 @@
 ## 3) Core Messaging Behavior (In Progress)
 - [x] Wire conversations from Supabase
 - [x] Wire messages by active conversation (latest 50)
-- [ ] Add cursor pagination for older messages
+- [x] Add cursor pagination for older messages
 - [x] Implement send flow + draft recovery on error
 - [x] Add read/unread updates (local read state integration)
 - [x] Add message timestamps and bubble structure
+- [x] Add conversation search + unread filter
+- [x] Add grouped bubble spacing by sender
 
 ## 4) Online Status (Supabase Free Tier)
 - [x] Backend SQL prepared/applied (`profiles.last_seen_at`, RPC `touch_last_seen`)
@@ -44,7 +46,7 @@
 - [x] Cursor-style pagination for messages (load older)
 - [x] Restrict realtime to active thread events only
 - [x] Avoid global message subscriptions
-- [ ] Keep attachment limits conservative in MVP
+- [x] Keep attachment limits conservative in MVP (2MB + limited file types)
 
 ## 6) Accessibility + QA
 - [ ] Keyboard navigation and focus order

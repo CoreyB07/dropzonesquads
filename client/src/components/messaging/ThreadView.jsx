@@ -15,7 +15,9 @@ const ThreadView = ({
   hasMore,
   loadingMore,
   onLoadMore,
-  onBackMobile
+  onBackMobile,
+  onAttachFile,
+  attachmentLabel
 }) => {
   if (!conversation) {
     return (
@@ -45,7 +47,7 @@ const ThreadView = ({
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-tactical">
+      <div className="flex-1 overflow-y-auto p-4 space-y-1 scrollbar-tactical">
         {hasMore && (
           <button
             type="button"
@@ -68,9 +70,11 @@ const ThreadView = ({
         ) : messages.length === 0 ? (
           <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">No messages yet</p>
         ) : (
-          messages.map((message) => (
-            <MessageBubble key={message.id} message={message} isMe={message.isMe} />
-          ))
+          messages.map((message, index) => {
+            const previous = messages[index - 1];
+            const grouped = Boolean(previous && previous.isMe === message.isMe);
+            return <MessageBubble key={message.id} message={message} isMe={message.isMe} grouped={grouped} />;
+          })
         )}
       </div>
 
@@ -78,7 +82,9 @@ const ThreadView = ({
         value={draft}
         onChange={onDraftChange}
         onSend={onSend}
-        disabled={!draft.trim()}
+        disabled={!draft.trim() && !attachmentLabel}
+        onAttachFile={onAttachFile}
+        attachmentLabel={attachmentLabel}
       />
     </section>
   );
