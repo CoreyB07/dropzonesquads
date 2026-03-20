@@ -21,7 +21,7 @@
 ---
 
 ## Phase 1 — Information architecture cleanup (order + priorities)
-- [ ] Reorder homepage to target flow:
+- [x] Reorder homepage to target flow:
   1) Hero  
   2) Lightweight onboarding  
   3) Filters toolbar  
@@ -29,8 +29,8 @@
   5) All squads  
   6) Compact value/trust  
   7) Footer
-- [ ] Remove duplicate explanatory sections
-- [ ] Mark non-core sections for relocation (contact/support/long explainers)
+- [x] Remove duplicate explanatory sections
+- [x] Mark non-core sections for relocation (contact/support/long explainers)
 
 **Done when:**
 - Homepage follows the exact priority flow with no repeated sections.
@@ -38,9 +38,9 @@
 ---
 
 ## Phase 2 — Remove monetization-heavy framing (homepage only)
-- [ ] Remove supporter pricing cards/upgrade-heavy language from homepage
-- [ ] Remove large donation/support sales blocks
-- [ ] Keep only subtle support presence in footer (single link or one-liner)
+- [x] Remove supporter pricing cards/upgrade-heavy language from homepage
+- [x] Remove large donation/support sales blocks
+- [x] Keep only subtle support presence in footer (single link or one-liner)
 
 **Footer support line (candidate):**
 - “Drop Zone Squads is free to use. Optional donations help cover hosting and development.”
