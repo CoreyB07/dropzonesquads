@@ -18,6 +18,13 @@
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   body {
     background-color: #050505;
     @apply text-white font-tactical;
