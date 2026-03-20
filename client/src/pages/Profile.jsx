@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Monitor, Target, Pencil, X, Check, LogOut, ShieldCheck, Users, Trophy, Crown } from 'lucide-react';
+import { Shield, Monitor, Target, Pencil, X, Check, LogOut, ShieldCheck, Users, Trophy, Crown, ImagePlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
 import { useToast } from '../context/useToast';
 import { useMySquads } from '../context/MySquadsContext';
+import { PRESET_PROFILE_PICTURES } from '../constants/presetProfilePictures';
+import { ALLOWED_PROFILE_PICTURE_TYPES, isAllowedProfilePictureFile } from '../utils/profilePictures';
 import SquadNameText from '../components/SquadNameText';
 import BadgeChip from '../components/BadgeChip';
 
@@ -104,6 +106,9 @@ const Profile = () => {
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [badgesBySquad, setBadgesBySquad] = useState({});
     const [form, setForm] = useState({ username: '', activisionId: '', shareActivisionIdWithFriends: false, shareActivisionIdWithSquads: false, platform: 'PC' });
+    const [pictureSubmission, setPictureSubmission] = useState(null);
+    const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+    const [isSavingPresetPicture, setIsSavingPresetPicture] = useState(false);
     const isProfileSetupMode = new URLSearchParams(location.search).get('setup') === '1';
 
     useEffect(() => {
@@ -128,6 +133,82 @@ const Profile = () => {
 
         loadMyBadges();
     }, [user?.id, mySquads.length]);
+
+    useEffect(() => {
+        const loadSubmission = async () => {
+            if (!user?.id) return;
+            const { data } = await supabase
+                .from('profile_picture_submissions')
+                .select('id, status, rejection_reason, created_at, original_path, approved_path')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            setPictureSubmission(data || null);
+        };
+        loadSubmission();
+    }, [user?.id]);
+
+    const handleSelectPresetPicture = async (preset) => {
+        if (!user?.id || !preset?.src) return;
+        setIsSavingPresetPicture(true);
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                selected_preset_avatar: preset.id,
+                avatar_url: (user?.avatarCustomStatus === 'approved' && user?.avatar_url) ? user.avatar_url : preset.src
+            })
+            .eq('id', user.id);
+
+        if (error) {
+            showError(error.message || 'Could not set preset profile picture.');
+        } else {
+            success('Preset profile picture selected.');
+            window.location.reload();
+        }
+        setIsSavingPresetPicture(false);
+    };
+
+    const handleUploadCustomPicture = async (file) => {
+        if (!user?.id || !file) return;
+        const validation = isAllowedProfilePictureFile(file);
+        if (!validation.ok) {
+            showError(validation.reason);
+            return;
+        }
+
+        setIsUploadingPicture(true);
+        const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+        const objectPath = `pending/${user.id}/${Date.now()}.${ext}`;
+
+        const uploadResult = await supabase.storage
+            .from('profile-pictures')
+            .upload(objectPath, file, { upsert: false, contentType: file.type || 'image/png' });
+
+        if (uploadResult.error) {
+            setIsUploadingPicture(false);
+            showError(uploadResult.error.message || 'Upload failed.');
+            return;
+        }
+
+        const { error } = await supabase
+            .from('profile_picture_submissions')
+            .insert({
+                user_id: user.id,
+                original_path: objectPath,
+                status: 'pending'
+            });
+
+        if (error) {
+            showError(error.message || 'Could not submit picture for approval.');
+        } else {
+            success('Custom profile picture submitted for review.');
+            setPictureSubmission({ status: 'pending', created_at: new Date().toISOString() });
+            await supabase.from('profiles').update({ avatar_custom_status: 'pending' }).eq('id', user.id);
+        }
+
+        setIsUploadingPicture(false);
+    };
 
     const openEditor = () => {
         setForm({
@@ -281,6 +362,61 @@ const Profile = () => {
                             </div>
                         )}
                     </div>
+                </div>
+            </div>
+
+            <div className="card-tactical space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-tactical-yellow flex items-center gap-2"><ImagePlus className="w-4 h-4" /> Profile Picture</h2>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mt-1">Preset picks are instant. Custom uploads require admin approval.</p>
+                    </div>
+                    <div className="w-16 h-16 rounded-xl overflow-hidden border border-military-gray bg-charcoal-dark">
+                        {user?.avatar_url ? (
+                            <img src={user.avatar_url} alt="Current profile picture" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 font-black">N/A</div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                    {PRESET_PROFILE_PICTURES.map((preset) => {
+                        const isActive = user?.selectedPresetAvatar === preset.id || user?.avatar_url === preset.src;
+                        return (
+                            <button
+                                key={preset.id}
+                                type="button"
+                                onClick={() => handleSelectPresetPicture(preset)}
+                                disabled={isSavingPresetPicture}
+                                className={`rounded-lg border p-1.5 text-left transition-colors ${isActive ? 'border-tactical-yellow bg-tactical-yellow/10' : 'border-military-gray bg-charcoal-dark hover:border-gray-400'}`}
+                            >
+                                <img src={preset.src} alt={preset.label} className="w-full aspect-square rounded-md object-cover" />
+                                <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-gray-300 truncate">{preset.label}</p>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                <div className="rounded-lg border border-military-gray bg-charcoal-dark p-3 space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Upload custom image (approval required)</label>
+                    <input
+                        type="file"
+                        accept={ALLOWED_PROFILE_PICTURE_TYPES.join(',')}
+                        onChange={(e) => handleUploadCustomPicture(e.target.files?.[0] || null)}
+                        className="block w-full text-xs text-gray-300 file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border file:border-military-gray file:bg-charcoal-light file:text-gray-200"
+                        disabled={isUploadingPicture}
+                    />
+                    <p className="text-[10px] text-gray-500">Max 2MB. Image files only. Preset picture stays public until approval.</p>
+                    {pictureSubmission?.status === 'pending' && (
+                        <p className="text-xs text-amber-300 font-bold uppercase tracking-widest">Custom picture pending review</p>
+                    )}
+                    {pictureSubmission?.status === 'rejected' && (
+                        <p className="text-xs text-red-300 font-bold uppercase tracking-widest">Last upload rejected{pictureSubmission?.rejection_reason ? `: ${pictureSubmission.rejection_reason}` : ''}</p>
+                    )}
+                    {pictureSubmission?.status === 'approved' && (
+                        <p className="text-xs text-green-300 font-bold uppercase tracking-widest">Custom picture approved and active</p>
+                    )}
                 </div>
             </div>
 

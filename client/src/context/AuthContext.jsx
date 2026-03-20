@@ -60,7 +60,9 @@ const normalizeProfile = (authUser, profile) => {
         onboardingComplete: hasCompletedOnboarding({ username: rawUsername, platform, activisionId }),
         isSupporter: Boolean(profile?.is_supporter || profile?.supporter),
         isAdmin: Boolean(profile?.is_admin),
-        avatar_url: profile?.avatar_url || null
+        avatar_url: profile?.avatar_url || null,
+        selectedPresetAvatar: profile?.selected_preset_avatar || null,
+        avatarCustomStatus: profile?.avatar_custom_status || 'none'
     };
 };
 

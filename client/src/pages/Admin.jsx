@@ -1,9 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Shield, Users, Megaphone, Crown, RefreshCw } from 'lucide-react';
+import { BarChart3, Shield, Users, Megaphone, Crown, RefreshCw, Check, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
-import { fetchAdminStats, fetchRecentSignups } from '../utils/adminApi';
+import {
+    fetchAdminStats,
+    fetchRecentSignups,
+    fetchProfilePictureQueue,
+    approveProfilePictureSubmission,
+    rejectProfilePictureSubmission
+} from '../utils/adminApi';
 
 const formatDateTime = (value) => {
     if (!value) return 'N/A';
@@ -23,6 +29,8 @@ const Admin = () => {
         totalSubscribers: 0
     });
     const [recentSignups, setRecentSignups] = useState([]);
+    const [pictureQueue, setPictureQueue] = useState([]);
+    const [moderationNote, setModerationNote] = useState('');
     const [isFetching, setIsFetching] = useState(true);
 
     const canAccess = Boolean(user?.isAdmin);
@@ -34,12 +42,14 @@ const Admin = () => {
 
         setIsFetching(true);
         try {
-            const [nextStats, nextSignups] = await Promise.all([
+            const [nextStats, nextSignups, nextPictureQueue] = await Promise.all([
                 fetchAdminStats(),
-                fetchRecentSignups(15)
+                fetchRecentSignups(15),
+                fetchProfilePictureQueue(60)
             ]);
             setStats(nextStats);
             setRecentSignups(nextSignups);
+            setPictureQueue(nextPictureQueue);
         } catch (error) {
             console.error('Failed to load admin data:', error);
             showError(error?.message || 'Unable to load admin dashboard data.');
@@ -47,6 +57,25 @@ const Admin = () => {
             setIsFetching(false);
         }
     }, [canAccess, showError]);
+
+    const handleApprovePicture = async (submissionId) => {
+        try {
+            await approveProfilePictureSubmission(submissionId, user.id);
+            await loadAdminData();
+        } catch (error) {
+            showError(error?.message || 'Could not approve profile picture.');
+        }
+    };
+
+    const handleRejectPicture = async (submissionId) => {
+        try {
+            await rejectProfilePictureSubmission(submissionId, user.id, moderationNote);
+            setModerationNote('');
+            await loadAdminData();
+        } catch (error) {
+            showError(error?.message || 'Could not reject profile picture.');
+        }
+    };
 
     useEffect(() => {
         if (loading || !canAccess) {
@@ -141,6 +170,56 @@ const Admin = () => {
                     <p className="text-3xl font-black text-white">{stats.totalSubscribers}</p>
                     <Megaphone className="w-4 h-4 text-gray-500" />
                 </article>
+            </section>
+
+            <section className="card-tactical space-y-4">
+                <h2 className="text-lg font-black uppercase tracking-widest text-white">Profile Picture Moderation Queue</h2>
+                {pictureQueue.length === 0 ? (
+                    <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">No pending profile pictures.</p>
+                ) : (
+                    <div className="space-y-3">
+                        {pictureQueue.map((item) => (
+                            <div key={item.id} className="border border-military-gray rounded-xl p-3 bg-charcoal-dark/60">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <img src={item.previewUrl || ''} alt={item.username} className="w-14 h-14 rounded-lg object-cover border border-military-gray bg-charcoal-light" />
+                                        <div>
+                                            <p className="text-sm font-black text-white uppercase tracking-wide">{item.username}</p>
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-widest">Uploaded {formatDateTime(item.created_at)}</p>
+                                            <p className="text-[10px] text-amber-300 uppercase tracking-widest font-black">{item.status}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleApprovePicture(item.id)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-green-500/40 text-green-300 text-xs font-black uppercase tracking-widest"
+                                        >
+                                            <Check className="w-3.5 h-3.5" /> Approve
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRejectPicture(item.id)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-red-500/40 text-red-300 text-xs font-black uppercase tracking-widest"
+                                        >
+                                            <X className="w-3.5 h-3.5" /> Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        <div className="pt-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Optional rejection reason</label>
+                            <input
+                                type="text"
+                                value={moderationNote}
+                                onChange={(e) => setModerationNote(e.target.value)}
+                                placeholder="Reason shown to user on rejection"
+                                className="mt-1 w-full bg-charcoal-dark border border-military-gray p-2 rounded-lg text-white text-sm"
+                            />
+                        </div>
+                    </div>
+                )}
             </section>
 
             <section className="card-tactical space-y-4">
