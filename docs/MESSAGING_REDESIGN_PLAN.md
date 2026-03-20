@@ -1,0 +1,57 @@
+# DropZoneSquads Messaging Redesign Plan
+
+## 0) Project Setup / Alignment
+- [x] Confirm stack (Vite + React + Tailwind + Supabase)
+- [x] Identify current messaging routes/components
+- [x] Define MVP scope: regular messaging (no typing/presence channels)
+- [x] Confirm online indicator approach (2-min heartbeat, 3-min online window)
+
+## 1) UX + Spec Lock
+- [x] Finalize desktop layout (conversation list + thread view)
+- [x] Finalize mobile behavior (stacked list/thread flow baseline)
+- [x] Define system states (loading/empty/error/offline/no-results)
+- [x] Finalize component map:
+  - [x] `ConversationList`
+  - [x] `ConversationListItem`
+  - [x] `ThreadView`
+  - [x] `MessageBubble`
+  - [x] `MessageComposer`
+  - [x] `OnlineStatusBadge`
+
+## 2) Frontend Foundation (Step 1 started)
+- [x] Create scaffold route: `/messages`
+- [x] Add two-pane shell (list + thread)
+- [x] Add mock data render path for rapid iteration
+- [x] Add local send interaction for shell validation
+- [ ] Hook route into main nav
+
+## 3) Core Messaging Behavior (Next)
+- [ ] Wire conversations from Supabase
+- [ ] Wire messages by active conversation with pagination
+- [ ] Implement optimistic send + retry path
+- [ ] Add read/unread updates
+- [ ] Add message timestamps and grouped bubbles
+
+## 4) Online Status (Supabase Free Tier)
+- [x] Backend SQL prepared/applied (`profiles.last_seen_at`, RPC `touch_last_seen`)
+- [ ] Build client heartbeat utility (every 2 minutes + on tab focus)
+- [ ] Fetch `last_seen_at` with conversation participants
+- [ ] Frontend rule: online if `now - last_seen_at <= 3 minutes`
+- [ ] Show "Last seen Xm ago" when offline
+
+## 5) Performance / Free Tier Guardrails
+- [ ] Cursor pagination for conversations/messages
+- [ ] Restrict realtime to active thread events only
+- [ ] Avoid global message subscriptions
+- [ ] Keep attachment limits conservative in MVP
+
+## 6) Accessibility + QA
+- [ ] Keyboard navigation and focus order
+- [ ] Contrast + readable status text
+- [ ] Empty/loading/error state pass
+- [ ] Mobile pass + browser sanity check
+
+## 7) Release
+- [ ] Staging validation
+- [ ] Production deploy
+- [ ] Post-launch bug sweep

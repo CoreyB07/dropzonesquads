@@ -18,6 +18,7 @@ import MySquads from './pages/MySquads';
 import ManageSquad from './pages/ManageSquad';
 import PrivacyInfo from './pages/PrivacyInfo';
 import Diagnostics from './pages/Diagnostics';
+import Messages from './pages/Messages';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { MySquadsProvider } from './context/MySquadsContext';
@@ -69,6 +70,7 @@ function App() {
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/privacy" element={<PrivacyInfo />} />
                     <Route path="/diag" element={<Diagnostics />} />
+                    <Route path="/messages" element={<Messages />} />
                   </Routes>
                 </RouteGuard>
               </main>
