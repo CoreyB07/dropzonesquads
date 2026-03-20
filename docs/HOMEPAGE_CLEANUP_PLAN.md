@@ -99,16 +99,16 @@
 ---
 
 ## Phase 6 — Squad card hierarchy + featured polish
-- [ ] Tone down always-on featured glow
-- [ ] Keep featured “special” via subtle tint/border, stronger hover only
-- [ ] Improve card information hierarchy:
+- [x] Tone down always-on featured glow
+- [x] Keep featured “special” via subtle tint/border, stronger hover only
+- [x] Improve card information hierarchy:
   - Squad name
   - Mode/playstyle
   - Key tags
   - Member count
   - CTA row
-- [ ] Reduce tag clutter (show essentials first, hide extras)
-- [ ] Normalize CTA row spacing/alignment
+- [x] Reduce tag clutter (show essentials first, hide extras)
+- [x] Normalize CTA row spacing/alignment
 
 **Done when:**
 - Cards are faster to scan and feel more premium.
@@ -127,14 +127,14 @@
 ---
 
 ## Phase 8 — Visual system polish pass
-- [ ] Reduce heavy borders/boxed stacking
-- [ ] Reduce persistent glow intensity globally
-- [ ] Improve spacing rhythm (section gaps, card padding, text/button spacing)
-- [ ] Improve typography hierarchy:
+- [x] Reduce heavy borders/boxed stacking
+- [x] Reduce persistent glow intensity globally
+- [x] Improve spacing rhythm (section gaps, card padding, text/button spacing)
+- [x] Improve typography hierarchy:
   - less all-caps for major headings
   - clearer title case hierarchy
   - softer helper text
-- [ ] Keep palette disciplined (charcoal + white + muted gray + selective gold)
+- [x] Keep palette disciplined (charcoal + white + muted gray + selective gold)
 
 **Done when:**
 - UI feels calmer, cleaner, and intentional without losing tactical identity.

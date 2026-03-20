@@ -83,7 +83,7 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 items-center text-[10px] font-bold tracking-wider pt-1 h-[26px] overflow-hidden">
+                <div className="flex flex-wrap gap-2 items-center text-[10px] font-semibold tracking-wide pt-1 min-h-[26px]">
                     <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
                         {getPlatformIcon(platform)}
                         <span className="uppercase">{platform}</span>
@@ -94,12 +94,12 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
                     </div>
                     <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
                         <Users className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="uppercase">{audience}</span>
+                        <span className="uppercase">{normalize(audience) === 'open to all' ? 'Open' : 'Invite only'}</span>
                     </div>
                     {micRequired && (
                         <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
                             <Mic className="w-3.5 h-3.5 text-gray-400" />
-                            <span className="uppercase">Mic On</span>
+                            <span className="uppercase">Mic</span>
                         </div>
                     )}
                 </div>

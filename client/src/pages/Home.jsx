@@ -29,7 +29,7 @@ const SUPPORT_CONFIG = {
     email: 'coreybuchanan79@gmail.com'
 };
 
-const STANDOUT_HEADING_CLASS = 'text-xs font-black uppercase tracking-widest text-gray-500 mb-1';
+const STANDOUT_HEADING_CLASS = 'text-lg md:text-xl font-bold text-gray-100 mb-1';
 
 const Home = () => {
     const navigate = useNavigate();
@@ -269,7 +269,7 @@ const Home = () => {
                         </div>
                     </section>
                     <section className="space-y-3">
-                        <h2 className={STANDOUT_HEADING_CLASS}>Squads</h2>
+                        <h2 className={STANDOUT_HEADING_CLASS}>All Squads</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {Array(12).fill(0).map((_, i) => <SkeletonCard key={`ads-skeleton-${i}`} />)}
                         </div>
@@ -300,7 +300,7 @@ const Home = () => {
                     </section>
 
                     <section className="space-y-3">
-                        <h2 className={STANDOUT_HEADING_CLASS}>Squads</h2>
+                        <h2 className={STANDOUT_HEADING_CLASS}>All Squads</h2>
                         {visibleClanAds.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {visibleClanAds.map((squad) => (
