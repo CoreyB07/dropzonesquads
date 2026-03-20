@@ -91,7 +91,7 @@ const FilterDrawer = ({ filters, onChange }) => {
             {/* Trigger Button */}
             <button
                 onClick={() => setOpen(true)}
-                className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-military-gray bg-charcoal-light text-white text-sm font-black uppercase tracking-widest hover:border-tactical-yellow-hover hover:text-tactical-yellow-hover transition-all"
+                className="relative inline-flex min-h-11 items-center gap-2 rounded-xl border border-military-gray bg-charcoal-light px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.18em] text-white transition-all hover:border-tactical-yellow-hover hover:text-tactical-yellow-hover sm:px-5 sm:text-sm"
             >
                 <SlidersHorizontal className="w-4 h-4" />
                 Filters
@@ -114,7 +114,7 @@ const FilterDrawer = ({ filters, onChange }) => {
             <div
                 className={`fixed bottom-0 left-0 right-0 z-50 bg-[#111214] border-t border-military-gray rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${open ? 'translate-y-0' : 'translate-y-full'
                     }`}
-                style={{ maxHeight: '80vh' }}
+                style={{ maxHeight: '85vh' }}
             >
                 {/* Handle */}
                 <div className="flex justify-center pt-3 pb-1">
@@ -122,9 +122,9 @@ const FilterDrawer = ({ filters, onChange }) => {
                 </div>
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-military-gray">
+                <div className="flex items-center justify-between border-b border-military-gray px-4 py-4 sm:px-6">
                     <div>
-                        <h2 className="text-lg font-black uppercase tracking-widest text-white">Filters</h2>
+                        <h2 className="text-base sm:text-lg font-black uppercase tracking-[0.18em] text-white">Filters</h2>
                         {activeCount > 0 && (
                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
                                 {activeCount} active
@@ -135,7 +135,7 @@ const FilterDrawer = ({ filters, onChange }) => {
                         {activeCount > 0 && (
                             <button
                                 onClick={clearAll}
-                                className="text-xs font-black uppercase tracking-widest text-gray-400 hover:text-red-400 transition-colors"
+                                className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400 transition-colors hover:text-red-400"
                             >
                                 Clear All
                             </button>
@@ -150,7 +150,7 @@ const FilterDrawer = ({ filters, onChange }) => {
                 </div>
 
                 {/* Search inside drawer */}
-                <div className="px-6 py-3 border-b border-military-gray/50">
+                <div className="border-b border-military-gray/50 px-4 py-3 sm:px-6">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                         <input
@@ -164,7 +164,7 @@ const FilterDrawer = ({ filters, onChange }) => {
                 </div>
 
                 {/* Filter Categories */}
-                <div className="overflow-y-auto px-4 py-3 space-y-4" style={{ maxHeight: 'calc(72vh - 170px)' }}>
+                <div className="overflow-y-auto px-4 py-3 space-y-4 sm:px-5" style={{ maxHeight: 'calc(74vh - 170px)' }}>
                     {visibleCategories.map((cat) => (
                         <div key={cat.key}>
                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">
@@ -177,7 +177,7 @@ const FilterDrawer = ({ filters, onChange }) => {
                                         <button
                                             key={option}
                                             onClick={() => toggle(cat.key, option)}
-                                            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-black uppercase tracking-wider border transition-all ${selected
+                                            className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-2 text-[11px] font-black uppercase tracking-[0.16em] transition-all sm:px-4 sm:text-sm ${selected
                                                 ? 'bg-tactical-yellow text-black border-tactical-yellow'
                                                 : 'bg-transparent text-gray-300 border-military-gray hover:border-gray-400 hover:text-white'
                                                 }`}
@@ -199,10 +199,10 @@ const FilterDrawer = ({ filters, onChange }) => {
                 </div>
 
                 {/* Apply button */}
-                <div className="px-6 py-4 border-t border-military-gray">
+                <div className="border-t border-military-gray px-4 py-4 sm:px-6">
                     <button
                         onClick={() => setOpen(false)}
-                        className="w-full py-3 rounded-xl bg-tactical-yellow text-black font-black uppercase tracking-widest hover:bg-tactical-yellow-hover transition-colors"
+                        className="w-full rounded-xl bg-tactical-yellow py-3 text-sm font-black uppercase tracking-[0.18em] text-black transition-colors hover:bg-tactical-yellow-hover"
                     >
                         Show Results{activeCount > 0 ? ` · ${activeCount} filter${activeCount > 1 ? 's' : ''} active` : ''}
                     </button>

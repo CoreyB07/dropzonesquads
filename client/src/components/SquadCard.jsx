@@ -47,7 +47,7 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
 
     return (
         <div
-            className={`relative overflow-hidden cursor-default transition-all duration-200 p-4 sm:p-5 ${featured ? 'featured-card' : 'standard-squad-card'}`}
+            className={`relative overflow-hidden cursor-default transition-all duration-200 p-3.5 sm:p-5 ${featured ? 'featured-card' : 'standard-squad-card'}`}
         >
             {featured && <div className="absolute top-0 left-0 h-[2px] w-full bg-premium-gold/70" />}
 
@@ -57,10 +57,10 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
                         {featured && (
                             <span className="featured-badge mb-2 block w-max">Featured</span>
                         )}
-                        <h3 className="text-lg sm:text-xl font-bold text-gray-100 leading-tight line-clamp-2" title={name}>
+                        <h3 className="text-base sm:text-xl font-bold text-gray-100 leading-tight line-clamp-2" title={name}>
                             <SquadNameText name={name} />
                         </h3>
-                        <p className="text-xs sm:text-sm text-gray-400 mt-1 truncate">
+                        <p className="mt-1 truncate text-[11px] text-gray-400 sm:text-sm">
                             {gameMode} / {skillLevel}
                         </p>
                         {!isOpen && (
@@ -70,7 +70,7 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
                             </p>
                         )}
                     </div>
-                    <div className={`shrink-0 px-2 py-1 rounded-md border text-[10px] font-semibold ${featured
+                    <div className={`shrink-0 rounded-md border px-2 py-1 text-[9px] font-semibold sm:text-[10px] ${featured
                         ? 'bg-premium-gold/12 text-premium-gold-soft border-premium-gold-bright/35'
                         : 'bg-charcoal-dark border-military-gray text-gray-300'
                         }`}>
@@ -78,31 +78,31 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 items-center text-[10px] font-semibold tracking-wide pt-1 min-h-[26px]">
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
+                <div className="flex min-h-[24px] flex-wrap items-center gap-1.5 pt-1 text-[9px] font-semibold tracking-[0.14em] sm:gap-2 sm:text-[10px]">
+                    <div className="flex shrink-0 items-center gap-1.5 rounded border border-military-gray bg-charcoal-dark/50 px-2 py-1 text-gray-300">
                         {getPlatformIcon(platform)}
                         <span className="uppercase">{platform}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
+                    <div className="flex shrink-0 items-center gap-1.5 rounded border border-military-gray bg-charcoal-dark/50 px-2 py-1 text-gray-300">
                         <MessageCircle className="w-3.5 h-3.5 text-gray-400" />
                         <span className="uppercase">{comms}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
+                    <div className="flex shrink-0 items-center gap-1.5 rounded border border-military-gray bg-charcoal-dark/50 px-2 py-1 text-gray-300">
                         <Users className="w-3.5 h-3.5 text-gray-400" />
                         <span className="uppercase">{normalize(audience) === 'open to all' ? 'Open' : 'Invite only'}</span>
                     </div>
                     {micRequired && (
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 shrink-0 rounded border border-military-gray bg-charcoal-dark/50 text-gray-300">
+                        <div className="flex shrink-0 items-center gap-1.5 rounded border border-military-gray bg-charcoal-dark/50 px-2 py-1 text-gray-300">
                             <Mic className="w-3.5 h-3.5 text-gray-400" />
                             <span className="uppercase">Mic</span>
                         </div>
                     )}
                 </div>
 
-                <div className="pt-3 mt-1 border-t border-military-gray/50 flex items-center gap-2">
+                <div className="mt-1 flex flex-col gap-2 border-t border-military-gray/50 pt-3 sm:flex-row sm:items-center">
                     <button
                         onClick={(e) => { e.stopPropagation(); handleCardOpen(); }}
-                        className="flex-1 py-2.5 text-[12px] font-semibold rounded-md border border-military-gray bg-charcoal-dark text-gray-100"
+                        className="min-h-11 flex-1 rounded-lg border border-military-gray bg-charcoal-dark px-4 py-2.5 text-[12px] font-semibold text-gray-100"
                     >
                         View Squad
                     </button>
@@ -112,14 +112,14 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
                                 e.stopPropagation();
                                 navigate(`/squad/${squad.id}/chat`, { state: { from: location.pathname } });
                             }}
-                            className="px-3 py-2.5 text-[12px] font-semibold rounded-md bg-tactical-yellow text-charcoal-dark flex items-center gap-1.5"
+                            className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-tactical-yellow px-4 py-2.5 text-[12px] font-semibold text-charcoal-dark sm:w-auto"
                         >
                             <MessageSquare className="w-3.5 h-3.5" /> Chat
                         </button>
                     ) : canJoin ? (
                         <button
                             onClick={(e) => { e.stopPropagation(); onJoin(squad); }}
-                            className="px-3 py-2.5 text-[12px] font-semibold rounded-md border border-military-gray bg-charcoal-dark text-gray-200"
+                            className="min-h-11 w-full rounded-lg border border-military-gray bg-charcoal-dark px-4 py-2.5 text-[12px] font-semibold text-gray-200 sm:w-auto"
                         >
                             Join
                         </button>

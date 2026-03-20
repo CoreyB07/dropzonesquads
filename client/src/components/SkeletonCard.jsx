@@ -2,7 +2,7 @@ import React from 'react';
 
 const SkeletonCard = () => {
     return (
-        <div className="card-tactical space-y-4 animate-pulse">
+        <div className="card-tactical space-y-4 p-4 animate-pulse sm:p-6">
             <div className="flex justify-between items-start pt-2">
                 <div className="space-y-3 w-2/3">
                     <div className="h-4 bg-military-gray/40 rounded w-1/4"></div>
@@ -28,9 +28,9 @@ const SkeletonCard = () => {
                 <div className="h-4 w-20 bg-military-gray/50 rounded"></div>
             </div>
 
-            <div className="flex gap-3 pt-4 border-t border-military-gray/30 mt-4">
-                <div className="flex-1 h-12 bg-military-gray/20 rounded-xl"></div>
-                <div className="w-12 h-12 bg-military-gray/20 rounded-xl"></div>
+            <div className="mt-4 flex flex-col gap-3 border-t border-military-gray/30 pt-4 sm:flex-row">
+                <div className="h-11 flex-1 rounded-xl bg-military-gray/20"></div>
+                <div className="h-11 w-full rounded-xl bg-military-gray/20 sm:w-24"></div>
             </div>
         </div>
     );

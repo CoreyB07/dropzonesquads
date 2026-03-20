@@ -29,7 +29,15 @@ const SUPPORT_CONFIG = {
     email: 'coreybuchanan79@gmail.com'
 };
 
-const STANDOUT_HEADING_CLASS = 'text-lg md:text-xl font-bold text-gray-100 mb-1';
+const STANDOUT_HEADING_CLASS = 'text-xl sm:text-2xl font-black tracking-tight text-gray-100';
+const SECTION_SHELL_CLASS = 'relative overflow-hidden rounded-[1.5rem] border border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm';
+const SECTION_INNER_GLOW = 'absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent';
+const VALUE_PROPS = [
+    'Find squads faster by mode, platform, and playstyle.',
+    'Post your own squad and set the vibe you want.',
+    'Keep core matchmaking free and open to everyone.',
+    'Join active squads and coordinate without the noise.'
+];
 
 const Home = () => {
     const navigate = useNavigate();
@@ -137,138 +145,190 @@ const Home = () => {
     ];
 
     const checklistCompleted = firstRunTasks.every((task) => task.done);
+    const openSquadCount = prioritized.featured.length + prioritized.remainingOpen.length;
+    const heroStats = [
+        { value: loading ? '...' : String(openSquadCount), label: 'Open squads' },
+        { value: loading ? '...' : String(prioritized.featured.length), label: 'Featured picks' },
+        { value: activeCount > 0 ? String(activeCount) : '0', label: 'Active filters' }
+    ];
 
 
     return (
-        <div className="space-y-12">
+        <div className="relative space-y-8 sm:space-y-12">
+            <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+                <div className="absolute left-1/2 top-0 h-64 w-64 -translate-x-[70%] rounded-full bg-tactical-yellow/10 blur-3xl sm:h-96 sm:w-96" />
+                <div className="absolute -left-20 top-[30%] h-52 w-52 rounded-full bg-white/[0.04] blur-3xl sm:h-72 sm:w-72" />
+                <div className="absolute -right-16 top-[55%] h-56 w-56 rounded-full bg-premium-gold/10 blur-3xl sm:h-80 sm:w-80" />
+                <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+            </div>
+
             {/* Hero Section */}
-            <section className="relative min-h-[560px] flex items-center justify-center overflow-hidden rounded-3xl border border-military-gray/70">
+            <section className="relative isolate overflow-hidden rounded-[1.75rem] border border-white/8 min-h-[470px] shadow-[0_28px_70px_rgba(0,0,0,0.38)] sm:min-h-[560px]">
                 <div
-                    className="absolute inset-0 bg-cover bg-center z-0"
+                    className="absolute inset-0 z-0 scale-[1.06] bg-cover bg-center sm:scale-100"
                     style={{
                         backgroundImage: 'url("/warzonehero.png")',
-                        filter: 'brightness(0.42) grayscale(0.45)'
+                        filter: 'brightness(0.38) grayscale(0.32) saturate(0.9)'
                     }}
                 />
-                <div className="relative z-10 text-center space-y-5 px-4 max-w-3xl">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-premium-gold/25 bg-black/45 backdrop-blur-sm text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-premium-gold-soft">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        Free Core Matchmaking
-                    </span>
-                    <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tight text-white drop-shadow-2xl">
-                        Find Your <span className="text-premium-glow inline-block" data-text="Warzone">Warzone</span> Squad
-                    </h1>
-                    <p className="text-lg md:text-2xl text-gray-300 max-w-2xl mx-auto font-medium leading-relaxed">
-                        Stop dropping with randoms. Find Warzone teammates that match your mode, vibe, and playstyle.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                        <button
-                            onClick={() => navigate('/find')}
-                            className="bg-tactical-yellow text-charcoal-dark font-black py-3.5 px-9 rounded-md hover:bg-tactical-yellow-hover transition-colors uppercase tracking-wider text-base"
-                        >
-                            Find a Squad
-                        </button>
-                        <button
-                            onClick={() => navigate('/post')}
-                            className="bg-tactical-yellow/10 hover:bg-tactical-yellow/20 text-tactical-yellow font-black py-3.5 px-9 rounded-md transition-all backdrop-blur-md border border-tactical-yellow/35 hover:border-tactical-yellow-hover uppercase tracking-wider text-base"
-                        >
-                            Post a Squad
-                        </button>
+                <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(217,119,6,0.32),transparent_33%),radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.08),transparent_32%),linear-gradient(180deg,rgba(5,5,5,0.04),rgba(5,5,5,0.86))]" />
+                <div className="absolute inset-0 z-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.08)_0%,transparent_16%,transparent_82%,rgba(255,255,255,0.04)_100%)]" />
+                <div className="absolute inset-0 z-0 bg-gradient-to-t from-charcoal-dark via-black/20 to-transparent" />
+                <div className="absolute inset-x-0 top-0 z-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                <div className="absolute bottom-0 right-0 z-0 h-40 w-40 translate-x-10 translate-y-10 rounded-full border border-white/10" />
+                <div className="absolute left-0 top-16 z-0 h-28 w-28 -translate-x-10 rounded-full border border-premium-gold/15" />
+
+                <div className="relative z-10 flex min-h-[470px] items-center px-4 py-10 sm:min-h-[560px] sm:px-6 sm:py-14">
+                    <div className="mx-auto w-full max-w-4xl text-center">
+                        <div className="mx-auto flex max-w-3xl flex-col items-center space-y-4 sm:space-y-5">
+                            <span className="inline-flex items-center gap-2 rounded-full border border-premium-gold/25 bg-black/45 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-premium-gold-soft backdrop-blur-sm sm:px-4 sm:text-xs">
+                                <ShieldCheck className="h-3.5 w-3.5" />
+                                Free Core Matchmaking
+                            </span>
+                            <h1 className="max-w-3xl text-[2.7rem] font-black uppercase leading-[0.88] tracking-[-0.04em] text-white drop-shadow-2xl sm:text-5xl md:text-7xl">
+                                Find Your <span className="text-premium-glow inline-block" data-text="Warzone">Warzone</span> Squad
+                            </h1>
+                            <p className="max-w-2xl text-sm font-medium leading-6 text-gray-300 sm:text-lg sm:leading-8 md:text-2xl">
+                                Stop dropping with randoms. Find Warzone teammates that match your mode, vibe, and playstyle.
+                            </p>
+
+                            <div className="flex w-full max-w-xl flex-col gap-3 pt-2 sm:flex-row sm:justify-center">
+                                <button
+                                    onClick={() => navigate('/find')}
+                                    className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-tactical-yellow px-6 py-3.5 text-sm font-black uppercase tracking-[0.18em] text-charcoal-dark transition-colors hover:bg-tactical-yellow-hover sm:w-auto sm:px-8"
+                                >
+                                    Find a Squad
+                                </button>
+                                <button
+                                    onClick={() => navigate('/post')}
+                                    className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-tactical-yellow/35 bg-tactical-yellow/10 px-6 py-3.5 text-sm font-black uppercase tracking-[0.18em] text-tactical-yellow transition-all hover:border-tactical-yellow-hover hover:bg-tactical-yellow/20 sm:w-auto sm:px-8"
+                                >
+                                    Post a Squad
+                                </button>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => navigate('/find')}
+                                className="text-xs font-bold uppercase tracking-[0.16em] text-gray-300 underline underline-offset-4 transition-colors hover:text-white sm:text-sm"
+                            >
+                                How it works
+                            </button>
+                        </div>
+
+                        <div className="mx-auto mt-6 grid max-w-3xl grid-cols-1 gap-2.5 sm:mt-8 sm:grid-cols-3 sm:gap-3">
+                            {heroStats.map((stat) => (
+                                <div
+                                    key={stat.label}
+                                    className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-4 py-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md"
+                                >
+                                    <p className="text-xl font-black text-white sm:text-2xl">{stat.value}</p>
+                                    <p className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-gray-400 sm:text-[11px]">
+                                        {stat.label}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => navigate('/find')}
-                        className="text-sm text-gray-300 hover:text-white underline underline-offset-4"
-                    >
-                        How it works
-                    </button>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-dark via-black/10 to-transparent z-5" />
             </section>
 
             {!checklistDismissed && !checklistCompleted && (
-                <section className="card-tactical space-y-4">
-                    <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                            <CheckSquare className="w-5 h-5 text-tactical-yellow" />
-                            <h2 className="text-base font-bold text-white">Quick start</h2>
-                        </div>
-                        <p className="text-xs text-gray-400">Getting started: {firstRunTasks.filter(t => t.done).length} of {firstRunTasks.length} complete</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {firstRunTasks.map((task) => (
-                            <div key={task.id} className="rounded-lg border border-military-gray/70 bg-charcoal-dark/60 p-4 space-y-3">
-                                <p className={`text-sm font-semibold ${task.done ? 'text-green-300' : 'text-white'}`}>{task.label}</p>
-                                <p className="text-xs text-gray-500">{task.done ? 'Complete' : 'Recommended next step'}</p>
-                                <button
-                                    type="button"
-                                    onClick={task.action}
-                                    className="btn-tactical text-[11px] py-2 px-3"
-                                >
-                                    {task.cta}
-                                </button>
+                <section className={`${SECTION_SHELL_CLASS} p-4 sm:p-6`}>
+                    <div className={SECTION_INNER_GLOW} />
+                    <div className="relative space-y-4">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tactical-yellow">Onboarding</p>
+                                <div className="mt-2 flex items-center gap-2">
+                                    <CheckSquare className="w-5 h-5 text-tactical-yellow" />
+                                    <h2 className="text-base font-bold text-white">Quick start</h2>
+                                </div>
                             </div>
-                        ))}
+                            <p className="text-xs text-gray-400">Getting started: {firstRunTasks.filter(t => t.done).length} of {firstRunTasks.length} complete</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {firstRunTasks.map((task) => (
+                                <div key={task.id} className="rounded-xl border border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] p-4 space-y-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                    <p className={`text-sm font-semibold ${task.done ? 'text-green-300' : 'text-white'}`}>{task.label}</p>
+                                    <p className="text-xs text-gray-500">{task.done ? 'Complete' : 'Recommended next step'}</p>
+                                    <button
+                                        type="button"
+                                        onClick={task.action}
+                                        className="btn-tactical w-full sm:w-auto text-[11px] py-2.5 px-3"
+                                    >
+                                        {task.cta}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                localStorage.setItem('dzs_checklist_dismissed', 'true');
+                                setChecklistDismissed(true);
+                                trackUxEvent('checklist_dismissed');
+                            }}
+                            className="text-xs text-gray-500 hover:text-white"
+                        >
+                            Dismiss quick start
+                        </button>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            localStorage.setItem('dzs_checklist_dismissed', 'true');
-                            setChecklistDismissed(true);
-                            trackUxEvent('checklist_dismissed');
-                        }}
-                        className="text-xs text-gray-500 hover:text-white"
-                    >
-                        Dismiss quick start
-                    </button>
                 </section>
             )}
 
-            <section className="card-tactical space-y-3">
-                <div className="flex flex-wrap items-center gap-3 justify-between">
-                    <h2 className="text-sm font-bold text-white">Filters</h2>
-                    <FilterDrawer filters={filters} onChange={setFilters} />
-                </div>
-                {activeCount > 0 && (
-                    <div className="flex flex-wrap items-center gap-2">
-                        {Object.entries(filters).flatMap(([key, values]) =>
-                            values.map(v => (
-                                <span
-                                    key={`${key}-${v}`}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-charcoal-dark border border-military-gray text-gray-300 text-xs font-semibold"
-                                >
-                                    {v}
-                                    <button
-                                        onClick={() => setFilters(f => ({
-                                            ...f,
-                                            [key]: f[key].filter(x => x !== v)
-                                        }))}
-                                        className="text-gray-500 hover:text-red-400 leading-none"
-                                    >
-                                        ×
-                                    </button>
-                                </span>
-                            ))
-                        )}
-                        <button
-                            onClick={() => setFilters(DEFAULT_FILTERS)}
-                            className="text-xs text-gray-400 hover:text-red-400 transition-colors"
-                        >
-                            Clear all
-                        </button>
+            <section className={`${SECTION_SHELL_CLASS} p-4 sm:p-6`}>
+                <div className={SECTION_INNER_GLOW} />
+                <div className="relative space-y-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tactical-yellow">Discover</p>
+                            <h2 className="mt-2 text-sm font-bold uppercase tracking-[0.18em] text-white">Filters</h2>
+                            <p className="mt-1 text-xs text-gray-500">Dial in platform, mode, and squad vibe before you browse.</p>
+                        </div>
+                        <FilterDrawer filters={filters} onChange={setFilters} />
                     </div>
-                )}
+                    {activeCount > 0 && (
+                        <div className="flex flex-wrap items-center gap-2">
+                            {Object.entries(filters).flatMap(([key, values]) =>
+                                values.map(v => (
+                                    <span
+                                        key={`${key}-${v}`}
+                                        className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-black/25 px-3 py-1 text-xs font-semibold text-gray-300"
+                                    >
+                                        {v}
+                                        <button
+                                            onClick={() => setFilters(f => ({
+                                                ...f,
+                                                [key]: f[key].filter(x => x !== v)
+                                            }))}
+                                            className="text-gray-500 hover:text-red-400 leading-none"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ))
+                            )}
+                            <button
+                                onClick={() => setFilters(DEFAULT_FILTERS)}
+                                className="text-xs text-gray-400 hover:text-red-400 transition-colors"
+                            >
+                                Clear all
+                            </button>
+                        </div>
+                    )}
+                </div>
             </section>
 
             {loading ? (
                 <div className="space-y-8">
-                    <section className="space-y-3">
+                    <section className="space-y-4">
                         <h2 className={STANDOUT_HEADING_CLASS}>Featured Squads</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             {Array(4).fill(0).map((_, i) => <SkeletonCard key={`featured-skeleton-${i}`} />)}
                         </div>
                     </section>
-                    <section className="space-y-3">
+                    <section className="space-y-4">
                         <h2 className={STANDOUT_HEADING_CLASS}>All Squads</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {Array(12).fill(0).map((_, i) => <SkeletonCard key={`ads-skeleton-${i}`} />)}
@@ -277,87 +337,115 @@ const Home = () => {
                 </div>
             ) : (
                 <div className="space-y-8">
-                    <section className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <h2 className={STANDOUT_HEADING_CLASS}>Featured Squads</h2>
+                    <section className={`${SECTION_SHELL_CLASS} p-4 sm:p-6`}>
+                        <div className={SECTION_INNER_GLOW} />
+                        <div className="relative space-y-4">
+                            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tactical-yellow">Highlighted</p>
+                                    <h2 className={`${STANDOUT_HEADING_CLASS} mt-2`}>Featured Squads</h2>
+                                </div>
+                                <p className="text-sm text-gray-500">Best-performing open squads rise to the top.</p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {prioritized.featured.length > 0 ? (
+                                    prioritized.featured.map((squad) => (
+                                        <SquadCard
+                                            key={squad.id}
+                                            squad={squad}
+                                            featured
+                                            onJoin={(picked) => setSelectedSquad(picked)}
+                                        />
+                                    ))
+                                ) : (
+                                    <div className="col-span-full rounded-3xl border border-dashed border-military-gray bg-black/20 py-10 text-center font-bold uppercase tracking-widest text-gray-500">
+                                        No open squads match current filters
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {prioritized.featured.length > 0 ? (
-                                prioritized.featured.map((squad) => (
-                                    <SquadCard
-                                        key={squad.id}
-                                        squad={squad}
-                                        featured
-                                        onJoin={(picked) => setSelectedSquad(picked)}
-                                    />
-                                ))
+                    </section>
+
+                    <section className={`${SECTION_SHELL_CLASS} p-4 sm:p-6`}>
+                        <div className={SECTION_INNER_GLOW} />
+                        <div className="relative space-y-4">
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tactical-yellow">Browse</p>
+                                <h2 className={`${STANDOUT_HEADING_CLASS} mt-2`}>All Squads</h2>
+                            </div>
+                            {visibleClanAds.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {visibleClanAds.map((squad) => (
+                                        <SquadCard
+                                            key={squad.id}
+                                            squad={squad}
+                                            onJoin={(picked) => setSelectedSquad(picked)}
+                                        />
+                                    ))}
+                                </div>
                             ) : (
-                                <div className="col-span-full text-center py-10 text-gray-500 font-bold uppercase tracking-widest bg-charcoal-light/50 rounded-3xl border border-dashed border-military-gray">
-                                    No open squads match current filters
+                                <div className="col-span-full rounded-3xl border border-dashed border-military-gray bg-black/20 py-10 text-center font-bold uppercase tracking-widest text-gray-500">
+                                    No squads right now - check back soon
+                                </div>
+                            )}
+                            {hasMoreAds && (
+                                <div className="pt-4 text-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowMoreAds((prev) => !prev)}
+                                        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] px-6 py-3 text-xs font-black uppercase tracking-[0.18em] text-white transition-all hover:border-tactical-yellow-hover hover:text-tactical-yellow-hover sm:px-8 sm:text-sm"
+                                    >
+                                        {showMoreAds ? 'Show Less' : 'See More Squads'}
+                                    </button>
                                 </div>
                             )}
                         </div>
                     </section>
 
-                    <section className="space-y-3">
-                        <h2 className={STANDOUT_HEADING_CLASS}>All Squads</h2>
-                        {visibleClanAds.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {visibleClanAds.map((squad) => (
-                                    <SquadCard
-                                        key={squad.id}
-                                        squad={squad}
-                                        onJoin={(picked) => setSelectedSquad(picked)}
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="col-span-full text-center py-10 text-gray-500 font-bold uppercase tracking-widest bg-charcoal-light/50 rounded-3xl border border-dashed border-military-gray">
-                                No squads right now — check back soon
-                            </div>
-                        )}
-                        {hasMoreAds && (
-                            <div className="pt-4 text-center">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowMoreAds((prev) => !prev)}
-                                    className="inline-flex items-center gap-2 px-8 py-3 rounded-xl border border-military-gray bg-charcoal-light text-white text-sm font-black uppercase tracking-widest hover:border-tactical-yellow-hover hover:text-tactical-yellow-hover transition-all"
-                                >
-                                    {showMoreAds ? 'Show Less' : 'See More Squads'}
-                                </button>
-                            </div>
-                        )}
-                    </section>
-
                     {prioritized.featured.length === 0 &&
                         allClanAds.length === 0 && (
-                            <div className="col-span-full text-center py-20 text-gray-500 font-bold uppercase tracking-widest bg-charcoal-light/50 rounded-3xl border border-dashed border-military-gray">
+                            <div className="col-span-full rounded-3xl border border-dashed border-military-gray bg-black/20 py-20 text-center font-bold uppercase tracking-widest text-gray-500">
                                 No ads found for current filters
                             </div>
                         )}
                 </div>
             )}
 
-            <section className="card-tactical space-y-4">
-                <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-tactical-yellow" />
-                    <h2 className="text-sm font-black uppercase tracking-widest text-gray-200">Why players use Drop Zone Squads</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-300">
-                    <p>• Find squads faster by mode, platform, and playstyle.</p>
-                    <p>• Post your own squad and set the vibe you want.</p>
-                    <p>• Keep core matchmaking free and open to everyone.</p>
-                    <p>• Join active squads and coordinate without the noise.</p>
+            <section className={`${SECTION_SHELL_CLASS} p-4 sm:p-6`}>
+                <div className={SECTION_INNER_GLOW} />
+                <div className="relative space-y-4">
+                    <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tactical-yellow">Why it works</p>
+                        <div className="mt-2 flex items-center gap-2">
+                            <ShieldCheck className="w-5 h-5 text-tactical-yellow" />
+                            <h2 className="text-sm font-black uppercase tracking-widest text-gray-200">Why players use Drop Zone Squads</h2>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        {VALUE_PROPS.map((valueProp, index) => (
+                            <div
+                                key={valueProp}
+                                className="rounded-xl border border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] px-4 py-3 text-sm leading-6 text-gray-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                            >
+                                <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-tactical-yellow/80">0{index + 1}</p>
+                                {valueProp}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </section>
 
-            <footer className="pt-2 pb-6 border-t border-military-gray/60 text-xs text-gray-400 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <p>Drop Zone Squads is free to use. Optional donations help cover hosting and development.</p>
-                <div className="flex flex-wrap items-center gap-3">
-                    <a href={SUPPORT_CONFIG.paypalUrl} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Support the Site</a>
-                    <a href={SUPPORT_CONFIG.cashAppUrl} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Donate</a>
-                    <a href={`mailto:${SUPPORT_CONFIG.email}`} className="hover:text-white transition-colors">Contact</a>
-                    <button onClick={() => navigate('/privacy')} className="hover:text-white transition-colors">Privacy</button>
+            <footer className="border-t border-military-gray/60 pt-2 pb-6 text-xs text-gray-400">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="max-w-2xl leading-5">
+                        Drop Zone Squads is free to use. Optional donations help cover hosting and development.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                        <a href={SUPPORT_CONFIG.paypalUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-military-gray px-3 py-1.5 hover:text-white transition-colors">Support the Site</a>
+                        <a href={SUPPORT_CONFIG.cashAppUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-military-gray px-3 py-1.5 hover:text-white transition-colors">Donate</a>
+                        <a href={`mailto:${SUPPORT_CONFIG.email}`} className="inline-flex rounded-full border border-military-gray px-3 py-1.5 hover:text-white transition-colors">Contact</a>
+                        <button onClick={() => navigate('/privacy')} className="inline-flex rounded-full border border-military-gray px-3 py-1.5 hover:text-white transition-colors">Privacy</button>
+                    </div>
                 </div>
             </footer>
 

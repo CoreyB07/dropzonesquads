@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Crosshair, LayoutDashboard, LogIn, UserPlus, Mail, Users, Info } from 'lucide-react';
+import { Crosshair, LayoutDashboard, LogIn, UserPlus, Mail, Users, Info, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useMySquads } from '../context/MySquadsContext';
 import { supabase } from '../utils/supabase';
@@ -12,6 +12,7 @@ const Navbar = () => {
     const { mySquads } = useMySquads();
     const location = useLocation();
     const [unreadCount, setUnreadCount] = useState(0);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const getUnreadFromSquadMessages = useCallback(async (userId) => {
         if (!supabase) {
@@ -197,107 +198,202 @@ const Navbar = () => {
         };
     }, [user, isSupabaseReady, getUnreadFromDirectMessages, getUnreadFromSquadMessages, mySquads]);
 
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location.pathname]);
+
     const hasUnread = unreadCount > 0;
     const displayUnreadCount = unreadCount > 9 ? '9+' : String(unreadCount);
+    const utilityLinkClass = 'inline-flex items-center justify-center gap-2 rounded-xl border border-military-gray bg-charcoal-dark/80 px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-gray-200 transition-all hover:border-white/25 hover:bg-military-gray/40 hover:text-white';
+    const primaryActionClass = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-charcoal-dark transition-all hover:bg-[#fff1c8]';
+    const profileActionClass = 'inline-flex items-center gap-2 rounded-xl border border-military-gray bg-military-gray/30 px-4 py-2 transition-all hover:bg-military-gray/50';
 
     return (
         <nav className="bg-charcoal-light border-b border-military-gray sticky top-0 z-50">
-            <div className="container mx-auto px-3 sm:px-4 flex justify-between items-center h-16 gap-2">
-                <Link to="/" className="flex items-center gap-1.5 sm:gap-2 text-tactical-yellow font-bold text-lg sm:text-xl uppercase tracking-tighter shrink-0">
-                    <Crosshair className="w-8 h-8" />
-                    <span className="hidden md:inline">Drop Zone Squads</span>
-                </Link>
+            <div className="container mx-auto px-3 sm:px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                    <Link to="/" className="flex min-w-0 items-center gap-2 text-tactical-yellow font-bold text-base sm:text-xl uppercase tracking-tight shrink">
+                        <Crosshair className="w-8 h-8" />
+                        <span className="truncate md:hidden">Drop Zone</span>
+                        <span className="hidden md:inline">Drop Zone Squads</span>
+                    </Link>
 
-                {/* Central Navigation */}
-                <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-                    {loading ? (
-                        <div className="text-xs font-black uppercase tracking-widest text-gray-500">
-                            Syncing...
-                        </div>
-                    ) : user ? (
-                        <div className="flex items-center gap-4 text-sm font-bold uppercase tracking-widest text-gray-400">
-                            {user?.isAdmin && (
+                    <div className="hidden min-w-0 items-center gap-3 md:flex">
+                        {loading ? (
+                            <div className="text-xs font-black uppercase tracking-widest text-gray-500">
+                                Syncing...
+                            </div>
+                        ) : user ? (
+                            <div className="flex items-center gap-3 text-sm font-bold uppercase tracking-widest text-gray-400">
+                                {user?.isAdmin && (
+                                    <Link
+                                        to="/admin"
+                                        className={utilityLinkClass}
+                                    >
+                                        <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest">
+                                            <LayoutDashboard className="w-3.5 h-3.5" />
+                                            Admin
+                                        </span>
+                                    </Link>
+                                )}
                                 <Link
-                                    to="/admin"
-                                    className="bg-charcoal-dark hover:bg-military-gray/40 px-3 py-2 rounded-md transition-all border border-military-gray text-gray-300 hover:text-white"
+                                    to="/privacy"
+                                    className={utilityLinkClass}
+                                    title="Privacy & Info"
                                 >
                                     <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest">
-                                        <LayoutDashboard className="w-3.5 h-3.5" />
-                                        Admin
+                                        <Info className="w-3.5 h-3.5" />
+                                        Privacy
                                     </span>
                                 </Link>
-                            )}
-                            <Link
-                                to="/privacy"
-                                className="bg-charcoal-dark hover:bg-military-gray/40 px-3 py-2 rounded-md transition-all border border-military-gray text-white"
-                                title="Privacy & Info"
-                            >
-                                <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest">
-                                    <Info className="w-3.5 h-3.5" />
-                                    Privacy
-                                </span>
-                            </Link>
-                            <Link
-                                to="/my-squads"
-                                className="bg-charcoal-dark hover:bg-military-gray/40 px-3 py-2 rounded-md transition-all border border-military-gray text-white"
-                                title="My Squads"
-                            >
-                                <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest">
-                                    <Users className="w-3.5 h-3.5" />
-                                    My Squads
-                                </span>
-                            </Link>
+                                <Link
+                                    to="/my-squads"
+                                    className={utilityLinkClass}
+                                    title="My Squads"
+                                >
+                                    <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest">
+                                        <Users className="w-3.5 h-3.5" />
+                                        My Squads
+                                    </span>
+                                </Link>
+                                <Link
+                                    to="/inbox"
+                                    className={`relative inline-flex items-center gap-2 rounded-xl border px-3 py-2 transition-all ${hasUnread && location.pathname !== '/inbox'
+                                        ? 'bg-white/10 border-white/30 text-white shadow-[0_0_16px_rgba(255,255,255,0.1)]'
+                                        : 'border-military-gray bg-charcoal-dark/80 text-white hover:border-white/25 hover:bg-military-gray/40'
+                                        }`}
+                                    title="Direct Messages"
+                                >
+                                    <Mail className="w-4 h-4" />
+                                    {hasUnread && location.pathname !== '/inbox' && (
+                                        <span className="absolute -top-2 -right-2 min-w-[1.15rem] h-[1.15rem] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black leading-none ring-2 ring-charcoal-light">
+                                            {displayUnreadCount}
+                                        </span>
+                                    )}
+                                </Link>
+
+                                <Link to="/profile" className={profileActionClass}>
+                                    <span className="font-bold text-xs uppercase flex items-center gap-1.5 transition-colors text-gray-300">
+                                        {user?.isSupporter && <SupporterBadge />}
+                                        <span
+                                            className={user?.isSupporter ? 'text-premium-glow inline-block' : ''}
+                                            data-text={user?.isSupporter ? user.username : undefined}
+                                        >
+                                            {user.username}
+                                        </span>
+                                    </span>
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 rounded-2xl border border-military-gray bg-charcoal-dark/70 p-1.5 shrink-0">
+                                <Link
+                                    to="/auth?mode=login"
+                                    className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-gray-300 transition-all hover:bg-white/5 hover:text-white"
+                                >
+                                    <LogIn className="w-4 h-4" />
+                                    <span>Log In</span>
+                                </Link>
+                                <Link
+                                    to="/auth?mode=signup"
+                                    className={primaryActionClass}
+                                >
+                                    <UserPlus className="w-4 h-4" />
+                                    <span>Sign Up</span>
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-2 md:hidden">
+                        {user && !loading && (
                             <Link
                                 to="/inbox"
-                                className={`relative px-3 py-2 rounded-md transition-all border flex items-center gap-2 ${hasUnread && location.pathname !== '/inbox'
-                                    ? 'bg-white/10 border-white/30 text-white shadow-[0_0_16px_rgba(255,255,255,0.1)]'
-                                    : 'bg-charcoal-dark hover:bg-military-gray/40 border-military-gray text-white'
+                                className={`relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${hasUnread && location.pathname !== '/inbox'
+                                    ? 'bg-white/10 border-white/30 text-white shadow-[0_0_16px_rgba(255,255,255,0.12)]'
+                                    : 'border-military-gray bg-charcoal-dark/80 text-white'
                                     }`}
-                                title="Direct Messages"
+                                aria-label="Open inbox"
                             >
                                 <Mail className="w-4 h-4" />
                                 {hasUnread && location.pathname !== '/inbox' && (
-                                    <span className="absolute -top-2 -right-2 min-w-[1.15rem] h-[1.15rem] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black leading-none ring-2 ring-charcoal-light">
+                                    <span className="absolute -top-1 -right-1 min-w-[1.15rem] h-[1.15rem] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black leading-none ring-2 ring-charcoal-light">
                                         {displayUnreadCount}
                                     </span>
                                 )}
                             </Link>
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => setIsMobileMenuOpen((open) => !open)}
+                            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-military-gray bg-charcoal-dark/80 text-white transition-all hover:border-white/25 hover:bg-military-gray/40"
+                            aria-expanded={isMobileMenuOpen}
+                            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                        >
+                            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                        </button>
+                    </div>
+                </div>
 
-                            {/* Consolidated Inbox */}
+                {isMobileMenuOpen && (
+                    <div className="mt-3 md:hidden">
+                        <div className="rounded-[1.4rem] border border-military-gray/80 bg-[#0f1012]/95 p-3 shadow-[0_18px_48px_rgba(0,0,0,0.42)] backdrop-blur-xl">
+                            {loading ? (
+                                <div className="px-2 py-3 text-xs font-black uppercase tracking-widest text-gray-500">
+                                    Syncing...
+                                </div>
+                            ) : user ? (
+                                <div className="space-y-3">
+                                    <Link to="/profile" className={`${profileActionClass} w-full justify-between`}>
+                                        <span className="font-bold text-xs uppercase flex items-center gap-1.5 transition-colors text-gray-300">
+                                            {user?.isSupporter && <SupporterBadge />}
+                                            <span
+                                                className={user?.isSupporter ? 'text-premium-glow inline-block' : ''}
+                                                data-text={user?.isSupporter ? user.username : undefined}
+                                            >
+                                                {user.username}
+                                            </span>
+                                        </span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-500">Profile</span>
+                                    </Link>
 
-                            <Link to="/profile" className="flex items-center gap-2 bg-military-gray/30 hover:bg-military-gray/50 px-4 py-2 rounded-md transition-all border border-military-gray">
-                                <span className="font-bold text-xs uppercase flex items-center gap-1.5 transition-colors text-gray-300">
-                                    {user?.isSupporter && <SupporterBadge />}
-                                    <span
-                                        className={user?.isSupporter ? 'text-premium-glow inline-block' : ''}
-                                        data-text={user?.isSupporter ? user.username : undefined}
-                                    >
-                                        {user.username}
-                                    </span>
-                                </span>
-                            </Link>
-                        </div >
-                    ) : (
-                        <div className="flex items-center gap-1 p-1 rounded-xl border border-military-gray bg-charcoal-dark/70 shrink-0">
-                            <Link
-                                to="/auth?mode=login"
-                                className="flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-all uppercase text-[10px] sm:text-[11px] font-black tracking-wide sm:tracking-widest"
-                            >
-                                <LogIn className="w-4 h-4" />
-                                <span className="hidden sm:inline">Log In</span>
-                            </Link>
-                            <Link
-                                to="/auth?mode=signup"
-                                className="flex items-center gap-1 sm:gap-2 bg-white text-charcoal-dark font-black px-2.5 sm:px-4 py-2 rounded-lg hover:bg-[#fff5dc] transition-all uppercase text-[10px] sm:text-[11px] tracking-wide sm:tracking-widest"
-                            >
-                                <UserPlus className="w-4 h-4" />
-                                <span className="hidden sm:inline">Sign Up</span>
-                            </Link>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {user?.isAdmin && (
+                                            <Link to="/admin" className={utilityLinkClass}>
+                                                <LayoutDashboard className="w-3.5 h-3.5" />
+                                                <span>Admin</span>
+                                            </Link>
+                                        )}
+                                        <Link to="/privacy" className={utilityLinkClass}>
+                                            <Info className="w-3.5 h-3.5" />
+                                            <span>Privacy</span>
+                                        </Link>
+                                        <Link to="/my-squads" className={utilityLinkClass}>
+                                            <Users className="w-3.5 h-3.5" />
+                                            <span>Squads</span>
+                                        </Link>
+                                        <Link to="/inbox" className={utilityLinkClass}>
+                                            <Mail className="w-3.5 h-3.5" />
+                                            <span>Inbox</span>
+                                        </Link>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Link to="/auth?mode=login" className={utilityLinkClass}>
+                                        <LogIn className="w-4 h-4" />
+                                        <span>Log In</span>
+                                    </Link>
+                                    <Link to="/auth?mode=signup" className={primaryActionClass}>
+                                        <UserPlus className="w-4 h-4" />
+                                        <span>Sign Up</span>
+                                    </Link>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div >
-            </div >
-        </nav >
+                    </div>
+                )}
+            </div>
+        </nav>
     );
 };
 
