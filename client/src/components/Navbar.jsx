@@ -212,10 +212,12 @@ const Navbar = () => {
         <nav className="bg-charcoal-light border-b border-military-gray sticky top-0 z-50">
             <div className="container mx-auto px-3 sm:px-4 py-3">
                 <div className="flex items-center justify-between gap-3">
-                    <Link to="/" className="flex min-w-0 items-center gap-2 text-tactical-yellow font-bold text-base sm:text-xl uppercase tracking-tight shrink">
-                        <Crosshair className="w-8 h-8" />
-                        <span className="truncate md:hidden">Drop Zone</span>
-                        <span className="hidden md:inline">Drop Zone Squads</span>
+                    <Link to="/" className="flex min-w-0 items-center gap-2 text-tactical-yellow font-bold uppercase tracking-tight shrink">
+                        <Crosshair className="h-7 w-7 sm:h-8 sm:w-8" />
+                        <span className="min-w-0 text-[0.82rem] leading-none sm:text-xl">
+                            <span className="block truncate sm:hidden">Drop Zone Squads</span>
+                            <span className="hidden md:inline">Drop Zone Squads</span>
+                        </span>
                     </Link>
 
                     <div className="hidden min-w-0 items-center gap-3 md:flex">
