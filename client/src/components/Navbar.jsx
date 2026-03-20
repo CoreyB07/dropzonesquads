@@ -202,14 +202,14 @@ const Navbar = () => {
 
     return (
         <nav className="bg-charcoal-light border-b border-military-gray sticky top-0 z-50">
-            <div className="container mx-auto px-4 flex justify-between items-center h-16">
-                <Link to="/" className="flex items-center gap-2 text-tactical-yellow font-bold text-xl uppercase tracking-tighter">
+            <div className="container mx-auto px-3 sm:px-4 flex justify-between items-center h-16 gap-2">
+                <Link to="/" className="flex items-center gap-1.5 sm:gap-2 text-tactical-yellow font-bold text-lg sm:text-xl uppercase tracking-tighter shrink-0">
                     <Crosshair className="w-8 h-8" />
                     <span className="hidden md:inline">Drop Zone Squads</span>
                 </Link>
 
                 {/* Central Navigation */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                     {loading ? (
                         <div className="text-xs font-black uppercase tracking-widest text-gray-500">
                             Syncing...
@@ -278,20 +278,20 @@ const Navbar = () => {
                             </Link>
                         </div >
                     ) : (
-                        <div className="flex items-center gap-2 p-1 rounded-xl border border-military-gray bg-charcoal-dark/70">
+                        <div className="flex items-center gap-1 p-1 rounded-xl border border-military-gray bg-charcoal-dark/70 shrink-0">
                             <Link
                                 to="/auth?mode=login"
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-all uppercase text-[11px] font-black tracking-widest"
+                                className="flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-all uppercase text-[10px] sm:text-[11px] font-black tracking-wide sm:tracking-widest"
                             >
                                 <LogIn className="w-4 h-4" />
-                                <span>Log In</span>
+                                <span className="hidden sm:inline">Log In</span>
                             </Link>
                             <Link
                                 to="/auth?mode=signup"
-                                className="flex items-center gap-2 bg-white text-charcoal-dark font-black px-4 py-2 rounded-lg hover:bg-[#fff5dc] transition-all uppercase text-[11px] tracking-widest"
+                                className="flex items-center gap-1 sm:gap-2 bg-white text-charcoal-dark font-black px-2.5 sm:px-4 py-2 rounded-lg hover:bg-[#fff5dc] transition-all uppercase text-[10px] sm:text-[11px] tracking-wide sm:tracking-widest"
                             >
                                 <UserPlus className="w-4 h-4" />
-                                <span>Sign Up</span>
+                                <span className="hidden sm:inline">Sign Up</span>
                             </Link>
                         </div>
                     )}
