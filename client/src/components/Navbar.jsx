@@ -219,8 +219,7 @@ const Navbar = () => {
                     <Link to="/" className="flex min-w-0 items-center gap-2 text-tactical-yellow font-bold uppercase tracking-tight shrink">
                         <Crosshair className="h-7 w-7 sm:h-8 sm:w-8" />
                         <span className="min-w-0 text-[0.82rem] leading-none sm:text-xl">
-                            <span className="block truncate sm:hidden">Drop Zone Squads</span>
-                            <span className="hidden md:inline">Drop Zone Squads</span>
+                            <span className="block truncate">Drop Zone Squads</span>
                         </span>
                     </Link>
 
