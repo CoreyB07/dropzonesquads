@@ -8,6 +8,7 @@ import { useMySquads } from '../context/MySquadsContext';
 import { normalizeSquad, sanitizeSquadTag, updateSquad } from '../utils/squadsApi';
 import { fetchSquadMembers, getMyRoleInSquad, updateMemberRole } from '../utils/squadMembersApi';
 import { fetchBadgeCatalog, fetchSquadMemberBadges, saveMemberBadgeSelection } from '../utils/badgeApi';
+import { WARZONE_GAME_MODES } from '../constants/gameModes';
 
 const ROLE_OPTIONS = [
     { value: 'recruit', label: 'Recruit' },

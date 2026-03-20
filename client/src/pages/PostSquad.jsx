@@ -4,6 +4,7 @@ import { Send, Info, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
 import { createSquad, isValidSquadTag, sanitizeSquadTag } from '../utils/squadsApi';
+import { WARZONE_GAME_MODES } from '../constants/gameModes';
 
 const AUDIENCE_OPTIONS = [
     'Open to All',

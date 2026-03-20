@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { SlidersHorizontal, X, Search, Check } from 'lucide-react';
+import { WARZONE_GAME_MODES } from '../constants/gameModes';
 
 // ─── Filter Definitions ───────────────────────────────────────────────────────
 export const FILTER_CATEGORIES = [
