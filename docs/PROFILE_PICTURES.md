@@ -4,13 +4,16 @@
 
 Store preset images in:
 
-- `client/public/profile-pictures/presets/`
+- Base preset set: `client/public/profile-pictures/presets/`
   - `nature/`
   - `operators/`
   - `gear/`
   - `emblems/`
   - `abstract/`
   - `rank/`
+- Your custom preset upload folder: `client/public/profile-pictures/presets-custom/`
+  - `operators/`, `masks/`, `emblems/`, `abstract/`, `nature/`, `gear/`, `rank/`
+  - includes guide file: `client/public/profile-pictures/presets-custom/README.md`
 
 Manifest lives at:
 

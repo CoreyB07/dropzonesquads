@@ -203,7 +203,7 @@ const Profile = () => {
             showError(error.message || 'Could not submit picture for approval.');
         } else {
             success('Custom profile picture submitted for review.');
-            setPictureSubmission({ status: 'pending', created_at: new Date().toISOString() });
+            setPictureSubmission({ status: 'pending', created_at: new Date().toISOString(), rejection_reason: null });
             await supabase.from('profiles').update({ avatar_custom_status: 'pending' }).eq('id', user.id);
         }
 
@@ -274,6 +274,8 @@ const Profile = () => {
     const descriptor = hasActivisionId
         ? 'Tactical, squad-focused operator'
         : 'Activision ID is optional — you can add it anytime.';
+
+    const effectiveAvatarStatus = pictureSubmission?.status || user?.avatarCustomStatus || 'none';
 
     return (
         <div className="max-w-5xl mx-auto pb-24 space-y-6 text-white">
@@ -408,14 +410,17 @@ const Profile = () => {
                         disabled={isUploadingPicture}
                     />
                     <p className="text-[10px] text-gray-500">Max 2MB. Image files only. Preset picture stays public until approval.</p>
-                    {pictureSubmission?.status === 'pending' && (
+                    {effectiveAvatarStatus === 'pending' && (
                         <p className="text-xs text-amber-300 font-bold uppercase tracking-widest">Custom picture pending review</p>
                     )}
-                    {pictureSubmission?.status === 'rejected' && (
+                    {effectiveAvatarStatus === 'rejected' && (
                         <p className="text-xs text-red-300 font-bold uppercase tracking-widest">Last upload rejected{pictureSubmission?.rejection_reason ? `: ${pictureSubmission.rejection_reason}` : ''}</p>
                     )}
-                    {pictureSubmission?.status === 'approved' && (
+                    {effectiveAvatarStatus === 'approved' && (
                         <p className="text-xs text-green-300 font-bold uppercase tracking-widest">Custom picture approved and active</p>
+                    )}
+                    {effectiveAvatarStatus === 'none' && (
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Using preset profile picture</p>
                     )}
                 </div>
             </div>
