@@ -84,78 +84,22 @@
     transition: box-shadow 250ms ease, border-color 250ms ease;
   }
 
-  .standard-squad-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    border: 1px solid rgba(188, 200, 216, 0.1);
-    pointer-events: none;
-  }
-
-  .standard-squad-card::after {
-    content: "";
-    position: absolute;
-    inset: 0 0 48% 0;
-    border-radius: inherit;
-    background: linear-gradient(180deg,
-        rgba(198, 210, 224, 0.11) 0%,
-        rgba(110, 137, 167, 0.12) 34%,
-        rgba(255, 255, 255, 0) 100%);
-    mix-blend-mode: screen;
-    pointer-events: none;
-  }
-
   .standard-squad-card:hover {
-    border-color: rgba(180, 193, 208, 0.22);
-    box-shadow:
-      inset 0 0 0 1px rgba(214, 220, 228, 0.04),
-      0 14px 30px rgba(0, 0, 0, 0.42);
+    border-color: rgba(170, 170, 170, 0.55);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.42);
   }
 
   .featured-card {
-    @apply relative overflow-hidden rounded-lg border-2;
-    border-color: #e0b45d;
-    background:
-      linear-gradient(165deg, rgba(181, 119, 31, 0.44) 0%, rgba(120, 72, 18, 0.7) 38%, rgba(32, 20, 6, 0.9) 70%, rgba(10, 10, 10, 0.98) 100%),
-      #141414;
-    box-shadow:
-      inset 0 0 0 1px rgba(224, 180, 93, 0.22),
-      0 0 28px rgba(224, 180, 93, 0.24),
-      0 0 58px rgba(180, 120, 20, 0.32),
-      0 0 104px rgba(120, 72, 18, 0.24),
-      0 18px 44px rgba(0, 0, 0, 0.64);
-    transition: box-shadow 250ms ease, border-color 250ms ease;
-  }
-
-  .featured-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    border: 1px solid rgba(191, 144, 71, 0.32);
-    pointer-events: none;
-  }
-
-  .featured-card::after {
-    content: "";
-    position: absolute;
-    inset: 0 0 42% 0;
-    border-radius: inherit;
-    background: linear-gradient(180deg,
-        rgba(245, 200, 120, 0.14) 0%,
-        rgba(217, 158, 64, 0.08) 35%,
-        rgba(255, 255, 255, 0) 100%);
-    mix-blend-mode: screen;
-    pointer-events: none;
+    @apply relative overflow-hidden rounded-xl border;
+    border-color: rgba(212, 161, 74, 0.7);
+    background: #14120f;
+    box-shadow: 0 9px 20px rgba(0, 0, 0, 0.4);
+    transition: box-shadow 200ms ease, border-color 200ms ease;
   }
 
   .featured-card:hover {
-    border-color: rgba(224, 180, 93, 0.85);
-    box-shadow:
-      inset 0 0 0 1px rgba(224, 180, 93, 0.2),
-      0 0 20px rgba(180, 120, 20, 0.22),
-      0 14px 30px rgba(0, 0, 0, 0.58);
+    border-color: rgba(224, 180, 93, 0.9);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.48);
   }
 
   .featured-badge {

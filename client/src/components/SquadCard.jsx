@@ -45,41 +45,34 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
 
     return (
         <div
-            className={`card-tactical relative overflow-hidden group cursor-default transition-all duration-300 ${featured ? 'featured-card' : 'standard-squad-card'}`}
+            className={`relative overflow-hidden cursor-default transition-all duration-200 p-4 sm:p-5 ${featured ? 'featured-card' : 'standard-squad-card'}`}
         >
-            {/* Top Accent Strip */}
-            {!featured && (
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-slate-200/70 via-slate-300/80 to-sky-200/70 opacity-85" />
-            )}
+            {featured && <div className="absolute top-0 left-0 h-[2px] w-full bg-premium-gold/70" />}
 
-            <div className="relative z-10 space-y-4">
-                {/* Header Row */}
-                <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1">
+            <div className="relative z-10 space-y-3">
+                <div className="flex justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
                         {featured && (
-                            <span className="featured-badge mb-2 block w-max">
-                                Featured Squad
-                            </span>
+                            <span className="featured-badge mb-2 block w-max">Featured</span>
                         )}
-                        <h3 className="text-xl font-black uppercase tracking-wide leading-tight line-clamp-2 min-h-[50px]" title={name}>
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-100 leading-tight line-clamp-2" title={name}>
                             <SquadNameText name={name} />
                         </h3>
-                        <p className={`text-xs font-bold uppercase tracking-wider mt-0.5 truncate ${featured ? 'text-premium-gold-soft/85' : 'text-gray-500'}`}>
+                        <p className="text-xs sm:text-sm text-gray-400 mt-1 truncate">
                             {gameMode} / {skillLevel}
                         </p>
-
                         {!isOpen && (
-                            <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest mt-1.5 text-red-400">
+                            <p className="flex items-center gap-1.5 text-[11px] font-semibold mt-1.5 text-red-400">
                                 <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                CLOSED
+                                Closed
                             </p>
                         )}
                     </div>
-                    <div className={`shrink-0 px-2.5 py-1 rounded border text-[10px] font-black tracking-widest uppercase ${featured
+                    <div className={`shrink-0 px-2 py-1 rounded-md border text-[10px] font-semibold ${featured
                         ? 'bg-premium-gold/12 text-premium-gold-soft border-premium-gold-bright/35'
-                        : 'bg-slate-300/10 border-slate-300/20 text-slate-100 shadow-inner shadow-black/40'
+                        : 'bg-charcoal-dark border-military-gray text-gray-300'
                         }`}>
-                        MEMBERS {memberCount}
+                        {memberCount} members
                     </div>
                 </div>
 
@@ -104,11 +97,10 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
                     )}
                 </div>
 
-                {/* Card Actions Footer */}
-                <div className="pt-4 mt-2 border-t border-military-gray/50 flex items-center justify-between gap-3 relative before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent">
+                <div className="pt-3 mt-1 border-t border-military-gray/50 flex items-center gap-2">
                     <button
                         onClick={(e) => { e.stopPropagation(); handleCardOpen(); }}
-                        className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded ${featured ? 'bg-premium-gold/18 border border-premium-gold-bright/60 text-white shadow-[0_0_18px_rgba(183,121,31,0.24)]' : 'bg-slate-500 border border-slate-400 text-slate-100'}`}
+                        className="flex-1 py-2.5 text-[12px] font-semibold rounded-md border border-military-gray bg-charcoal-dark text-gray-100"
                     >
                         View Squad
                     </button>
@@ -118,16 +110,16 @@ const SquadCard = ({ squad, onJoin, featured = false }) => {
                                 e.stopPropagation();
                                 navigate(`/squad/${squad.id}/chat`, { state: { from: location.pathname } });
                             }}
-                        className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded flex justify-center items-center gap-2 ${featured ? 'bg-premium-gold-bright text-charcoal-dark border border-premium-gold-bright/45' : 'bg-tactical-yellow text-charcoal-dark shadow-[0_0_10px_rgba(255,154,31,0.1)]'}`}
+                            className="px-3 py-2.5 text-[12px] font-semibold rounded-md bg-tactical-yellow text-charcoal-dark flex items-center gap-1.5"
                         >
-                            <MessageSquare className="w-3.5 h-3.5" /> Squad Chat
+                            <MessageSquare className="w-3.5 h-3.5" /> Chat
                         </button>
                     ) : canJoin ? (
                         <button
                             onClick={(e) => { e.stopPropagation(); onJoin(squad); }}
-                            className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded ${featured ? 'bg-premium-gold-bright text-charcoal-dark border border-premium-gold-bright/45 shadow-md' : 'bg-tactical-yellow text-white border border-tactical-yellow shadow-[0_0_10px_rgba(217,119,6,0.2)]'}`}
+                            className="px-3 py-2.5 text-[12px] font-semibold rounded-md bg-tactical-yellow text-charcoal-dark"
                         >
-                            {isLfg ? 'Message Player' : 'Request to Join'}
+                            Join
                         </button>
                     ) : null}
                 </div>
