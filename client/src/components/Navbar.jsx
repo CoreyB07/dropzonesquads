@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Crosshair, LayoutDashboard, LogIn, UserPlus, Mail, MessageSquare, Users, Info, Menu, X } from 'lucide-react';
+import { Crosshair, LayoutDashboard, LogIn, UserPlus, Mail, Users, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useMySquads } from '../context/MySquadsContext';
 import { supabase } from '../utils/supabase';
@@ -242,16 +242,6 @@ const Navbar = () => {
                                     </Link>
                                 )}
                                 <Link
-                                    to="/privacy"
-                                    className={utilityLinkClass}
-                                    title="Privacy & Info"
-                                >
-                                    <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest">
-                                        <Info className="w-3.5 h-3.5" />
-                                        Privacy
-                                    </span>
-                                </Link>
-                                <Link
                                     to="/my-squads"
                                     className={utilityLinkClass}
                                     title="My Squads"
@@ -259,16 +249,6 @@ const Navbar = () => {
                                     <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest">
                                         <Users className="w-3.5 h-3.5" />
                                         My Squads
-                                    </span>
-                                </Link>
-                                <Link
-                                    to="/messages"
-                                    className={utilityLinkClass}
-                                    title="Open redesigned messages"
-                                >
-                                    <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest">
-                                        <MessageSquare className="w-3.5 h-3.5" />
-                                        Messages
                                     </span>
                                 </Link>
                                 <Link
@@ -345,17 +325,6 @@ const Navbar = () => {
                             ) : user ? (
                                 <div className="space-y-3">
                                     <Link
-                                        to="/messages"
-                                        className={`${utilityLinkClass} w-full justify-between rounded-2xl px-4 py-3`}
-                                    >
-                                        <span className="inline-flex items-center gap-2">
-                                            <MessageSquare className="w-4 h-4" />
-                                            <span className="text-[11px] font-black uppercase tracking-[0.18em]">Messages</span>
-                                        </span>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-500">New UI</span>
-                                    </Link>
-
-                                    <Link
                                         to="/inbox"
                                         className={`${inboxLinkClass} w-full justify-between rounded-2xl px-4 py-3`}
                                     >
@@ -392,10 +361,6 @@ const Navbar = () => {
                                                 <span>Admin</span>
                                             </Link>
                                         )}
-                                        <Link to="/privacy" className={utilityLinkClass}>
-                                            <Info className="w-3.5 h-3.5" />
-                                            <span>Privacy</span>
-                                        </Link>
                                         <Link to="/my-squads" className={utilityLinkClass}>
                                             <Users className="w-3.5 h-3.5" />
                                             <span>My Squads</span>

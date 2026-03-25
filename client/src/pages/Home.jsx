@@ -6,7 +6,7 @@ import { trackUxEvent } from '../utils/uxTelemetry';
 import SquadCard from '../components/SquadCard';
 import ApplyModal from '../components/ApplyModal';
 import SkeletonCard from '../components/SkeletonCard';
-import FilterDrawer, { DEFAULT_FILTERS, applyFilters, countActiveFilters } from '../components/FilterDrawer';
+import FilterDrawer, { DEFAULT_FILTERS, applyFilters } from '../components/FilterDrawer';
 import { ShieldCheck, CheckSquare } from 'lucide-react';
 import { fetchSquads as fetchSquadsFromDb } from '../utils/squadsApi';
 
@@ -14,13 +14,6 @@ const isSquadOpen = (squad) => {
     const current = Number(squad?.playerCount || 0);
     const limit = Number(squad?.maxPlayers || 0);
     return squad?.acceptingPlayers !== false && current < limit;
-};
-
-const getEngagementScore = (squad) => {
-    const current = Number(squad?.playerCount || 0);
-    const limit = Number(squad?.maxPlayers || 0);
-    const ratio = limit > 0 ? current / limit : 0;
-    return ratio * 100 + current;
 };
 
 const SUPPORT_CONFIG = {
@@ -50,7 +43,6 @@ const Home = () => {
     const [selectedSquad, setSelectedSquad] = useState(null);
     const [showMoreAds, setShowMoreAds] = useState(false);
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
-    const activeCount = countActiveFilters(filters);
 
     useEffect(() => {
         const loadSquads = async () => {
@@ -73,7 +65,7 @@ const Home = () => {
         [squads, filters]
     );
 
-    const prioritized = React.useMemo(() => {
+    const allClanAds = React.useMemo(() => {
         const openSquads = [];
         const closedSquads = [];
 
@@ -85,26 +77,15 @@ const Home = () => {
             }
         });
 
-        const rankedOpen = [...openSquads].sort((a, b) => {
-            const scoreDiff = getEngagementScore(b) - getEngagementScore(a);
-            if (scoreDiff !== 0) return scoreDiff;
-            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-        });
-
-        const featured = rankedOpen.slice(0, 4);
-        const featuredIds = new Set(featured.map((squad) => String(squad.id)));
-        const remainingOpen = rankedOpen.filter((squad) => !featuredIds.has(String(squad.id)));
+        const rankedOpen = [...openSquads].sort(
+            (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        );
         const rankedClosed = [...closedSquads].sort(
             (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
         );
 
-        return { featured, remainingOpen, rankedClosed };
+        return [...rankedOpen, ...rankedClosed];
     }, [filteredSquads]);
-
-    const allClanAds = React.useMemo(
-        () => [...prioritized.remainingOpen, ...prioritized.rankedClosed],
-        [prioritized.remainingOpen, prioritized.rankedClosed]
-    );
     const showcaseSquads = React.useMemo(() => allClanAds.slice(0, 12), [allClanAds]);
     const visibleClanAds = showMoreAds ? allClanAds : showcaseSquads;
     const hasMoreAds = allClanAds.length > showcaseSquads.length;
@@ -147,13 +128,6 @@ const Home = () => {
     ];
 
     const checklistCompleted = firstRunTasks.every((task) => task.done);
-    const openSquadCount = prioritized.featured.length + prioritized.remainingOpen.length;
-    const heroStats = [
-        { value: loading ? '...' : String(openSquadCount), label: 'Open squads' },
-        { value: loading ? '...' : String(prioritized.featured.length), label: 'Featured picks' },
-        { value: activeCount > 0 ? String(activeCount) : '0', label: 'Active filters' }
-    ];
-
 
     return (
         <div className="relative space-y-6 sm:space-y-12">
@@ -206,26 +180,15 @@ const Home = () => {
 
                             <button
                                 type="button"
-                                onClick={() => navigate('/find')}
+                                onClick={() => {
+                                    document.getElementById('why-it-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }}
                                 className="text-xs font-bold uppercase tracking-[0.16em] text-gray-300 underline underline-offset-4 transition-colors hover:text-white sm:text-sm"
                             >
-                                How it works
+                                See why it works
                             </button>
                         </div>
 
-                        <div className="mx-auto mt-5 hidden max-w-3xl grid-cols-1 gap-2.5 sm:mt-8 sm:grid sm:grid-cols-3 sm:gap-3">
-                            {heroStats.map((stat) => (
-                                <div
-                                    key={stat.label}
-                                    className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-4 py-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md"
-                                >
-                                    <p className="text-xl font-black text-white sm:text-2xl">{stat.value}</p>
-                                    <p className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-gray-400 sm:text-[11px]">
-                                        {stat.label}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
                     </div>
                 </div>
             </section>
@@ -290,7 +253,7 @@ const Home = () => {
                         </div>
                         <FilterDrawer filters={filters} onChange={setFilters} />
                     </div>
-                    {activeCount > 0 && (
+                    {(Object.values(filters).some((values) => values.length > 0)) && (
                         <div className="flex flex-wrap items-center gap-2">
                             {Object.entries(filters).flatMap(([key, values]) =>
                                 values.map(v => (
@@ -374,7 +337,7 @@ const Home = () => {
                 </div>
             )}
 
-            <section className={`${SECTION_SHELL_SOFT_CLASS} p-4 sm:p-5`}>
+            <section id="why-it-works" className={`${SECTION_SHELL_SOFT_CLASS} p-4 sm:p-5`}>
                 <div className={SECTION_INNER_GLOW} />
                 <div className="relative space-y-4">
                     <div>
