@@ -46,23 +46,49 @@ const Admin = () => {
         }
 
         setIsFetching(true);
-        try {
-            const [nextStats, nextSignups, nextPictureQueue, nextSquads] = await Promise.all([
-                fetchAdminStats(),
-                fetchRecentSignups(15),
-                fetchProfilePictureQueue(60),
-                fetchAdminSquads(150)
-            ]);
-            setStats(nextStats);
-            setRecentSignups(nextSignups);
-            setPictureQueue(nextPictureQueue);
-            setAdminSquads(nextSquads);
-        } catch (error) {
-            console.error('Failed to load admin data:', error);
-            showError(error?.message || 'Unable to load admin dashboard data.');
-        } finally {
-            setIsFetching(false);
+        const results = await Promise.allSettled([
+            fetchAdminStats(),
+            fetchRecentSignups(15),
+            fetchProfilePictureQueue(60),
+            fetchAdminSquads(150)
+        ]);
+
+        const [statsResult, signupsResult, pictureQueueResult, squadsResult] = results;
+
+        if (statsResult.status === 'fulfilled') {
+            setStats(statsResult.value);
+        } else {
+            console.error('Failed to load admin stats:', statsResult.reason);
+            setStats({ totalMembers: 0, totalSquads: 0, totalSupporters: 0, totalSubscribers: 0 });
         }
+
+        if (signupsResult.status === 'fulfilled') {
+            setRecentSignups(signupsResult.value);
+        } else {
+            console.error('Failed to load recent signups:', signupsResult.reason);
+            setRecentSignups([]);
+        }
+
+        if (pictureQueueResult.status === 'fulfilled') {
+            setPictureQueue(pictureQueueResult.value);
+        } else {
+            console.error('Failed to load picture moderation queue:', pictureQueueResult.reason);
+            setPictureQueue([]);
+        }
+
+        if (squadsResult.status === 'fulfilled') {
+            setAdminSquads(squadsResult.value);
+        } else {
+            console.error('Failed to load admin squads:', squadsResult.reason);
+            setAdminSquads([]);
+        }
+
+        const firstRejected = results.find((result) => result.status === 'rejected');
+        if (firstRejected) {
+            showError(firstRejected.reason?.message || 'Some admin data could not be loaded.');
+        }
+
+        setIsFetching(false);
     }, [canAccess, showError]);
 
     const handleApprovePicture = async (submissionId) => {
