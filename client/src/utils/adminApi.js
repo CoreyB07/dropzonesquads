@@ -1,4 +1,4 @@
-import { assertSupabaseConfigured, supabase } from './supabase';
+import { assertSupabaseConfigured, supabaseAuth } from './supabase';
 import { getPublicStorageUrl } from './profilePictures';
 
 const getCount = async (queryBuilder) => {
@@ -13,10 +13,10 @@ export const fetchAdminStats = async () => {
     assertSupabaseConfigured();
 
     const [totalMembers, totalSquads, totalSupporters, totalSubscribers] = await Promise.all([
-        getCount(supabase.from('profiles').select('*', { count: 'exact', head: true })),
-        getCount(supabase.from('squads').select('*', { count: 'exact', head: true })),
-        getCount(supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('supporter', true)),
-        getCount(supabase.from('marketing_subscribers').select('*', { count: 'exact', head: true }).eq('subscribed', true))
+        getCount(supabaseAuth.from('profiles').select('*', { count: 'exact', head: true })),
+        getCount(supabaseAuth.from('squads').select('*', { count: 'exact', head: true })),
+        getCount(supabaseAuth.from('profiles').select('*', { count: 'exact', head: true }).eq('supporter', true)),
+        getCount(supabaseAuth.from('marketing_subscribers').select('*', { count: 'exact', head: true }).eq('subscribed', true))
     ]);
 
     return {
@@ -30,7 +30,7 @@ export const fetchAdminStats = async () => {
 export const fetchRecentSignups = async (limit = 12) => {
     assertSupabaseConfigured();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAuth
         .from('profiles')
         .select('id, email, username, created_at, marketing_opt_in')
         .order('created_at', { ascending: false })
@@ -46,7 +46,7 @@ export const fetchRecentSignups = async (limit = 12) => {
 export const fetchProfilePictureQueue = async (limit = 50) => {
     assertSupabaseConfigured();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAuth
         .from('profile_picture_submissions')
         .select('id, user_id, status, original_path, approved_path, rejection_reason, created_at, reviewed_at, reviewed_by')
         .in('status', ['pending', 'rejected'])
@@ -59,7 +59,7 @@ export const fetchProfilePictureQueue = async (limit = 50) => {
     let profileMap = new Map();
 
     if (userIds.length > 0) {
-        const { data: profiles, error: profilesError } = await supabase
+        const { data: profiles, error: profilesError } = await supabaseAuth
             .from('profiles')
             .select('id, username')
             .in('id', userIds);
@@ -78,7 +78,7 @@ export const fetchProfilePictureQueue = async (limit = 50) => {
 export const approveProfilePictureSubmission = async (submissionId, adminUserId) => {
     assertSupabaseConfigured();
 
-    const { data: row, error: rowError } = await supabase
+    const { data: row, error: rowError } = await supabaseAuth
         .from('profile_picture_submissions')
         .select('id, user_id, original_path, status')
         .eq('id', submissionId)
@@ -92,7 +92,7 @@ export const approveProfilePictureSubmission = async (submissionId, adminUserId)
     const filename = row.original_path.split('/').pop();
     const approvedPath = `approved/${row.user_id}/${filename}`;
 
-    const { error: moveError } = await supabase.storage
+    const { error: moveError } = await supabaseAuth.storage
         .from('profile-pictures')
         .move(row.original_path, approvedPath);
 
@@ -100,7 +100,7 @@ export const approveProfilePictureSubmission = async (submissionId, adminUserId)
 
     const publicUrl = getPublicStorageUrl(approvedPath);
 
-    const { error: updateSubmissionError } = await supabase
+    const { error: updateSubmissionError } = await supabaseAuth
         .from('profile_picture_submissions')
         .update({
             status: 'approved',
@@ -113,7 +113,7 @@ export const approveProfilePictureSubmission = async (submissionId, adminUserId)
 
     if (updateSubmissionError) throw updateSubmissionError;
 
-    const { error: profileError } = await supabase
+    const { error: profileError } = await supabaseAuth
         .from('profiles')
         .update({
             avatar_url: publicUrl,
@@ -127,7 +127,7 @@ export const approveProfilePictureSubmission = async (submissionId, adminUserId)
 export const rejectProfilePictureSubmission = async (submissionId, adminUserId, reason = '') => {
     assertSupabaseConfigured();
 
-    const { data: row, error: rowError } = await supabase
+    const { data: row, error: rowError } = await supabaseAuth
         .from('profile_picture_submissions')
         .select('id, user_id, original_path, status')
         .eq('id', submissionId)
@@ -138,9 +138,9 @@ export const rejectProfilePictureSubmission = async (submissionId, adminUserId, 
         throw new Error('Submission not found or already reviewed.');
     }
 
-    await supabase.storage.from('profile-pictures').remove([row.original_path]);
+    await supabaseAuth.storage.from('profile-pictures').remove([row.original_path]);
 
-    const { error: updateSubmissionError } = await supabase
+    const { error: updateSubmissionError } = await supabaseAuth
         .from('profile_picture_submissions')
         .update({
             status: 'rejected',
@@ -152,7 +152,7 @@ export const rejectProfilePictureSubmission = async (submissionId, adminUserId, 
 
     if (updateSubmissionError) throw updateSubmissionError;
 
-    const { error: profileError } = await supabase
+    const { error: profileError } = await supabaseAuth
         .from('profiles')
         .update({ avatar_custom_status: 'rejected' })
         .eq('id', row.user_id);
@@ -163,7 +163,7 @@ export const rejectProfilePictureSubmission = async (submissionId, adminUserId, 
 export const fetchAdminSquads = async (limit = 100) => {
     assertSupabaseConfigured();
 
-    const { data: squads, error } = await supabase
+    const { data: squads, error } = await supabaseAuth
         .from('squads')
         .select('id, creator_id, name, game_mode, platform, audience, listing_type, accepting_players, created_at')
         .order('created_at', { ascending: false })
@@ -175,7 +175,7 @@ export const fetchAdminSquads = async (limit = 100) => {
     let profilesMap = new Map();
 
     if (creatorIds.length > 0) {
-        const { data: profiles, error: profilesError } = await supabase
+        const { data: profiles, error: profilesError } = await supabaseAuth
             .from('profiles')
             .select('id, username, email')
             .in('id', creatorIds);
@@ -194,7 +194,7 @@ export const fetchAdminSquads = async (limit = 100) => {
 export const deleteAdminSquad = async (squadId) => {
     assertSupabaseConfigured();
 
-    const { error } = await supabase
+    const { error } = await supabaseAuth
         .from('squads')
         .delete()
         .eq('id', squadId);
