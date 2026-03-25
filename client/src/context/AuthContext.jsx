@@ -250,8 +250,20 @@ export const AuthProvider = ({ children }) => {
 
         const {
             data: { subscription }
-        } = supabaseAuth.auth.onAuthStateChange(async (_event, session) => {
+        } = supabaseAuth.auth.onAuthStateChange(async (event, session) => {
             if (!active) return;
+
+            if (event === 'SIGNED_OUT') {
+                setLoading(false);
+                const cachedUser = readStoredValue('warzone_hub_current_user', null);
+                if (cachedUser?.id) {
+                    setUser(cachedUser);
+                    return;
+                }
+                setUser(null);
+                return;
+            }
+
             setLoading(false);
             await hydrateUser(session?.user || null);
         });
