@@ -41,144 +41,6 @@ const VALUE_PROPS = [
     'Join active squads and coordinate without the noise.'
 ];
 
-const DEMO_SQUADS = [
-    {
-        id: 'demo-1',
-        name: 'Late Night Resurgence',
-        gameMode: 'Resurgence',
-        platform: 'Crossplay',
-        micRequired: true,
-        skillLevel: 'Chill but Competitive',
-        audience: 'Open to All',
-        comms: 'Discord',
-        playerCount: 3,
-        maxPlayers: 4,
-        acceptingPlayers: true,
-        listingType: 'squad_looking_for_players',
-        createdAt: '2026-03-25T16:00:00Z'
-    },
-    {
-        id: 'demo-2',
-        name: 'Ranked Push Crew',
-        gameMode: 'Ranked',
-        platform: 'PC',
-        micRequired: true,
-        skillLevel: 'Sweaty',
-        audience: 'Invite Only',
-        comms: 'Game Chat',
-        playerCount: 2,
-        maxPlayers: 4,
-        acceptingPlayers: true,
-        listingType: 'squad_looking_for_players',
-        createdAt: '2026-03-25T15:20:00Z'
-    },
-    {
-        id: 'demo-3',
-        name: 'Weekend Big Map Squad',
-        gameMode: 'Battle Royale',
-        platform: 'PlayStation',
-        micRequired: false,
-        skillLevel: 'Casual',
-        audience: 'Open to All',
-        comms: 'Game Chat',
-        playerCount: 2,
-        maxPlayers: 4,
-        acceptingPlayers: true,
-        listingType: 'squad_looking_for_players',
-        createdAt: '2026-03-25T14:10:00Z'
-    },
-    {
-        id: 'demo-4',
-        name: 'Squad Fill for Trios',
-        gameMode: 'Battle Royale',
-        platform: 'Crossplay',
-        micRequired: true,
-        skillLevel: 'Intermediate',
-        audience: 'Open to All',
-        comms: 'Discord',
-        playerCount: 2,
-        maxPlayers: 3,
-        acceptingPlayers: true,
-        listingType: 'squad_looking_for_players',
-        createdAt: '2026-03-25T13:35:00Z'
-    },
-    {
-        id: 'demo-5',
-        name: 'Rebirth After Work',
-        gameMode: 'Resurgence',
-        platform: 'Xbox',
-        micRequired: false,
-        skillLevel: 'Casual',
-        audience: 'Open to All',
-        comms: 'Game Chat',
-        playerCount: 3,
-        maxPlayers: 4,
-        acceptingPlayers: true,
-        listingType: 'squad_looking_for_players',
-        createdAt: '2026-03-25T12:50:00Z'
-    },
-    {
-        id: 'demo-6',
-        name: 'Strategic Snipers',
-        gameMode: 'Battle Royale',
-        platform: 'PC',
-        micRequired: true,
-        skillLevel: 'Competitive',
-        audience: 'Invite Only',
-        comms: 'Discord',
-        playerCount: 2,
-        maxPlayers: 4,
-        acceptingPlayers: true,
-        listingType: 'squad_looking_for_players',
-        createdAt: '2026-03-25T12:05:00Z'
-    },
-    {
-        id: 'demo-7',
-        name: 'Solo Looking for Squad',
-        gameMode: 'Plunder',
-        platform: 'Xbox',
-        micRequired: false,
-        skillLevel: 'Beginner Friendly',
-        audience: 'Open to All',
-        comms: 'Discord',
-        playerCount: 1,
-        maxPlayers: 99,
-        acceptingPlayers: true,
-        listingType: 'player_looking_for_squad',
-        createdAt: '2026-03-25T11:20:00Z'
-    },
-    {
-        id: 'demo-8',
-        name: 'Night Owl Ranked Duo',
-        gameMode: 'Ranked',
-        platform: 'PlayStation',
-        micRequired: true,
-        skillLevel: 'Sweaty',
-        audience: 'Open to All',
-        comms: 'Game Chat',
-        playerCount: 1,
-        maxPlayers: 2,
-        acceptingPlayers: true,
-        listingType: 'squad_looking_for_players',
-        createdAt: '2026-03-25T10:40:00Z'
-    },
-    {
-        id: 'demo-9',
-        name: 'Casual Crossplay Crew',
-        gameMode: 'Resurgence',
-        platform: 'Crossplay',
-        micRequired: false,
-        skillLevel: 'Casual',
-        audience: 'Open to All',
-        comms: 'Discord',
-        playerCount: 2,
-        maxPlayers: 4,
-        acceptingPlayers: true,
-        listingType: 'squad_looking_for_players',
-        createdAt: '2026-03-25T09:10:00Z'
-    }
-];
-
 const Home = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -206,12 +68,9 @@ const Home = () => {
         loadSquads();
     }, []);
 
-    const hasLiveSquads = squads.length > 0;
-    const displaySquads = hasLiveSquads ? squads : DEMO_SQUADS;
-
     const filteredSquads = React.useMemo(
-        () => applyFilters(displaySquads, filters),
-        [displaySquads, filters]
+        () => applyFilters(squads, filters),
+        [squads, filters]
     );
 
     const prioritized = React.useMemo(() => {
