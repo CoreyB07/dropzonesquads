@@ -95,8 +95,7 @@ const Admin = () => {
         setDeletingSquadId(squad.id);
         try {
             await deleteAdminSquad(squad.id);
-            setAdminSquads((prev) => prev.filter((item) => item.id !== squad.id));
-            setStats((prev) => ({ ...prev, totalSquads: Math.max(0, Number(prev.totalSquads || 0) - 1) }));
+            await loadAdminData();
             success('Squad listing deleted.');
         } catch (error) {
             console.error('Failed to delete squad:', error);
