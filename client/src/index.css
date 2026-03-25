@@ -81,41 +81,22 @@
     @apply bg-charcoal-light border border-military-gray rounded-xl p-4 sm:p-6 hover:border-tactical-yellow-hover transition-all;
   }
 
-  .standard-squad-card {
-    @apply relative overflow-hidden rounded-lg border;
-    border-color: rgba(180, 193, 208, 0.22);
-    background:
-      linear-gradient(165deg, rgba(141, 154, 170, 0.14) 0%, rgba(82, 104, 132, 0.2) 26%, rgba(28, 35, 45, 0.88) 58%, rgba(7, 9, 13, 0.99) 100%),
-      #141414;
-    box-shadow:
-      inset 0 0 0 1px rgba(214, 220, 228, 0.04),
-      0 14px 30px rgba(0, 0, 0, 0.42);
-    transition: box-shadow 250ms ease, border-color 250ms ease;
-  }
-
-  .standard-squad-card:hover {
-    border-color: rgba(170, 170, 170, 0.55);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.42);
-  }
-
-  .featured-card {
+  .unified-squad-card {
     @apply relative overflow-hidden rounded-xl border;
-    border-color: rgba(212, 161, 74, 0.7);
-    background: #14120f;
-    box-shadow: 0 9px 20px rgba(0, 0, 0, 0.4);
-    transition: box-shadow 200ms ease, border-color 200ms ease;
+    border-color: rgba(212, 161, 74, 0.48);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.01)),
+      #14120f;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 9px 20px rgba(0, 0, 0, 0.4);
+    transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease;
   }
 
-  .featured-card:hover {
-    border-color: rgba(224, 180, 93, 0.9);
+  .unified-squad-card:hover {
+    border-color: rgba(224, 180, 93, 0.82);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.48);
-  }
-
-  .featured-badge {
-    @apply inline-flex items-center gap-1.5 px-2 py-0.5 mb-2 rounded-md text-[10px] font-semibold uppercase tracking-wide;
-    color: #e7c98a;
-    border: 1px solid rgba(212, 161, 74, 0.4);
-    background: rgba(78, 55, 24, 0.45);
+    transform: translateY(-1px);
   }
 
   .alert-error {

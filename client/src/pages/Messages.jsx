@@ -400,7 +400,7 @@ const Messages = () => {
 
   if (!user) {
     return (
-      <div className="rounded-xl border border-military-gray bg-charcoal-light p-6 text-sm font-bold uppercase tracking-widest text-gray-400">
+      <div className="rounded-2xl border border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))] p-6 text-sm text-gray-400 shadow-[0_16px_40px_rgba(0,0,0,0.24)]">
         Sign in to access messages.
       </div>
     );
@@ -408,14 +408,14 @@ const Messages = () => {
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="border-b border-military-gray pb-3">
-        <h1 className="text-2xl sm:text-3xl font-black uppercase italic tracking-wider text-white">Messages</h1>
-        <p className="mt-1 text-[11px] sm:text-sm font-bold tracking-widest text-gray-400 uppercase">
-          Redesigned inbox with Supabase-backed threads
+      <div className="border-b border-white/6 pb-3">
+        <h1 className="text-2xl font-bold text-white sm:text-3xl">Messages</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Stay in touch with squadmates and direct contacts.
         </p>
       </div>
 
-      <div className="hidden lg:flex flex-row gap-4">
+      <div className="hidden gap-4 lg:flex lg:flex-row">
         <ConversationList
           conversations={filteredConversations}
           activeConversationId={activeConversationId}
@@ -444,7 +444,7 @@ const Messages = () => {
         />
       </div>
 
-      <div className="lg:hidden">
+      <div className="lg:hidden pt-1">
         {mobileView === 'list' || !activeConversation ? (
           <ConversationList
             conversations={filteredConversations}

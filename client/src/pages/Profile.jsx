@@ -255,6 +255,11 @@ const Profile = () => {
 
     const effectiveAvatarStatus = pictureSubmission?.status || user?.avatarCustomStatus || 'none';
     const hasApprovedAvatar = effectiveAvatarStatus === 'approved' && Boolean(user?.avatar_url);
+    const quickStats = [
+        { label: 'Squads', value: joinedSquadsCount },
+        { label: 'Leadership', value: leadershipCount },
+        { label: 'Platform', value: user?.platform || 'PC' }
+    ];
 
     return (
         <div className="max-w-5xl mx-auto pb-24 space-y-6 text-white">
@@ -273,73 +278,78 @@ const Profile = () => {
                 </div>
             )}
 
-            <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[1.75rem] border border-military-gray bg-charcoal-light shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
-                <div
-                    className="absolute inset-0 opacity-[0.03]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 1px,transparent 40px)' }}
-                />
+            <div className="relative overflow-hidden rounded-[1.5rem] border border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.012))] shadow-[0_18px_50px_rgba(0,0,0,0.26)] sm:rounded-[1.75rem]">
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.025),transparent_38%)]" />
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
                 <div className="relative z-10 p-5 sm:p-7 lg:p-8">
-                    <div className="min-w-0">
-                        <div className="flex items-start justify-between gap-5 flex-wrap">
-                            <div className="space-y-3">
-                                <div className="space-y-2">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">Operator Identity</p>
-                                    <h1 className="flex items-center gap-2.5 text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-[-0.04em] leading-none text-white">
-                                        {showSupporterView && <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-premium-gold-soft shrink-0" />}
-                                        <span
-                                            className={showSupporterView ? 'text-premium-glow inline-block' : ''}
-                                            data-text={showSupporterView ? (user?.username || 'OPERATOR') : undefined}
-                                        >
-                                            {user?.username || 'OPERATOR'}
-                                        </span>
-                                    </h1>
-                                    <p className="text-sm md:text-[15px] text-slate-300 max-w-2xl leading-relaxed">
-                                        {descriptor}
-                                    </p>
-                                </div>
-
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0 flex-1 space-y-4">
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Profile</p>
                                 <div className="flex flex-wrap items-center gap-2.5">
-                                    <PlatformBadge platform={user?.platform || 'PC'} />
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-xs font-black uppercase tracking-wider">
-                                        <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                                        Active Operative
-                                    </span>
-                                    {showSupporterView && (
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-premium-gold/35 bg-premium-gold/10 text-premium-gold-soft text-xs font-black uppercase tracking-wider">
-                                            <Trophy className="w-3 h-3" />
-                                            {isSupporter ? 'Supporter' : 'Supporter Preview'}
-                                        </span>
-                                    )}
+                                    <h1 className="text-3xl font-black leading-none tracking-[-0.04em] text-white sm:text-4xl md:text-5xl">
+                                        {showSupporterView ? (
+                                            <span className="text-premium-glow inline-block" data-text={user?.username || 'OPERATOR'}>
+                                                {user?.username || 'OPERATOR'}
+                                            </span>
+                                        ) : (
+                                            user?.username || 'OPERATOR'
+                                        )}
+                                    </h1>
+                                    {showSupporterView && <Trophy className="h-5 w-5 shrink-0 text-premium-gold-soft sm:h-6 sm:w-6" />}
                                 </div>
+                                <p className="max-w-2xl text-sm leading-6 text-slate-300 md:text-[15px]">
+                                    {descriptor}
+                                </p>
                             </div>
 
-                            {!isEditing && (
-                                <div className="flex w-full flex-col items-stretch gap-2.5 sm:ml-auto sm:w-auto sm:items-end">
-                                    <button
-                                        onClick={openEditor}
-                                        className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-military-gray bg-charcoal-dark text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white hover:border-gray-400 transition-all"
-                                    >
-                                        <Pencil className="w-3 h-3" /> Edit Profile
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleLogout}
-                                        disabled={isLoggingOut}
-                                        className="inline-flex items-center justify-center sm:justify-end gap-1.5 px-2 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-60"
-                                    >
-                                        <LogOut className="w-3.5 h-3.5" />
-                                        {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
-                                    </button>
-                                </div>
-                            )}
+                            <div className="flex flex-wrap items-center gap-2.5">
+                                <PlatformBadge platform={user?.platform || 'PC'} />
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/25 bg-green-500/10 px-3 py-1 text-[11px] font-semibold text-green-300">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
+                                    Active
+                                </span>
+                                {showSupporterView && (
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-premium-gold/30 bg-premium-gold/10 px-3 py-1 text-[11px] font-semibold text-premium-gold-soft">
+                                        <Trophy className="h-3 w-3" />
+                                        {isSupporter ? 'Supporter' : 'Supporter Preview'}
+                                    </span>
+                                )}
+                                {!hasActivisionId && (
+                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-tactical-yellow/30 bg-tactical-yellow/5 px-3 py-1 text-[11px] font-semibold text-tactical-yellow">
+                                        Setup needed
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2.5 sm:max-w-md">
+                                {quickStats.map((stat) => (
+                                    <div key={stat.label} className="rounded-xl border border-white/7 bg-black/20 px-3 py-2.5">
+                                        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">{stat.label}</p>
+                                        <p className="mt-1 text-sm font-semibold text-white sm:text-base">{stat.value}</p>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
-                        {!hasActivisionId && (
-                            <div className="mt-5 inline-flex items-center gap-2 px-3 py-2 rounded-full border border-tactical-yellow/30 bg-tactical-yellow/5 text-[11px] font-black uppercase tracking-[0.16em] text-tactical-yellow">
-                                Setup Needed
+                        {!isEditing && (
+                            <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:min-w-[180px] sm:items-end">
+                                <button
+                                    onClick={openEditor}
+                                    className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-gray-200 transition-colors hover:border-white/14 hover:text-white"
+                                >
+                                    <Pencil className="h-3.5 w-3.5" /> Edit Profile
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleLogout}
+                                    disabled={isLoggingOut}
+                                    className="inline-flex items-center justify-center gap-1.5 px-2 py-1 text-[11px] font-semibold text-slate-500 transition-colors hover:text-slate-300 disabled:opacity-60 sm:justify-end"
+                                >
+                                    <LogOut className="h-3.5 w-3.5" />
+                                    {isLoggingOut ? 'Signing out...' : 'Sign out'}
+                                </button>
                             </div>
                         )}
                     </div>
