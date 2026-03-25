@@ -159,3 +159,45 @@ export const rejectProfilePictureSubmission = async (submissionId, adminUserId, 
 
     if (profileError) throw profileError;
 };
+
+export const fetchAdminSquads = async (limit = 100) => {
+    assertSupabaseConfigured();
+
+    const { data: squads, error } = await supabase
+        .from('squads')
+        .select('id, creator_id, name, game_mode, platform, audience, listing_type, accepting_players, created_at')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+    if (error) throw error;
+
+    const creatorIds = [...new Set((squads || []).map((row) => row.creator_id).filter(Boolean))];
+    let profilesMap = new Map();
+
+    if (creatorIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, username, email')
+            .in('id', creatorIds);
+
+        if (profilesError) throw profilesError;
+        profilesMap = new Map((profiles || []).map((row) => [row.id, row]));
+    }
+
+    return (squads || []).map((row) => ({
+        ...row,
+        creator_username: profilesMap.get(row.creator_id)?.username || 'Unknown',
+        creator_email: profilesMap.get(row.creator_id)?.email || ''
+    }));
+};
+
+export const deleteAdminSquad = async (squadId) => {
+    assertSupabaseConfigured();
+
+    const { error } = await supabase
+        .from('squads')
+        .delete()
+        .eq('id', squadId);
+
+    if (error) throw error;
+};

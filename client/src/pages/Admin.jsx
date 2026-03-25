@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Shield, Users, Megaphone, Crown, RefreshCw, Check, X } from 'lucide-react';
+import { BarChart3, Shield, Users, Megaphone, Crown, RefreshCw, Check, X, Trash2, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
 import {
@@ -8,7 +8,9 @@ import {
     fetchRecentSignups,
     fetchProfilePictureQueue,
     approveProfilePictureSubmission,
-    rejectProfilePictureSubmission
+    rejectProfilePictureSubmission,
+    fetchAdminSquads,
+    deleteAdminSquad
 } from '../utils/adminApi';
 
 const formatDateTime = (value) => {
@@ -21,7 +23,7 @@ const formatDateTime = (value) => {
 const Admin = () => {
     const navigate = useNavigate();
     const { user, loading } = useAuth();
-    const { error: showError } = useToast();
+    const { error: showError, success } = useToast();
     const [stats, setStats] = useState({
         totalMembers: 0,
         totalSquads: 0,
@@ -30,8 +32,11 @@ const Admin = () => {
     });
     const [recentSignups, setRecentSignups] = useState([]);
     const [pictureQueue, setPictureQueue] = useState([]);
+    const [adminSquads, setAdminSquads] = useState([]);
     const [moderationNote, setModerationNote] = useState('');
+    const [squadSearch, setSquadSearch] = useState('');
     const [isFetching, setIsFetching] = useState(true);
+    const [deletingSquadId, setDeletingSquadId] = useState(null);
 
     const canAccess = Boolean(user?.isAdmin);
 
@@ -42,14 +47,16 @@ const Admin = () => {
 
         setIsFetching(true);
         try {
-            const [nextStats, nextSignups, nextPictureQueue] = await Promise.all([
+            const [nextStats, nextSignups, nextPictureQueue, nextSquads] = await Promise.all([
                 fetchAdminStats(),
                 fetchRecentSignups(15),
-                fetchProfilePictureQueue(60)
+                fetchProfilePictureQueue(60),
+                fetchAdminSquads(150)
             ]);
             setStats(nextStats);
             setRecentSignups(nextSignups);
             setPictureQueue(nextPictureQueue);
+            setAdminSquads(nextSquads);
         } catch (error) {
             console.error('Failed to load admin data:', error);
             showError(error?.message || 'Unable to load admin dashboard data.');
@@ -62,6 +69,7 @@ const Admin = () => {
         try {
             await approveProfilePictureSubmission(submissionId, user.id);
             await loadAdminData();
+            success('Profile picture approved.');
         } catch (error) {
             showError(error?.message || 'Could not approve profile picture.');
         }
@@ -72,8 +80,29 @@ const Admin = () => {
             await rejectProfilePictureSubmission(submissionId, user.id, moderationNote);
             setModerationNote('');
             await loadAdminData();
+            success('Profile picture rejected.');
         } catch (error) {
             showError(error?.message || 'Could not reject profile picture.');
+        }
+    };
+
+    const handleDeleteSquad = async (squad) => {
+        if (!squad?.id || deletingSquadId) return;
+
+        const confirmed = window.confirm(`Delete squad listing "${squad.name}"? This cannot be undone.`);
+        if (!confirmed) return;
+
+        setDeletingSquadId(squad.id);
+        try {
+            await deleteAdminSquad(squad.id);
+            setAdminSquads((prev) => prev.filter((item) => item.id !== squad.id));
+            setStats((prev) => ({ ...prev, totalSquads: Math.max(0, Number(prev.totalSquads || 0) - 1) }));
+            success('Squad listing deleted.');
+        } catch (error) {
+            console.error('Failed to delete squad:', error);
+            showError(error?.message || 'Could not delete squad listing.');
+        } finally {
+            setDeletingSquadId(null);
         }
     };
 
@@ -87,6 +116,25 @@ const Admin = () => {
 
         loadAdminData();
     }, [loading, canAccess, loadAdminData]);
+
+    const filteredSquads = useMemo(() => {
+        const query = squadSearch.trim().toLowerCase();
+        if (!query) return adminSquads;
+
+        return adminSquads.filter((squad) => {
+            const haystack = [
+                squad.name,
+                squad.creator_username,
+                squad.creator_email,
+                squad.game_mode,
+                squad.platform,
+                squad.audience,
+                squad.listing_type
+            ].join(' ').toLowerCase();
+
+            return haystack.includes(query);
+        });
+    }, [adminSquads, squadSearch]);
 
     if (loading) {
         return (
@@ -133,7 +181,7 @@ const Admin = () => {
                 <div>
                     <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white">Admin Dashboard</h1>
                     <p className="text-xs font-black uppercase tracking-widest text-gray-400 mt-2">
-                        Site metrics (Cloudflare handles visitor analytics)
+                        Site metrics, moderation, and content controls
                     </p>
                 </div>
                 <button
@@ -170,6 +218,65 @@ const Admin = () => {
                     <p className="text-3xl font-black text-white">{stats.totalSubscribers}</p>
                     <Megaphone className="w-4 h-4 text-gray-500" />
                 </article>
+            </section>
+
+            <section className="card-tactical space-y-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 className="text-lg font-black uppercase tracking-widest text-white">Squad Moderation</h2>
+                        <p className="text-sm text-gray-500 mt-1">Review live squad posts and delete junk, demo, or spam listings.</p>
+                    </div>
+                    <div className="relative w-full sm:w-80">
+                        <Search className="absolute left-3 top-1/2 w-4 h-4 -translate-y-1/2 text-gray-500" />
+                        <input
+                            type="text"
+                            value={squadSearch}
+                            onChange={(e) => setSquadSearch(e.target.value)}
+                            placeholder="Search squads, creator, mode..."
+                            className="w-full rounded-lg border border-military-gray bg-charcoal-dark py-2.5 pl-9 pr-3 text-sm text-white"
+                        />
+                    </div>
+                </div>
+
+                {filteredSquads.length === 0 ? (
+                    <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">No squad listings match this search.</p>
+                ) : (
+                    <div className="space-y-3">
+                        {filteredSquads.map((squad) => (
+                            <div key={squad.id} className="rounded-xl border border-military-gray bg-charcoal-dark/60 p-3">
+                                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                    <div className="min-w-0 space-y-1">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <p className="text-sm font-black text-white uppercase tracking-wide">{squad.name || 'Unnamed Squad'}</p>
+                                            <span className="inline-flex rounded-full border border-military-gray px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                                {squad.platform || 'Unknown'}
+                                            </span>
+                                            <span className="inline-flex rounded-full border border-military-gray px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                                {squad.game_mode || 'Unknown Mode'}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-gray-400">
+                                            Creator: <span className="text-gray-200 font-semibold">{squad.creator_username}</span>
+                                            {squad.creator_email ? ` • ${squad.creator_email}` : ''}
+                                        </p>
+                                        <p className="text-[11px] text-gray-500 uppercase tracking-widest">
+                                            {squad.audience || 'Open to All'} • {squad.listing_type || 'squad_looking_for_players'} • {formatDateTime(squad.created_at)}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDeleteSquad(squad)}
+                                        disabled={deletingSquadId === squad.id}
+                                        className="inline-flex items-center justify-center gap-1.5 rounded-md border border-red-500/40 px-3 py-2 text-xs font-black uppercase tracking-widest text-red-300 disabled:opacity-50"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        {deletingSquadId === squad.id ? 'Deleting...' : 'Delete'}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </section>
 
             <section className="card-tactical space-y-4">
