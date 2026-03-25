@@ -95,9 +95,9 @@ const Admin = () => {
         setDeletingSquadId(squad.id);
         try {
             await deleteAdminSquad(squad.id);
+            await new Promise((resolve) => setTimeout(resolve, 250));
+            await loadAdminData();
             success('Squad listing deleted.');
-            window.location.reload();
-            return;
         } catch (error) {
             console.error('Failed to delete squad:', error);
             showError(error?.message || 'Could not delete squad listing.');
