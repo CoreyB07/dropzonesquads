@@ -39,6 +39,7 @@ const Admin = () => {
     const [squadSort, setSquadSort] = useState('newest');
     const [isFetching, setIsFetching] = useState(true);
     const [deletingSquadId, setDeletingSquadId] = useState(null);
+    const [lastLoadedAt, setLastLoadedAt] = useState(null);
 
     const canAccess = Boolean(user?.isAdmin);
 
@@ -61,28 +62,24 @@ const Admin = () => {
             setStats(statsResult.value);
         } else {
             console.error('Failed to load admin stats:', statsResult.reason);
-            setStats({ totalMembers: 0, totalSquads: 0, totalSupporters: 0, totalSubscribers: 0 });
         }
 
         if (signupsResult.status === 'fulfilled') {
             setRecentSignups(signupsResult.value);
         } else {
             console.error('Failed to load recent signups:', signupsResult.reason);
-            setRecentSignups([]);
         }
 
         if (pictureQueueResult.status === 'fulfilled') {
             setPictureQueue(pictureQueueResult.value);
         } else {
             console.error('Failed to load picture moderation queue:', pictureQueueResult.reason);
-            setPictureQueue([]);
         }
 
         if (squadsResult.status === 'fulfilled') {
             setAdminSquads(squadsResult.value);
         } else {
             console.error('Failed to load admin squads:', squadsResult.reason);
-            setAdminSquads([]);
         }
 
         const firstRejected = results.find((result) => result.status === 'rejected');
@@ -90,6 +87,7 @@ const Admin = () => {
             showError(firstRejected.reason?.message || 'Some admin data could not be loaded.');
         }
 
+        setLastLoadedAt(new Date().toISOString());
         setIsFetching(false);
     }, [canAccess, showError]);
 
@@ -239,17 +237,24 @@ const Admin = () => {
                         Site metrics, moderation, and content controls
                     </p>
                 </div>
-                <button
-                    type="button"
-                    onClick={loadAdminData}
-                    disabled={isFetching}
-                    className="w-full sm:w-auto px-4 py-2.5 rounded-md border border-military-gray text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white hover:border-gray-400 disabled:opacity-50"
-                >
-                    <span className="inline-flex items-center gap-2">
-                        <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-                        Refresh
-                    </span>
-                </button>
+                <div className="flex flex-col items-stretch gap-2 sm:items-end">
+                    <button
+                        type="button"
+                        onClick={loadAdminData}
+                        disabled={isFetching}
+                        className="w-full rounded-md border border-military-gray px-4 py-2.5 text-xs font-black uppercase tracking-widest text-gray-300 hover:border-gray-400 hover:text-white disabled:opacity-50 sm:w-auto"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                            Refresh
+                        </span>
+                    </button>
+                    {lastLoadedAt && (
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-500">
+                            Last loaded {formatDateTime(lastLoadedAt)}
+                        </p>
+                    )}
+                </div>
             </div>
 
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
