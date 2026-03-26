@@ -88,6 +88,11 @@ export const AuthProvider = ({ children }) => {
             return data;
         }
 
+        console.warn('Profile row missing for authenticated user; creating fallback profile', {
+            authUserId: authUser.id,
+            email: authUser.email || ''
+        });
+
         const fallbackUsername = (authUser.user_metadata?.username || authUser.email?.split('@')[0] || 'Operator').trim();
         const fallbackPlatform = (authUser.user_metadata?.platform || 'PC').trim();
         const fallbackActivisionId = (authUser.user_metadata?.activision_id || '').trim();
@@ -121,14 +126,23 @@ export const AuthProvider = ({ children }) => {
             return null;
         }
 
+        const cachedUser = readStoredValue('warzone_hub_current_user', null);
+        const optimisticBase = cachedUser?.id === authUser.id ? cachedUser : null;
+
         // Optimistic user state first so UI doesn't get stuck waiting on profile fetch/upsert.
-        const optimistic = normalizeProfile(authUser, null);
+        const optimistic = {
+            ...normalizeProfile(authUser, null),
+            ...(optimisticBase || {})
+        };
         setUser(optimistic);
         localStorage.setItem('warzone_hub_current_user', JSON.stringify(optimistic));
 
         try {
             const profile = await fetchProfile(authUser);
-            const normalized = normalizeProfile(authUser, profile);
+            const normalized = {
+                ...optimistic,
+                ...normalizeProfile(authUser, profile)
+            };
             setUser(normalized);
             localStorage.setItem('warzone_hub_current_user', JSON.stringify(normalized));
             return normalized;
