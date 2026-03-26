@@ -35,6 +35,8 @@ const Admin = () => {
     const [adminSquads, setAdminSquads] = useState([]);
     const [moderationNote, setModerationNote] = useState('');
     const [squadSearch, setSquadSearch] = useState('');
+    const [squadFilter, setSquadFilter] = useState('all');
+    const [squadSort, setSquadSort] = useState('newest');
     const [isFetching, setIsFetching] = useState(true);
     const [deletingSquadId, setDeletingSquadId] = useState(null);
 
@@ -145,9 +147,9 @@ const Admin = () => {
 
     const filteredSquads = useMemo(() => {
         const query = squadSearch.trim().toLowerCase();
-        if (!query) return adminSquads;
 
-        return adminSquads.filter((squad) => {
+        let next = adminSquads.filter((squad) => {
+            if (!query) return true;
             const haystack = [
                 squad.name,
                 squad.creator_username,
@@ -160,7 +162,34 @@ const Admin = () => {
 
             return haystack.includes(query);
         });
-    }, [adminSquads, squadSearch]);
+
+        if (squadFilter === 'open') {
+            next = next.filter((squad) => squad.accepting_players !== false);
+        } else if (squadFilter === 'closed') {
+            next = next.filter((squad) => squad.accepting_players === false);
+        } else if (squadFilter === 'players') {
+            next = next.filter((squad) => squad.listing_type === 'squad_looking_for_players');
+        } else if (squadFilter === 'lfg') {
+            next = next.filter((squad) => squad.listing_type === 'player_looking_for_squad');
+        } else if (squadFilter === 'junk') {
+            next = next.filter((squad) => /demo|test|temp|sample|asdf|qwer|123/i.test(String(squad.name || '')));
+        }
+
+        next = [...next].sort((a, b) => {
+            if (squadSort === 'oldest') {
+                return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+            }
+            if (squadSort === 'name') {
+                return String(a.name || '').localeCompare(String(b.name || ''));
+            }
+            if (squadSort === 'platform') {
+                return String(a.platform || '').localeCompare(String(b.platform || ''));
+            }
+            return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+        });
+
+        return next;
+    }, [adminSquads, squadSearch, squadFilter, squadSort]);
 
     if (loading) {
         return (
@@ -250,10 +279,10 @@ const Admin = () => {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 className="text-lg font-black uppercase tracking-widest text-white">Squad Moderation</h2>
-                        <p className="text-sm text-gray-500 mt-1">Review live squad posts and delete junk, demo, or spam listings.</p>
+                        <p className="mt-1 text-sm text-gray-500">Review live squad posts and delete junk, demo, or spam listings.</p>
                     </div>
                     <div className="relative w-full sm:w-80">
-                        <Search className="absolute left-3 top-1/2 w-4 h-4 -translate-y-1/2 text-gray-500" />
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                         <input
                             type="text"
                             value={squadSearch}
@@ -263,6 +292,47 @@ const Admin = () => {
                         />
                     </div>
                 </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-wrap gap-2">
+                        {[
+                            ['all', 'All'],
+                            ['open', 'Open'],
+                            ['closed', 'Closed'],
+                            ['players', 'Squads'],
+                            ['lfg', 'LFG'],
+                            ['junk', 'Likely Junk']
+                        ].map(([value, label]) => (
+                            <button
+                                key={value}
+                                type="button"
+                                onClick={() => setSquadFilter(value)}
+                                className={`rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] transition-colors ${squadFilter === value
+                                    ? 'border-tactical-yellow bg-tactical-yellow/10 text-tactical-yellow'
+                                    : 'border-military-gray text-gray-400 hover:text-white'}`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                        <span className="font-black uppercase tracking-[0.16em]">Sort</span>
+                        <select
+                            value={squadSort}
+                            onChange={(e) => setSquadSort(e.target.value)}
+                            className="rounded-lg border border-military-gray bg-charcoal-dark px-3 py-2 text-sm text-white"
+                        >
+                            <option value="newest">Newest</option>
+                            <option value="oldest">Oldest</option>
+                            <option value="name">Name</option>
+                            <option value="platform">Platform</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">
+                    Showing {filteredSquads.length} {filteredSquads.length === 1 ? 'listing' : 'listings'}
+                </p>
 
                 {filteredSquads.length === 0 ? (
                     <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">No squad listings match this search.</p>
