@@ -143,7 +143,7 @@ const Home = () => {
                 <div
                     className="absolute inset-0 z-0 bg-cover bg-center"
                     style={{
-                        backgroundImage: 'url("/warzonehero-v3.png")'
+                        backgroundImage: 'url("/warzonehero-v4.png")'
                     }}
                 />
                 <div className="absolute inset-0 z-0 bg-gradient-to-t from-black/55 via-black/18 to-black/8" />

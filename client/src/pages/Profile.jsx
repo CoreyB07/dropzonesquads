@@ -549,55 +549,57 @@ const ProfileDetailsSection = ({ user, mySquads, badgesBySquad, isSupporter, sho
 
     return (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <SummaryCard icon={Users} title="Joined Squads" eyebrow="Operator Network" accent="blue">
+                <SummaryCard icon={Users} title="Your Squads" eyebrow="Network" accent="blue">
                     <div className="flex items-center justify-between gap-3 pb-2 border-b border-military-gray/30">
                         <p className="text-[11px] text-slate-400">
-                            {joinedSquadsCount === 0 ? 'No linked squads yet.' : `${joinedSquadsCount} linked squad${joinedSquadsCount !== 1 ? 's' : ''}.`}
+                            {joinedSquadsCount === 0 ? 'You have not joined any squads yet.' : `${joinedSquadsCount} squad${joinedSquadsCount !== 1 ? 's' : ''} connected to your profile.`}
                         </p>
-                        <span className="inline-flex min-w-[2rem] justify-center px-2 py-1 rounded-full border border-blue-500/25 bg-blue-500/10 text-blue-300 text-[11px] font-black uppercase tracking-widest">
+                        <span className="inline-flex min-w-[2rem] justify-center rounded-full border border-blue-500/25 bg-blue-500/10 px-2 py-1 text-[11px] font-black uppercase tracking-widest text-blue-300">
                             {joinedSquadsCount}
                         </span>
                     </div>
                     {joinedSquadsCount > 0 ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2.5">
                             {mySquads.slice(0, 4).map((squad) => (
-                                <div key={squad.id} className="flex items-center justify-between p-3 rounded-lg bg-charcoal-dark border border-military-gray gap-3">
-                                    <div>
-                                        <p className="text-xs font-bold uppercase">
-                                            <SquadNameText name={squad.name} restClassName="text-white" />
-                                        </p>
-                                        <p className="text-[10px] text-gray-500">{squad.gameMode || 'Squad Listing'} · {squad.platform || 'Platform Unset'}</p>
-                                        {(badgesBySquad?.[squad.id] || []).length > 0 && (
-                                            <div className="flex flex-wrap gap-1.5 mt-1">
-                                                {(badgesBySquad[squad.id] || []).slice(0, 3).map((badge) => (
-                                                    <BadgeChip key={`${squad.id}-${badge.id}`} label={badge.label} category={badge.category} icon={badge.icon} description={badge.description} compact />
-                                                ))}
-                                            </div>
-                                        )}
+                                <div key={squad.id} className="rounded-xl border border-military-gray/70 bg-charcoal-dark/55 px-3.5 py-3">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p className="text-xs font-bold uppercase text-white">
+                                                <SquadNameText name={squad.name} restClassName="text-white" />
+                                            </p>
+                                            <p className="mt-0.5 text-[10px] text-gray-500">{squad.gameMode || 'Squad Listing'} · {squad.platform || 'Platform Unset'}</p>
+                                            {(badgesBySquad?.[squad.id] || []).length > 0 && (
+                                                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                                    {(badgesBySquad[squad.id] || []).slice(0, 3).map((badge) => (
+                                                        <BadgeChip key={`${squad.id}-${badge.id}`} label={badge.label} category={badge.category} icon={badge.icon} description={badge.description} compact />
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <SquadRoleBadge role={squad.role} />
                                     </div>
-                                    <SquadRoleBadge role={squad.role} />
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="rounded-xl border border-dashed border-military-gray bg-charcoal-dark/40 px-4 py-6 text-sm text-slate-400">
-                            Join or create a squad to start building your operator network.
+                        <div className="rounded-xl border border-dashed border-military-gray bg-charcoal-dark/40 px-4 py-5 text-sm text-slate-400">
+                            You have not joined a squad yet. Join one or create your own when you are ready.
                         </div>
                     )}
                 </SummaryCard>
 
-                <SummaryCard icon={ShieldCheck} title="Account Access" eyebrow="Account Intel" accent="bronze">
+                <SummaryCard icon={ShieldCheck} title="Account Details" eyebrow="Access" accent="bronze">
                     <div className="space-y-1">
-                        <SnapshotItem label="Linked Email" value={user?.email || 'No Email'} tone="muted" />
-                        <SnapshotItem label="Supporter Access" value={supporterState} tone={showSupporterView ? 'bronze' : 'muted'} />
-                        <SnapshotItem label="Leadership Roles" value={`${leadershipCount}`} tone={leadershipCount > 0 ? 'blue' : 'muted'} />
+                        <SnapshotItem label="Email" value={user?.email || 'No Email'} tone="muted" />
+                        <SnapshotItem label="Supporter" value={supporterState} tone={showSupporterView ? 'bronze' : 'muted'} />
+                        <SnapshotItem label="Leadership" value={`${leadershipCount}`} tone={leadershipCount > 0 ? 'blue' : 'muted'} />
                     </div>
                     <div className="rounded-xl border border-military-gray/70 bg-charcoal-dark/50 px-4 py-4">
-                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Visibility Rule</p>
-                        <p className="text-sm text-slate-300 mt-2 leading-relaxed">
+                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Privacy</p>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-300">
                             {user?.activisionId
-                                ? `${publicVisibility}. Squad leaders only see your Activision ID after acceptance based on your friend/squad sharing toggles.`
-                                : 'Activision ID is optional. You can still join squads, add friends, and use messaging without it.'}
+                                ? `${publicVisibility}. Your Activision ID is only shared based on the privacy rules you picked.`
+                                : 'Activision ID is optional. You can still browse squads, join teams, and use messages without adding it.'}
                         </p>
                     </div>
                 </SummaryCard>
