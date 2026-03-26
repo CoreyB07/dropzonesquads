@@ -11,29 +11,6 @@ const supabasePublishableKey = (
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const projectRef = (() => {
-    try {
-        return new URL(supabaseUrl).hostname.split('.')[0];
-    } catch {
-        return '';
-    }
-})();
-
-const authStorageKey = projectRef ? `sb-${projectRef}-auth-token` : '';
-
-const getStoredAccessToken = () => {
-    if (!authStorageKey || typeof localStorage === 'undefined') return null;
-
-    try {
-        const raw = localStorage.getItem(authStorageKey);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        return parsed?.access_token || parsed?.currentSession?.access_token || parsed?.session?.access_token || null;
-    } catch {
-        return null;
-    }
-};
-
 const resilientFetch = async (input, init = {}) => {
     const maxAttempts = 2;
     let lastError;
@@ -71,28 +48,23 @@ const resilientFetch = async (input, init = {}) => {
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey);
 
+const clientOptions = {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+    },
+    global: {
+        fetch: resilientFetch
+    }
+};
+
 export const supabaseAuth = isSupabaseConfigured
-    ? createClient(supabaseUrl, supabasePublishableKey, {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
-        },
-        global: {
-            fetch: resilientFetch
-        }
-    })
+    ? createClient(supabaseUrl, supabasePublishableKey, clientOptions)
     : null;
 
-// Data client uses token from local storage to avoid getSession/getUser hangs on each query.
-export const supabase = isSupabaseConfigured
-    ? createClient(supabaseUrl, supabasePublishableKey, {
-        accessToken: async () => getStoredAccessToken(),
-        global: {
-            fetch: resilientFetch
-        }
-    })
-    : null;
+// Keep a shared auth-aware data client so queries can refresh tokens instead of getting stuck on expired JWTs.
+export const supabase = supabaseAuth;
 
 export const assertSupabaseConfigured = () => {
     if (!isSupabaseConfigured || !supabase || !supabaseAuth) {
