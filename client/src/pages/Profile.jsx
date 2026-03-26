@@ -356,81 +356,83 @@ const Profile = () => {
                 </div>
             </div>
 
-            <div className="card-tactical space-y-4">
-                <div className="flex items-center justify-between gap-3">
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+                <div className="card-tactical space-y-4 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),transparent_34%)]">
                     <div>
-                        <h2 className="text-sm font-black uppercase tracking-widest text-tactical-yellow flex items-center gap-2"><ImagePlus className="w-4 h-4" /> Profile Picture</h2>
-                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mt-1">No default pictures. Upload one and wait for admin approval.</p>
+                        <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Operator Overview</h2>
+                        <p className="mt-1 text-sm text-slate-400">Core identity and account details tied directly to this operator.</p>
                     </div>
-                    <div className="w-16 h-16 rounded-xl overflow-hidden border border-military-gray bg-charcoal-dark">
-                        {hasApprovedAvatar ? (
-                            <img src={user.avatar_url} alt="Current profile picture" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 font-black">NONE</div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="rounded-xl border border-military-gray/60 bg-charcoal-dark/50 px-4 py-3">
+                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Activision ID</p>
+                            <p className={`mt-1 text-sm ${hasActivisionId ? 'font-mono text-white' : 'uppercase tracking-wide text-gray-400'}`}>
+                                {hasActivisionId ? user.activisionId : 'Not Set'}
+                            </p>
+                        </div>
+                        <div className="rounded-xl border border-military-gray/60 bg-charcoal-dark/50 px-4 py-3">
+                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Platform</p>
+                            <p className="mt-1 text-sm text-white">{user?.platform || 'PC'}</p>
+                        </div>
+                        <div className="rounded-xl border border-military-gray/60 bg-charcoal-dark/50 px-4 py-3 sm:col-span-2">
+                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">ID Sharing</p>
+                            <p className="mt-1 text-sm text-slate-300">
+                                {(user?.shareActivisionIdWithFriends || user?.shareActivisionIdWithSquads)
+                                    ? 'Shared by relationship rules'
+                                    : 'Private'}
+                            </p>
+                        </div>
+                        <div className="rounded-xl border border-military-gray/60 bg-charcoal-dark/50 px-4 py-3 sm:col-span-2">
+                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Account Status</p>
+                            <div className="mt-2">
+                                <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-blue-300">
+                                    <ShieldCheck className="h-3.5 w-3.5" />
+                                    Verified Operative
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="card-tactical space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                        <div>
+                            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-tactical-yellow"><ImagePlus className="w-4 h-4" /> Profile Picture</h2>
+                            <p className="mt-1 text-[11px] text-gray-500 uppercase tracking-widest">Upload one and wait for admin approval.</p>
+                        </div>
+                        <div className="h-16 w-16 overflow-hidden rounded-xl border border-military-gray bg-charcoal-dark">
+                            {hasApprovedAvatar ? (
+                                <img src={user.avatar_url} alt="Current profile picture" className="h-full w-full object-cover" />
+                            ) : (
+                                <div className="flex h-full w-full items-center justify-center text-xs font-black text-gray-500">NONE</div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-military-gray bg-charcoal-dark p-3 space-y-2.5">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Submit profile image</label>
+                        <input
+                            type="file"
+                            accept={ALLOWED_PROFILE_PICTURE_TYPES.join(',')}
+                            onChange={(e) => handleUploadCustomPicture(e.target.files?.[0] || null)}
+                            className="block w-full text-xs text-gray-300 file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border file:border-military-gray file:bg-charcoal-light file:text-gray-200"
+                            disabled={isUploadingPicture}
+                        />
+                        <p className="text-[10px] text-gray-500">Max 2MB. Image files only. Picture stays hidden until approved.</p>
+                        {effectiveAvatarStatus === 'pending' && (
+                            <p className="text-xs font-bold uppercase tracking-widest text-amber-300">Custom picture pending review</p>
+                        )}
+                        {effectiveAvatarStatus === 'rejected' && (
+                            <p className="text-xs font-bold uppercase tracking-widest text-red-300">Last upload rejected{pictureSubmission?.rejection_reason ? `: ${pictureSubmission.rejection_reason}` : ''}</p>
+                        )}
+                        {effectiveAvatarStatus === 'approved' && (
+                            <p className="text-xs font-bold uppercase tracking-widest text-green-300">Custom picture approved and active</p>
+                        )}
+                        {effectiveAvatarStatus === 'none' && (
+                            <p className="text-xs font-bold uppercase tracking-widest text-gray-500">No public profile picture set</p>
                         )}
                     </div>
                 </div>
-
-                <div className="rounded-lg border border-military-gray bg-charcoal-dark p-3 space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Submit profile image (admin approval required)</label>
-                    <input
-                        type="file"
-                        accept={ALLOWED_PROFILE_PICTURE_TYPES.join(',')}
-                        onChange={(e) => handleUploadCustomPicture(e.target.files?.[0] || null)}
-                        className="block w-full text-xs text-gray-300 file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border file:border-military-gray file:bg-charcoal-light file:text-gray-200"
-                        disabled={isUploadingPicture}
-                    />
-                    <p className="text-[10px] text-gray-500">Max 2MB. Image files only. Picture stays hidden until approved.</p>
-                    {effectiveAvatarStatus === 'pending' && (
-                        <p className="text-xs text-amber-300 font-bold uppercase tracking-widest">Custom picture pending review</p>
-                    )}
-                    {effectiveAvatarStatus === 'rejected' && (
-                        <p className="text-xs text-red-300 font-bold uppercase tracking-widest">Last upload rejected{pictureSubmission?.rejection_reason ? `: ${pictureSubmission.rejection_reason}` : ''}</p>
-                    )}
-                    {effectiveAvatarStatus === 'approved' && (
-                        <p className="text-xs text-green-300 font-bold uppercase tracking-widest">Custom picture approved and active</p>
-                    )}
-                    {effectiveAvatarStatus === 'none' && (
-                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">No public profile picture set</p>
-                    )}
-                </div>
             </div>
-
-            {!isEditing && (
-                <div className="grid grid-cols-1 gap-4">
-                    <div className="card-tactical bg-[linear-gradient(180deg,rgba(255,255,255,0.02),transparent_34%)]">
-                        <div className="mb-5">
-                            <div>
-                                <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Operator Overview</h2>
-                                <p className="text-sm text-slate-400 mt-1">Core identity and account details tied directly to this operator.</p>
-                            </div>
-                        </div>
-                        <InfoRow
-                            label="Activision ID"
-                            value={hasActivisionId ? user.activisionId : 'Not Set'}
-                            highlight={!hasActivisionId}
-                            valueClassName={hasActivisionId ? 'font-mono' : 'uppercase tracking-wide'}
-                        />
-                        <InfoRow
-                            label="Platform"
-                            value={user?.platform || 'PC'}
-                        />
-                        <InfoRow
-                            label="ID Sharing"
-                            value={(user?.shareActivisionIdWithFriends || user?.shareActivisionIdWithSquads) ? 'Shared By Relationship Rules' : 'Private'}
-                        />
-                        <InfoRow
-                            label="Account Status"
-                            valueNode={
-                                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-500/25 bg-blue-500/10 text-blue-300 text-[11px] font-black uppercase tracking-wider">
-                                    <ShieldCheck className="w-3.5 h-3.5" />
-                                    Verified Operative
-                                </span>
-                            }
-                        />
-                    </div>
-                </div>
-            )}
 
             {isEditing && (
                 <div className="card-tactical border-t-2 border-t-tactical-yellow">
