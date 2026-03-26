@@ -371,11 +371,22 @@ const Inbox = () => {
 
     return (
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="border-b border-military-gray pb-3">
-                <h1 className="text-2xl sm:text-3xl font-black uppercase italic tracking-wider text-white flex items-center gap-2.5">
-                    <Mail className="w-6 h-6 sm:w-7 sm:h-7 text-tactical-yellow" /> Secure Inbox
-                </h1>
-                <p className="mt-1 text-[10px] sm:text-xs font-bold tracking-widest text-gray-500 uppercase">Direct messages first · mobile focused</p>
+            <div className="border-b border-military-gray pb-3 space-y-2.5">
+                <div>
+                    <h1 className="flex items-center gap-2.5 text-2xl font-black uppercase italic tracking-wider text-white sm:text-3xl">
+                        <Mail className="h-6 w-6 text-tactical-yellow sm:h-7 sm:w-7" /> Inbox
+                    </h1>
+                    <p className="mt-1 text-sm text-gray-500">Your activity hub for notifications, requests, squad chat, and direct message highlights.</p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Use Inbox for what’s new. Use Messages for full direct conversations.</p>
+                    <Link
+                        to="/messages"
+                        className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-white transition-colors hover:border-white/20"
+                    >
+                        Open Messages
+                    </Link>
+                </div>
             </div>
 
             <div className="flex gap-2 overflow-x-auto pb-1">
@@ -398,13 +409,19 @@ const Inbox = () => {
             {(activeTab === 'all' || activeTab === 'dm') && (
                 <section className="bg-charcoal-light border border-military-gray rounded-xl overflow-hidden">
                     <div className="px-3 py-2.5 border-b border-military-gray bg-charcoal-dark flex items-center justify-between">
-                        <h2 className="text-[11px] font-black uppercase tracking-widest text-tactical-yellow">Direct Messages</h2>
+                        <div>
+                            <h2 className="text-[11px] font-black uppercase tracking-widest text-tactical-yellow">Direct Message Highlights</h2>
+                            <p className="mt-1 text-[10px] text-gray-500 uppercase tracking-widest">Recent conversations and unread pings</p>
+                        </div>
                         {unreadDirectCount > 0 && <span className="text-[10px] font-black text-red-300">{unreadDirectCount} unread</span>}
                     </div>
                     {loading ? (
                         <div className="flex justify-center items-center h-32"><Shield className="w-6 h-6 text-tactical-yellow animate-spin-slow opacity-50" /></div>
                     ) : conversations.length === 0 ? (
-                        <div className="p-6 text-center text-sm text-gray-500 font-bold uppercase tracking-widest">No direct messages yet</div>
+                        <div className="p-6 text-center">
+                            <p className="text-sm font-semibold text-white">No direct messages yet</p>
+                            <p className="mt-1 text-sm text-gray-500">When someone messages you, the latest conversation will show up here.</p>
+                        </div>
                     ) : (
                         <div className="divide-y divide-military-gray/50">
                             {conversations.map((conversation, idx) => {
@@ -445,7 +462,10 @@ const Inbox = () => {
             {(activeTab === 'all' || activeTab === 'squad') && mySquads && mySquads.length > 0 && (
                 <section className="bg-charcoal-light border border-military-gray rounded-xl overflow-hidden">
                     <div className="px-3 py-2.5 border-b border-military-gray bg-charcoal-dark flex items-center justify-between">
-                        <h2 className="text-[11px] font-black uppercase tracking-widest text-tactical-yellow">Squad Chats</h2>
+                        <div>
+                            <h2 className="text-[11px] font-black uppercase tracking-widest text-tactical-yellow">Squad Chat Activity</h2>
+                            <p className="mt-1 text-[10px] text-gray-500 uppercase tracking-widest">Jump back into your active squads</p>
+                        </div>
                         <span className="text-[10px] text-gray-500 font-black">Showing {visibleSquads.length} of {mySquads.length}</span>
                     </div>
                     <div className="divide-y divide-military-gray/50">
@@ -473,12 +493,15 @@ const Inbox = () => {
             {(activeTab === 'all' || activeTab === 'requests') && (
                 <section className="bg-charcoal-light border border-military-gray rounded-xl overflow-hidden">
                     <div className="px-3 py-2.5 border-b border-military-gray bg-charcoal-dark flex items-center justify-between">
-                        <h2 className="text-[11px] font-black uppercase tracking-widest text-tactical-yellow">Requests</h2>
+                        <div>
+                            <h2 className="text-[11px] font-black uppercase tracking-widest text-tactical-yellow">Requests</h2>
+                            <p className="mt-1 text-[10px] text-gray-500 uppercase tracking-widest">Pending squad joins that need attention</p>
+                        </div>
                         <span className="text-[10px] font-black text-gray-500">{pendingJoinRequestCount} pending</span>
                     </div>
                     <button type="button" onClick={() => navigate('/my-squads')} className="w-full text-left px-3 py-3 hover:bg-white/5">
                         <p className="text-sm text-white font-bold">Review squad join requests</p>
-                        <p className="text-[10px] uppercase tracking-widest text-gray-500">Open my squads to manage applications</p>
+                        <p className="text-[10px] uppercase tracking-widest text-gray-500">Open My Squads to manage applications</p>
                     </button>
                 </section>
             )}
@@ -486,11 +509,17 @@ const Inbox = () => {
             {(activeTab === 'all' || activeTab === 'notifications') && (
                 <section className="bg-charcoal-light border border-military-gray rounded-xl overflow-hidden">
                     <div className="px-3 py-2.5 border-b border-military-gray bg-charcoal-dark flex items-center justify-between">
-                        <h2 className="text-[11px] font-black uppercase tracking-widest text-tactical-yellow">Notifications</h2>
+                        <div>
+                            <h2 className="text-[11px] font-black uppercase tracking-widest text-tactical-yellow">Notifications</h2>
+                            <p className="mt-1 text-[10px] text-gray-500 uppercase tracking-widest">Updates from squads, messages, and friends</p>
+                        </div>
                         {unreadNotificationCount > 0 && <span className="text-[10px] font-black text-red-300">{unreadNotificationCount} unread</span>}
                     </div>
                     {notifications.length === 0 ? (
-                        <div className="p-4 text-sm text-gray-500 font-bold uppercase tracking-widest">No notifications yet</div>
+                        <div className="p-4 text-center">
+                            <p className="text-sm font-semibold text-white">No notifications yet</p>
+                            <p className="mt-1 text-sm text-gray-500">Important updates will show up here when something needs your attention.</p>
+                        </div>
                     ) : (
                         <div className="divide-y divide-military-gray/50">
                             {notifications.map((n) => {
