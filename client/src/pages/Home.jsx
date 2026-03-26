@@ -194,33 +194,33 @@ const Home = () => {
             </section>
 
             {!checklistDismissed && !checklistCompleted && (
-                <section className={`${SECTION_SHELL_SOFT_CLASS} p-4 sm:p-5`}>
+                <section className={`${SECTION_SHELL_SOFT_CLASS} p-4 sm:p-4.5`}>
                     <div className={SECTION_INNER_GLOW} />
-                    <div className="relative space-y-3">
+                    <div className="relative space-y-2.5">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tactical-yellow">Quick start</p>
-                                <div className="mt-1.5 flex items-center gap-2">
+                                <div className="mt-1 flex items-center gap-2">
                                     <CheckSquare className="h-4 w-4 text-tactical-yellow" />
-                                    <h2 className="text-sm font-bold text-white">Get set up fast</h2>
+                                    <h2 className="text-sm font-bold text-white">Finish setup in a minute</h2>
                                 </div>
                             </div>
                             <p className="text-xs text-gray-400">{firstRunTasks.filter(t => t.done).length}/{firstRunTasks.length} complete</p>
                         </div>
-                        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                             {firstRunTasks.map((task) => (
                                 <button
                                     key={task.id}
                                     type="button"
                                     onClick={task.action}
-                                    className="rounded-xl border border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.015))] px-3.5 py-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:border-white/12"
+                                    className="rounded-xl border border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.012))] px-3 py-2.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:border-white/12"
                                 >
-                                    <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-center justify-between gap-3">
                                         <div>
                                             <p className={`text-sm font-semibold ${task.done ? 'text-green-300' : 'text-white'}`}>{task.label}</p>
-                                            <p className="mt-1 text-[11px] text-gray-500">{task.done ? 'Complete' : task.cta}</p>
+                                            <p className="mt-0.5 text-[11px] text-gray-500">{task.done ? 'Complete' : task.cta}</p>
                                         </div>
-                                        <span className={`mt-0.5 inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${task.done ? 'bg-green-400' : 'bg-tactical-yellow'}`} />
+                                        <span className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${task.done ? 'bg-green-400' : 'bg-tactical-yellow'}`} />
                                     </div>
                                 </button>
                             ))}
@@ -317,8 +317,28 @@ const Home = () => {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="col-span-full rounded-3xl border border-dashed border-military-gray bg-black/20 py-10 text-center font-bold uppercase tracking-widest text-gray-500">
-                                    No squads match current filters
+                                <div className="rounded-3xl border border-dashed border-military-gray bg-black/20 px-5 py-10 text-center">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tactical-yellow">No matches right now</p>
+                                    <h3 className="mt-2 text-lg font-bold text-white">No squads match your current filters</h3>
+                                    <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-400">
+                                        Try clearing a few filters or be the first to post a squad that matches the vibe you want.
+                                    </p>
+                                    <div className="mt-5 flex flex-col items-center justify-center gap-2 sm:flex-row">
+                                        <button
+                                            type="button"
+                                            onClick={() => setFilters(DEFAULT_FILTERS)}
+                                            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-5 py-2.5 text-xs font-black uppercase tracking-[0.18em] text-white transition-colors hover:border-white/20"
+                                        >
+                                            Clear Filters
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate('/post')}
+                                            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-tactical-yellow px-5 py-2.5 text-xs font-black uppercase tracking-[0.18em] text-charcoal-dark transition-colors hover:bg-tactical-yellow-hover"
+                                        >
+                                            Post a Squad
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                             {hasMoreAds && (
